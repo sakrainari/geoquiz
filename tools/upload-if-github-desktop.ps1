@@ -16,7 +16,7 @@ if (-not $status) {
   exit 0
 }
 
-git add README.md index.html css js data docs assets tools
+git add -A
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 git commit -m $Message

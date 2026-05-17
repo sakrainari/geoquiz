@@ -10,6 +10,21 @@ GeoGuessr向けの地域認識トレーニングツールです。最初の対�
 - npm不要
 - サーバー起動不要
 - Chrome / Edge 想定
+- Leaflet / Turf.js は `vendor/` にローカル同梱
+
+## GitHub Pages
+
+公開確認URL:
+
+https://sakrainari.github.io/geoquiz/
+
+初回のみ、GitHubのリポジトリ設定で Pages を有効化します。
+
+- Source: `Deploy from a branch`
+- Branch: `main`
+- Folder: `/ (root)`
+
+`index.html` がリポジトリルートにあるため、`main / root` でそのまま公開できます。
 
 ## 企画・デザイン資料
 
@@ -21,6 +36,7 @@ GeoGuessr向けの地域認識トレーニングツールです。最初の対�
 
 - React / Vue / Vite / Webpack は使わない
 - ローカルファイルだけで動くスタンドアロン構成を維持する
+- 実行時に外部CDNを必須にしない
 - データ、地図描画、クイズ判定、分析、MA集約を分離する
 - 未回答エリアには地名・市外局番・MA名を表示しない
 - ラベルはFeatureまたはsubLayer単位で `bindTooltip()` する
@@ -34,6 +50,7 @@ GeoGuessr向けの地域認識トレーニングツールです。最初の対�
 
 - 実装メモ: 2026-05-18 に企画書とUIコンセプト画像を追加。
 - 実装メモ: 2026-05-18 に埼玉県版MVPを実装。市区町村モード、MAモード、サドンデス、ラベル、ヒートマップ、JSON出力を追加。
+- 実装メモ: 2026-05-18 にLeaflet / Turf.jsをローカル同梱し、GitHub Pagesは `main / root` 公開前提に整理。
 - 検証メモ: Codex内ブラウザは `file://` を開けないため、検証時のみ `http://127.0.0.1:8765/` を使用。アプリ本体は静的ファイル構成。
 - [x] 市区町村モード
 - [x] サドンデス
@@ -45,6 +62,8 @@ GeoGuessr向けの地域認識トレーニングツールです。最初の対�
 - [x] 隣接県ゴースト表示
 - [x] 将来拡張用のモード選択UI
 - [x] `index.html` ダブルクリック起動
+- [x] Leaflet / Turf.js のローカル同梱
+- [x] GitHub Pages `main / root` 公開手順の整備
 
 ### Phase 2: データ構造の共通化
 
