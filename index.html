@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>日本市外局番マップクイズ | 埼玉県版</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQfLQfrNfE8M7uCwI1U6xL9u4xy5cM=" crossorigin="">
+    <link rel="stylesheet" href="css/style.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section id="startScreen" class="start-screen">
+        <div class="brand-block">
+          <p class="eyebrow">GeoGuessr training / Saitama MVP</p>
+          <h1>日本市外局番マップクイズ</h1>
+          <p>未回答の白地図から、埼玉県の市町村と市外局番・MAを叩き込むトレーニングツール。</p>
+        </div>
+        <div class="mode-grid" aria-label="モード選択">
+          <button class="mode-card" data-start-mode="municipality">
+            <span>市区町村</span>
+            <strong>市町村名から場所を当てる</strong>
+          </button>
+          <button class="mode-card" data-start-mode="ma">
+            <span>市外局番 / MA</span>
+            <strong>番号またはMA名からエリアを当てる</strong>
+          </button>
+          <button class="mode-card is-disabled" disabled>
+            <span>画像判別</span>
+            <strong>県旗・市章・標識は今後追加</strong>
+          </button>
+        </div>
+      </section>
+
+      <section id="gameScreen" class="game-screen is-hidden">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow" id="modeLabel">市区町村モード</p>
+            <h2 id="questionText">読み込み中</h2>
+          </div>
+          <div class="top-actions">
+            <button id="backToMenuButton" class="ghost-button" type="button">モード選択</button>
+            <button id="resetButton" class="primary-button" type="button">リセット</button>
+          </div>
+        </header>
+
+        <div class="play-layout">
+          <div id="map" class="map-panel" aria-label="埼玉県クイズ地図"></div>
+          <aside class="status-panel">
+            <div class="stat-row"><span>残り</span><strong id="remainingCount">0</strong></div>
+            <div class="stat-row"><span>正解</span><strong id="correctCount">0</strong></div>
+            <div class="stat-row"><span>ミス</span><strong id="mistakeCount">0</strong></div>
+            <div class="stat-row"><span>経過</span><strong id="elapsedTime">00:00</strong></div>
+            <label class="toggle-row">
+              <input id="suddenDeathToggle" type="checkbox">
+              <span>サドンデス</span>
+            </label>
+            <div class="legend-block">
+              <span class="legend-item"><i class="swatch pending"></i>未回答</span>
+              <span class="legend-item"><i class="swatch correct"></i>正解済み</span>
+              <span class="legend-item"><i class="swatch miss"></i>弱点</span>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="resultScreen" class="result-screen is-hidden">
+        <div class="result-copy">
+          <p class="eyebrow" id="resultModeLabel">Result</p>
+          <h2 id="resultTitle">リザルト</h2>
+          <p id="resultSummary">結果を集計しています。</p>
+        </div>
+        <div class="result-grid">
+          <div class="result-card"><span>正解</span><strong id="resultCorrect">0</strong></div>
+          <div class="result-card"><span>ミス</span><strong id="resultMistakes">0</strong></div>
+          <div class="result-card"><span>平均回答</span><strong id="resultAverage">0.0s</strong></div>
+          <div class="result-card"><span>出題数</span><strong id="resultTotal">0</strong></div>
+        </div>
+        <div class="result-actions">
+          <button id="downloadJsonButton" class="primary-button" type="button">弱点JSONをダウンロード</button>
+          <button id="retryButton" class="ghost-button" type="button">もう一度プレイ</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
+    <script src="data/prefectures/saitama.js"></script>
+    <script src="data/ghost/kanto-ghost.js"></script>
+    <script src="js/ma-union.js"></script>
+    <script src="js/quiz-engine.js"></script>
+    <script src="js/result-analytics.js"></script>
+    <script src="js/map-renderer.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
