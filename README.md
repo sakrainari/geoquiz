@@ -112,3 +112,16 @@ GeoGuessr向けの地域認識トレーニングツールです。最初の対�
 ## 進捗更新ルール
 
 実装が完了した項目は、このREADMEの該当Phaseでチェックを入れ、必要なら「状態」を更新します。大きな追加をした場合は、Phase内に短い実装メモを残します。
+
+## アップロード運用
+
+今後、Codexが実装を完了した場合は GitHub Desktop の起動状態を確認します。
+
+- GitHub Desktop が起動している場合: 変更を commit して `origin/main` に push する
+- GitHub Desktop が起動していない場合: 「GitHub Desktopが起動していないためアップロードできない」と注意する
+
+補助スクリプト:
+
+```powershell
+.\tools\upload-if-github-desktop.ps1 -Message "Update geoquiz"
+```
