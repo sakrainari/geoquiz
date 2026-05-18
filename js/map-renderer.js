@@ -17,6 +17,7 @@
       this.ghostData = ghostData;
       this.layersById = new Map();
       this.tooltipsById = new Map();
+      this.answeredIds = new Set();
       this.mode = "municipality";
       this.map = L.map(elementId, {
         zoomControl: true,
@@ -132,7 +133,8 @@
     }
 
     markCorrect(id) {
-      this.refreshFeatureStyle(id, this.answeredStyle(id));
+      this.answeredIds.add(id);
+      this.refreshFeatureStyle(id);
       this.showLabel(id);
     }
 
@@ -175,10 +177,12 @@
 
     refreshFeatureStyle(id, style) {
       const layers = this.layersById.get(id) || [];
-      layers.forEach((layer) => layer.setStyle(style || this.baseStyle()));
+      const nextStyle = style || (this.answeredIds.has(id) ? this.answeredStyle(id) : this.baseStyle());
+      layers.forEach((layer) => layer.setStyle(nextStyle));
     }
 
     reset() {
+      this.answeredIds.clear();
       this.layersById.forEach((layers) => layers.forEach((layer) => layer.setStyle(this.baseStyle())));
       this.tooltipsById.forEach((marker) => marker.remove());
       this.tooltipsById.clear();
