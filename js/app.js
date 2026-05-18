@@ -7,6 +7,8 @@
   let renderer;
   let currentMode = "municipality";
   let lastResultPayload = null;
+  let lastReferenceKey = null;
+  let areaReferenceFeatures = null;
   let timerId = null;
 
   const els = {
@@ -16,6 +18,7 @@
     appSubtitle: document.getElementById("appSubtitle"),
     appTitle: document.getElementById("appTitle"),
     appDescription: document.getElementById("appDescription"),
+    referencePreview: document.getElementById("referencePreview"),
     questionText: document.getElementById("questionText"),
     modeLabel: document.getElementById("modeLabel"),
     remainingCount: document.getElementById("remainingCount"),
@@ -88,6 +91,7 @@
     showGame();
     ensureMap().reset();
     renderer.setMode(mode);
+    lastReferenceKey = null;
     updateHud();
     startTimer();
     window.setTimeout(() => {
@@ -138,6 +142,7 @@
     els.correctCount.textContent = `${engine.correct}`;
     els.mistakeCount.textContent = `${engine.mistakes}`;
     els.elapsedTime.textContent = formatTime(engine.elapsedMs());
+    updateReferencePreview();
   }
 
   function startTimer() {
@@ -169,6 +174,73 @@
 
   function modeName(mode) {
     return window.QuizModes.getMode(mode).label;
+  }
+
+  function updateReferencePreview() {
+    const question = engine.currentQuestion();
+    const key = question ? `${currentMode}:${question.id || question.answerId}` : "none";
+    if (key === lastReferenceKey) return;
+    lastReferenceKey = key;
+    if (!question) {
+      els.referencePreview.innerHTML = "";
+      return;
+    }
+
+    const feature = referenceFeatureForQuestion(question);
+    els.referencePreview.innerHTML = feature ? renderReferenceSvg(feature) : "";
+  }
+
+  function referenceFeatureForQuestion(question) {
+    if (currentMode === "ma") {
+      if (!areaReferenceFeatures) {
+        areaReferenceFeatures = window.MaUnion.buildMaCollections(dataset, "area_code");
+      }
+      return areaReferenceFeatures.find((feature) => feature.properties.area_code === question.area_code);
+    }
+
+    const memberIds = question.memberIds || [question.answerId];
+    const features = dataset.features.filter((feature) => memberIds.includes(feature.properties.id));
+    if (!features.length) return null;
+    return window.MaUnion.unionFeatures(features, {
+      ...features[0].properties,
+      sourceFeatureCount: features.length
+    });
+  }
+
+  function renderReferenceSvg(feature) {
+    const rings = geometryRings(feature.geometry);
+    if (!rings.length) return "";
+    const points = rings.flat();
+    const bounds = points.reduce((box, point) => ({
+      minX: Math.min(box.minX, point[0]),
+      minY: Math.min(box.minY, point[1]),
+      maxX: Math.max(box.maxX, point[0]),
+      maxY: Math.max(box.maxY, point[1])
+    }), { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity });
+    const width = Math.max(bounds.maxX - bounds.minX, 0.000001);
+    const height = Math.max(bounds.maxY - bounds.minY, 0.000001);
+    const viewWidth = 140;
+    const viewHeight = 104;
+    const pad = 10;
+    const scale = Math.min((viewWidth - pad * 2) / width, (viewHeight - pad * 2) / height);
+    const offsetX = (viewWidth - width * scale) / 2;
+    const offsetY = (viewHeight - height * scale) / 2;
+    const path = rings.map((ring) => ring.map((point, index) => {
+      const x = offsetX + (point[0] - bounds.minX) * scale;
+      const y = offsetY + (bounds.maxY - point[1]) * scale;
+      return `${index ? "L" : "M"}${x.toFixed(2)} ${y.toFixed(2)}`;
+    }).join(" ") + " Z").join(" ");
+    return `<svg viewBox="0 0 ${viewWidth} ${viewHeight}" role="img" aria-label="出題エリアの形"><path d="${path}" fill-rule="evenodd"></path></svg>`;
+  }
+
+  function geometryRings(geometry) {
+    if (!geometry) return [];
+    if (geometry.type === "Polygon") return geometry.coordinates;
+    if (geometry.type === "MultiPolygon") return geometry.coordinates.flat();
+    if (geometry.type === "GeometryCollection") {
+      return geometry.geometries.flatMap((item) => geometryRings(item));
+    }
+    return [];
   }
 
   function applyDatasetMeta() {

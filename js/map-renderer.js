@@ -319,25 +319,7 @@
       };
       delete properties.labelPoint;
 
-      const collection = { type: "FeatureCollection", features };
-      let geometry = null;
-      if (window.turf && typeof window.turf.union === "function") {
-        try {
-          const unioned = window.turf.union(collection);
-          geometry = unioned && unioned.geometry;
-        } catch (error) {
-          geometry = null;
-        }
-      }
-
-      return {
-        type: "Feature",
-        properties,
-        geometry: geometry || {
-          type: "GeometryCollection",
-          geometries: features.map((feature) => feature.geometry)
-        }
-      };
+      return window.MaUnion.unionFeatures(features, properties);
     });
   }
 
