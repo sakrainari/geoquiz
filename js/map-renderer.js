@@ -17,8 +17,10 @@
       this.ghostData = ghostData;
       this.layersById = new Map();
       this.areaCodeLayersByCode = new Map();
+      this.areaCodeFeaturesByCode = new Map();
       this.displayFeaturesById = new Map();
       this.tooltipsById = new Map();
+      this.areaCodeTooltipsByCode = new Map();
       this.answeredIds = new Set();
       this.answeredAreaCodes = new Set();
       this.heatmapStats = null;
@@ -91,11 +93,13 @@
         this.maLayer = null;
       }
       this.areaCodeLayersByCode.clear();
+      this.areaCodeFeaturesByCode.clear();
       if (mode === "ma") this.renderMaOverlay();
     }
 
     renderMaOverlay() {
       const features = window.MaUnion.buildMaCollections(this.dataset, "area_code");
+      this.areaCodeFeaturesByCode = new Map(features.map((feature) => [feature.properties.area_code, feature]));
       this.maLayer = L.geoJSON({ type: "FeatureCollection", features }, {
         pane: "mainPane",
         interactive: true,
@@ -176,6 +180,7 @@
     markAreaCodeCorrect(areaCode) {
       this.answeredAreaCodes.add(areaCode);
       this.refreshAreaCodeStyle(areaCode);
+      this.showAreaCodeLabel(areaCode);
     }
 
     flashWrong(id) {
@@ -222,6 +227,33 @@
         opacity: 1
       }).openTooltip();
       this.tooltipsById.set(id, marker);
+    }
+
+    showAreaCodeLabel(areaCode) {
+      if (this.areaCodeTooltipsByCode.has(areaCode)) return;
+      const feature = this.areaCodeFeaturesByCode.get(areaCode);
+      if (!feature) return;
+      const label = buildLabelPlacement(feature, {
+        text: areaCode,
+        minSize: 18,
+        maxSize: 26,
+        sizeBoost: 8,
+        angleLimit: 34
+      });
+      if (!Array.isArray(label.point)) return;
+      const html = `<div class="answered-label area-code-label" style="font-size:${label.size}px; transform: translate(-50%, -50%) rotate(${label.angle}deg);">${areaCode}</div>`;
+      const marker = L.marker(label.point, {
+        pane: "labelPane",
+        interactive: false,
+        opacity: 0
+      }).addTo(this.map);
+      marker.bindTooltip(html, {
+        permanent: true,
+        direction: "center",
+        className: "answered-tooltip area-code-tooltip",
+        opacity: 1
+      }).openTooltip();
+      this.areaCodeTooltipsByCode.set(areaCode, marker);
     }
 
     refreshFeatureStyle(id, style) {
@@ -278,6 +310,8 @@
       });
       this.tooltipsById.forEach((marker) => marker.remove());
       this.tooltipsById.clear();
+      this.areaCodeTooltipsByCode.forEach((marker) => marker.remove());
+      this.areaCodeTooltipsByCode.clear();
     }
 
     applyHeatmap(stats) {
@@ -285,6 +319,7 @@
         this.map.removeLayer(this.maLayer);
         this.maLayer = null;
         this.areaCodeLayersByCode.clear();
+        this.areaCodeFeaturesByCode.clear();
       }
       this.heatmapStats = new Map(stats.map((item) => [item.id, item]));
       this.layersById.forEach((layers, id) => {
@@ -324,14 +359,15 @@
     });
   }
 
-  function buildLabelPlacement(feature) {
+  function buildLabelPlacement(feature, options = {}) {
     const box = geometryBounds(feature.geometry);
     const point = labelPointFromGeometry(feature);
     const ratio = box.width / Math.max(box.height, 0.000001);
+    const text = options.text || feature.properties.name;
     return {
       point,
-      size: labelSize(feature.properties.name, box),
-      angle: labelAngle(feature, ratio)
+      size: labelSize(text, box, options),
+      angle: labelAngle(feature, ratio, options)
     };
   }
 
@@ -344,7 +380,7 @@
     return Array.isArray(coordinates) ? [coordinates[1], coordinates[0]] : null;
   }
 
-  function labelSize(name, box) {
+  function labelSize(name, box, options = {}) {
     const span = Math.max(box.width, box.height);
     const chars = String(name || "").length;
     const base = span > 0.18 ? 12.8
@@ -352,11 +388,16 @@
         : span > 0.07 ? 10.6
           : span > 0.035 ? 9.4
             : 8.2;
-    return clamp(base - Math.max(chars - 4, 0) * 0.45, 7.2, 13);
+    return clamp(
+      base + (options.sizeBoost || 0) - Math.max(chars - 4, 0) * 0.45,
+      options.minSize || 7.2,
+      options.maxSize || 13
+    );
   }
 
-  function labelAngle(feature, ratio) {
-    if (ratio > 1.35) return clamp(principalAngle(feature.geometry), -28, 28);
+  function labelAngle(feature, ratio, options = {}) {
+    const angleLimit = options.angleLimit || 28;
+    if (ratio > 1.35) return clamp(principalAngle(feature.geometry), -angleLimit, angleLimit);
     if (ratio < 0.72) return clamp(principalAngle(feature.geometry), -18, 18);
     return 0;
   }

@@ -418,6 +418,17 @@ h2 {
   pointer-events: none;
 }
 
+.answered-label.area-code-label {
+  color: #fff8d6;
+  font-weight: 900;
+  text-shadow:
+    -2px -2px 0 #020304,
+    2px -2px 0 #020304,
+    -2px 2px 0 #020304,
+    2px 2px 0 #020304,
+    0 0 8px #020304;
+}
+
 .leaflet-tooltip.answered-tooltip {
   border: 0;
   background: transparent;
