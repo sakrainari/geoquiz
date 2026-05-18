@@ -206,9 +206,10 @@
         || this.dataset.features.find((item) => item.properties.id === id);
       if (!feature) return;
       const props = feature.properties;
-      const point = props.labelPoint || labelPointFromGeometry(feature);
+      const label = buildLabelPlacement(feature);
+      const point = label.point || props.labelPoint;
       if (!Array.isArray(point)) return;
-      const html = `<div class="answered-label" style="font-size:${props.labelSize || 9.5}px; transform: rotate(${props.labelAngle || -25}deg);">${props.name}</div>`;
+      const html = `<div class="answered-label" style="font-size:${label.size}px; transform: translate(-50%, -50%) rotate(${label.angle}deg);">${props.name}</div>`;
       const marker = L.marker(point, {
         pane: "labelPane",
         interactive: false,
@@ -323,6 +324,17 @@
     });
   }
 
+  function buildLabelPlacement(feature) {
+    const box = geometryBounds(feature.geometry);
+    const point = labelPointFromGeometry(feature);
+    const ratio = box.width / Math.max(box.height, 0.000001);
+    return {
+      point,
+      size: labelSize(feature.properties.name, box),
+      angle: labelAngle(feature, ratio)
+    };
+  }
+
   function labelPointFromGeometry(feature) {
     if (!window.turf) return null;
     const center = typeof window.turf.pointOnFeature === "function"
@@ -330,6 +342,75 @@
       : null;
     const coordinates = center && center.geometry && center.geometry.coordinates;
     return Array.isArray(coordinates) ? [coordinates[1], coordinates[0]] : null;
+  }
+
+  function labelSize(name, box) {
+    const span = Math.max(box.width, box.height);
+    const chars = String(name || "").length;
+    const base = span > 0.18 ? 12.8
+      : span > 0.12 ? 11.8
+        : span > 0.07 ? 10.6
+          : span > 0.035 ? 9.4
+            : 8.2;
+    return clamp(base - Math.max(chars - 4, 0) * 0.45, 7.2, 13);
+  }
+
+  function labelAngle(feature, ratio) {
+    if (ratio > 1.35) return clamp(principalAngle(feature.geometry), -28, 28);
+    if (ratio < 0.72) return clamp(principalAngle(feature.geometry), -18, 18);
+    return 0;
+  }
+
+  function principalAngle(geometry) {
+    const points = geometryPoints(geometry);
+    if (points.length < 2) return 0;
+    const mean = points.reduce((acc, point) => ({
+      x: acc.x + point[0],
+      y: acc.y + point[1]
+    }), { x: 0, y: 0 });
+    mean.x /= points.length;
+    mean.y /= points.length;
+
+    const sums = points.reduce((acc, point) => {
+      const x = (point[0] - mean.x) * Math.cos(mean.y * Math.PI / 180);
+      const y = point[1] - mean.y;
+      return {
+        xx: acc.xx + x * x,
+        yy: acc.yy + y * y,
+        xy: acc.xy + x * y
+      };
+    }, { xx: 0, yy: 0, xy: 0 });
+    const angle = 0.5 * Math.atan2(2 * sums.xy, sums.xx - sums.yy) * 180 / Math.PI;
+    return Math.abs(angle) < 6 ? 0 : angle;
+  }
+
+  function geometryBounds(geometry) {
+    const points = geometryPoints(geometry);
+    const bounds = points.reduce((box, point) => ({
+      minX: Math.min(box.minX, point[0]),
+      minY: Math.min(box.minY, point[1]),
+      maxX: Math.max(box.maxX, point[0]),
+      maxY: Math.max(box.maxY, point[1])
+    }), { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity });
+    return {
+      ...bounds,
+      width: Math.max(bounds.maxX - bounds.minX, 0),
+      height: Math.max(bounds.maxY - bounds.minY, 0)
+    };
+  }
+
+  function geometryPoints(geometry) {
+    if (!geometry) return [];
+    if (geometry.type === "Polygon") return geometry.coordinates.flat();
+    if (geometry.type === "MultiPolygon") return geometry.coordinates.flat(2);
+    if (geometry.type === "GeometryCollection") {
+      return geometry.geometries.flatMap((item) => geometryPoints(item));
+    }
+    return [];
+  }
+
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
   }
 
   function hashCode(value) {

@@ -402,6 +402,9 @@ h2 {
 
 .answered-label {
   color: #fff;
+  position: absolute;
+  left: 50%;
+  top: 50%;
   font-weight: 800;
   line-height: 1;
   text-align: center;
