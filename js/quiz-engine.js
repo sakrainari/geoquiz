@@ -67,6 +67,7 @@
       }
 
       this.mistakes += 1;
+      const stat = this.stats.get(featureProperties.id);
       if (stat) stat.mistakes += 1;
       if (this.suddenDeath) this.gameOver = true;
       return { correct: false, question: q, finished: this.gameOver, suddenDeath: this.suddenDeath };

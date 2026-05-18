@@ -53,6 +53,7 @@ https://sakrainari.github.io/geoquiz/
 - 実装メモ: 2026-05-18 にLeaflet / Turf.jsをローカル同梱し、GitHub Pagesは `main / root` 公開前提に整理。
 - 実装メモ: 2026-05-18 に参考実装 `G:/japanareacode` の市外局番グルーピングを反映。
 - 実装メモ: 2026-05-19 に市外局番モードを市外局番コードのみの出題へ変更。MA名から当てる出題は停止。
+- 実装メモ: 2026-05-19 にミス音声モードを追加。誤クリック時に選択した市区町村名または市外局番を読み上げる。
 - 検証メモ: Codex内ブラウザは `file://` を開けないため、検証時のみ `http://127.0.0.1:8765/` を使用。アプリ本体は静的ファイル構成。
 - [x] 市区町村モード
 - [x] サドンデス
@@ -61,6 +62,7 @@ https://sakrainari.github.io/geoquiz/
 - [x] 弱点JSONエクスポート
 - [x] 市外局番モード
 - [x] 市外局番コード単位のポリゴングルーピング
+- [x] ミス音声モード
 - [x] Turf.js unionによるMAエリア表示
 - [x] 隣接県ゴースト表示
 - [x] 将来拡張用のモード選択UI
@@ -142,7 +144,8 @@ https://sakrainari.github.io/geoquiz/
 
 今後、Codexが実装を完了した場合は GitHub Desktop の起動状態を確認します。
 
-- GitHub Desktop が起動している場合: 変更を commit して `origin/main` に push する
+- GitHub Desktop が起動している場合: 変更を commit して `origin/main` と Pages公開用ブランチに push する
+- push後、同じ内容を `G:\geoquiz-main\geoquiz-main` に保存する
 - GitHub Desktop が起動していない場合: 「GitHub Desktopが起動していないためアップロードできない」と注意する
 
 補助スクリプト:

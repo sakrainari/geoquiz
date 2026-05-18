@@ -19,6 +19,7 @@
     mistakeCount: document.getElementById("mistakeCount"),
     elapsedTime: document.getElementById("elapsedTime"),
     suddenDeathToggle: document.getElementById("suddenDeathToggle"),
+    mistakeSpeechToggle: document.getElementById("mistakeSpeechToggle"),
     resetButton: document.getElementById("resetButton"),
     retryButton: document.getElementById("retryButton"),
     backToMenuButton: document.getElementById("backToMenuButton"),
@@ -60,6 +61,7 @@
         }
       } else {
         renderer.flashWrong(feature.properties.id);
+        speakMistake(feature.properties);
       }
       updateHud();
       if (result.finished) window.setTimeout(showResult, result.correct ? 360 : 520);
@@ -133,6 +135,23 @@
   function stopTimer() {
     if (timerId) window.clearInterval(timerId);
     timerId = null;
+  }
+
+  function speakMistake(featureProperties) {
+    if (!els.mistakeSpeechToggle.checked || !("speechSynthesis" in window)) return;
+    const label = currentMode === "ma" ? featureProperties.area_code : featureProperties.name;
+    if (!label) return;
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(label);
+    utterance.lang = "ja-JP";
+    utterance.rate = 1.05;
+    utterance.pitch = 1;
+    const voice = window.speechSynthesis
+      .getVoices()
+      .find((item) => item.lang && item.lang.toLowerCase().startsWith("ja"));
+    if (voice) utterance.voice = voice;
+    window.speechSynthesis.speak(utterance);
   }
 
   function modeName(mode) {
