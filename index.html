@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>日本市外局番マップクイズ | 埼玉県版</title>
+    <title>日本市外局番マップクイズ</title>
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
     <link rel="stylesheet" href="css/style.css">
@@ -12,9 +12,9 @@
     <main class="app-shell">
       <section id="startScreen" class="start-screen">
         <div class="brand-block">
-          <p class="eyebrow">GeoGuessr training / Saitama MVP</p>
-          <h1>日本市外局番マップクイズ</h1>
-          <p>未回答の白地図から、埼玉県の市町村と市外局番を叩き込むトレーニングツール。</p>
+          <p class="eyebrow" id="appSubtitle">GeoGuessr training / Saitama MVP</p>
+          <h1 id="appTitle">日本市外局番マップクイズ</h1>
+          <p id="appDescription">未回答の白地図から、埼玉県の市町村と市外局番を叩き込むトレーニングツール。</p>
         </div>
         <div class="mode-grid" aria-label="モード選択">
           <button class="mode-card" data-start-mode="municipality">
@@ -25,7 +25,7 @@
             <span>市外局番</span>
             <strong>番号からエリアを当てる</strong>
           </button>
-          <button class="mode-card is-disabled" disabled>
+          <button class="mode-card is-disabled" data-start-mode="image" disabled>
             <span>画像判別</span>
             <strong>県旗・市章・標識は今後追加</strong>
           </button>

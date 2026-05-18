@@ -13,6 +13,9 @@
     startScreen: document.getElementById("startScreen"),
     gameScreen: document.getElementById("gameScreen"),
     resultScreen: document.getElementById("resultScreen"),
+    appSubtitle: document.getElementById("appSubtitle"),
+    appTitle: document.getElementById("appTitle"),
+    appDescription: document.getElementById("appDescription"),
     questionText: document.getElementById("questionText"),
     modeLabel: document.getElementById("modeLabel"),
     remainingCount: document.getElementById("remainingCount"),
@@ -34,7 +37,11 @@
     resultTotal: document.getElementById("resultTotal")
   };
 
+  applyDatasetMeta();
+  applyAvailableModes();
+
   document.querySelectorAll("[data-start-mode]").forEach((button) => {
+    if (!appConfig.enabledModes.includes(button.dataset.startMode)) return;
     button.addEventListener("click", () => start(button.dataset.startMode));
   });
 
@@ -162,6 +169,22 @@
 
   function modeName(mode) {
     return window.QuizModes.getMode(mode).label;
+  }
+
+  function applyDatasetMeta() {
+    document.title = `${appConfig.title || "日本市外局番マップクイズ"} | ${appConfig.name}`;
+    els.appSubtitle.textContent = appConfig.subtitle || `${appConfig.name} dataset`;
+    els.appTitle.textContent = appConfig.title || "日本市外局番マップクイズ";
+    els.appDescription.textContent = appConfig.description || `${appConfig.name} の地域認識トレーニング。`;
+  }
+
+  function applyAvailableModes() {
+    document.querySelectorAll("[data-start-mode]").forEach((button) => {
+      const mode = button.dataset.startMode;
+      const enabled = appConfig.enabledModes.includes(mode);
+      button.disabled = !enabled;
+      button.classList.toggle("is-disabled", !enabled);
+    });
   }
 
   function resolveAppConfig(datasetId) {
