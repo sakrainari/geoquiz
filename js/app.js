@@ -157,7 +157,7 @@
 
   function speakMistake(featureProperties) {
     if (!els.mistakeSpeechToggle.checked || !("speechSynthesis" in window)) return;
-    const label = currentMode === "ma" ? featureProperties.area_code : featureProperties.name;
+    const label = currentMode === "ma" ? pronounceAreaCode(featureProperties.area_code) : featureProperties.name;
     if (!label) return;
 
     window.speechSynthesis.cancel();
@@ -170,6 +170,13 @@
       .find((item) => item.lang && item.lang.toLowerCase().startsWith("ja"));
     if (voice) utterance.voice = voice;
     window.speechSynthesis.speak(utterance);
+  }
+
+  function pronounceAreaCode(areaCode) {
+    return String(areaCode || "")
+      .split("")
+      .map((char) => (char === "0" ? "ゼロ" : char))
+      .join(" ");
   }
 
   function modeName(mode) {
