@@ -242,7 +242,9 @@
         minSize: 20,
         maxSize: 30,
         sizeBoost: 10,
-        angleLimit: 26
+        forceAngle: 0,
+        precise: true,
+        preferVisualCenter: true
       });
       if (!Array.isArray(label.point)) return;
       const html = `<div class="answered-label area-code-label" style="font-size:${label.size}px; transform: translate(-50%, -50%) rotate(${label.angle}deg);">${areaCode}</div>`;
@@ -371,7 +373,7 @@
     return {
       point,
       size: labelSize(text, box, options),
-      angle: labelAngle(feature, ratio, options)
+      angle: typeof options.forceAngle === "number" ? options.forceAngle : labelAngle(feature, ratio, options)
     };
   }
 
@@ -458,7 +460,7 @@
     const height = bounds.maxY - bounds.minY;
     if (width <= 0 || height <= 0) return null;
 
-    const steps = options.precise ? 18 : 12;
+    const steps = options.precise ? 28 : 12;
     let best = null;
     for (let ix = 0; ix <= steps; ix += 1) {
       for (let iy = 0; iy <= steps; iy += 1) {
@@ -470,8 +472,12 @@
       }
     }
 
+    if (best && options.precise) {
+      best = refineVisualCenter(best, polygon, width / steps, height / steps);
+    }
+
     const centroid = ringCentroid(outer);
-    if (centroid && pointInPolygon(centroid, polygon)) {
+    if (!options.preferVisualCenter && centroid && pointInPolygon(centroid, polygon)) {
       const centroidScore = distanceToPolygonEdge(centroid, polygon);
       if (!best || centroidScore > best.score * 0.82) {
         best = { x: centroid[0], y: centroid[1], score: centroidScore };
@@ -479,6 +485,33 @@
     }
 
     return best ? [best.y, best.x] : null;
+  }
+
+  function refineVisualCenter(start, polygon, cellWidth, cellHeight) {
+    let best = start;
+    let stepX = cellWidth;
+    let stepY = cellHeight;
+    for (let pass = 0; pass < 4; pass += 1) {
+      const candidates = [
+        [best.x, best.y],
+        [best.x - stepX, best.y],
+        [best.x + stepX, best.y],
+        [best.x, best.y - stepY],
+        [best.x, best.y + stepY],
+        [best.x - stepX, best.y - stepY],
+        [best.x + stepX, best.y - stepY],
+        [best.x - stepX, best.y + stepY],
+        [best.x + stepX, best.y + stepY]
+      ];
+      candidates.forEach((point) => {
+        if (!pointInPolygon(point, polygon)) return;
+        const score = distanceToPolygonEdge(point, polygon);
+        if (score > best.score) best = { x: point[0], y: point[1], score };
+      });
+      stepX /= 2;
+      stepY /= 2;
+    }
+    return best;
   }
 
   function geometryPolygons(geometry) {
