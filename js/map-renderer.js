@@ -18,6 +18,7 @@
       this.layersById = new Map();
       this.tooltipsById = new Map();
       this.answeredIds = new Set();
+      this.heatmapStats = null;
       this.mode = "municipality";
       this.map = L.map(elementId, {
         zoomControl: true,
@@ -58,7 +59,16 @@
           if (!this.layersById.has(id)) this.layersById.set(id, []);
           this.layersById.get(id).push(layer);
           layer.on({
-            mouseover: () => layer.setStyle(this.hoverStyle()),
+            mouseover: () => {
+              const base = this.getFeatureStyle(id);
+              layer.setStyle({
+                ...base,
+                color: COLORS.hover,
+                weight: 2.2,
+                opacity: 1,
+                fillOpacity: 0.95
+              });
+            },
             mouseout: () => this.refreshFeatureStyle(id),
             click: () => this.onFeatureClick && this.onFeatureClick(feature, layer)
           });
@@ -177,29 +187,36 @@
 
     refreshFeatureStyle(id, style) {
       const layers = this.layersById.get(id) || [];
-      const nextStyle = style || (this.answeredIds.has(id) ? this.answeredStyle(id) : this.baseStyle());
+      const nextStyle = style || this.getFeatureStyle(id);
       layers.forEach((layer) => layer.setStyle(nextStyle));
+    }
+
+    getFeatureStyle(id) {
+      if (this.heatmapStats && this.heatmapStats.has(id)) {
+        const stat = this.heatmapStats.get(id);
+        return {
+          color: "#d7e1e8",
+          weight: 1,
+          opacity: 0.85,
+          fillColor: heatColor(stat),
+          fillOpacity: 0.88
+        };
+      }
+      return this.answeredIds.has(id) ? this.answeredStyle(id) : this.baseStyle();
     }
 
     reset() {
       this.answeredIds.clear();
+      this.heatmapStats = null;
       this.layersById.forEach((layers) => layers.forEach((layer) => layer.setStyle(this.baseStyle())));
       this.tooltipsById.forEach((marker) => marker.remove());
       this.tooltipsById.clear();
     }
 
     applyHeatmap(stats) {
-      const byId = new Map(stats.map((item) => [item.id, item]));
+      this.heatmapStats = new Map(stats.map((item) => [item.id, item]));
       this.layersById.forEach((layers, id) => {
-        const stat = byId.get(id);
-        const fillColor = heatColor(stat);
-        layers.forEach((layer) => layer.setStyle({
-          color: "#d7e1e8",
-          weight: 1,
-          opacity: 0.85,
-          fillColor,
-          fillOpacity: 0.88
-        }));
+        this.refreshFeatureStyle(id);
         this.showLabel(id);
       });
     }
