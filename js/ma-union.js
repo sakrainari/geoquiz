@@ -9,12 +9,15 @@
           properties: {
             groupBy,
             groupValue: key,
+            id: `${groupBy}:${key}`,
             area_code: feature.properties.area_code,
-            ma_name: feature.properties.ma_name
+            ma_name: feature.properties.ma_name,
+            memberIds: []
           },
           features: []
         });
       }
+      groups.get(key).properties.memberIds.push(feature.properties.id);
       groups.get(key).features.push(feature);
     });
     return [...groups.values()].map((collection) => {

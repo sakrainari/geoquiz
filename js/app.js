@@ -55,12 +55,17 @@
       if (result.ignored) return;
       if (result.correct) {
         if (currentMode === "ma") {
+          renderer.markAreaCodeCorrect(result.question.area_code);
           renderer.markGroupCorrect((item) => result.question.memberIds.includes(item.id));
         } else {
           renderer.markCorrect(feature.properties.id);
         }
       } else {
-        renderer.flashWrong(feature.properties.id);
+        if (currentMode === "ma") {
+          renderer.flashAreaCodeWrong(feature.properties.area_code);
+        } else {
+          renderer.flashWrong(feature.properties.id);
+        }
         speakMistake(feature.properties);
       }
       updateHud();

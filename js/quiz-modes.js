@@ -44,7 +44,8 @@
         return `${question.answerLabel} のエリアをクリック`;
       },
       isCorrect(question, featureProperties) {
-        return question.memberIds.includes(featureProperties.id);
+        return featureProperties.area_code === question.area_code
+          || question.memberIds.includes(featureProperties.id);
       },
       correctMemberIds(question) {
         return question.memberIds;

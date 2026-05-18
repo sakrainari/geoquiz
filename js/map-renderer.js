@@ -16,8 +16,10 @@
       this.dataset = dataset;
       this.ghostData = ghostData;
       this.layersById = new Map();
+      this.areaCodeLayersByCode = new Map();
       this.tooltipsById = new Map();
       this.answeredIds = new Set();
+      this.answeredAreaCodes = new Set();
       this.heatmapStats = null;
       this.mode = "municipality";
       this.map = L.map(elementId, {
@@ -85,6 +87,7 @@
         this.map.removeLayer(this.maLayer);
         this.maLayer = null;
       }
+      this.areaCodeLayersByCode.clear();
       if (mode === "ma") this.renderMaOverlay();
     }
 
@@ -92,16 +95,31 @@
       const features = window.MaUnion.buildMaCollections(this.dataset, "area_code");
       this.maLayer = L.geoJSON({ type: "FeatureCollection", features }, {
         pane: "mainPane",
-        interactive: false,
-        style: {
-          color: "#78b7c6",
-          weight: 2,
-          opacity: 0.28,
-          fillOpacity: 0
+        interactive: true,
+        style: (feature) => this.getAreaCodeStyle(feature.properties.area_code),
+        onEachFeature: (feature, layer) => {
+          const areaCode = feature.properties.area_code;
+          if (!this.areaCodeLayersByCode.has(areaCode)) this.areaCodeLayersByCode.set(areaCode, []);
+          this.areaCodeLayersByCode.get(areaCode).push(layer);
+          layer.on({
+            mouseover: () => {
+              layer.setStyle({
+                ...this.getAreaCodeStyle(areaCode),
+                color: COLORS.hover,
+                weight: 2.4,
+                opacity: 1,
+                fillOpacity: 0.94
+              });
+            },
+            mouseout: () => this.refreshAreaCodeStyle(areaCode),
+            click: () => this.onFeatureClick && this.onFeatureClick(feature, layer)
+          });
+          layer.once("add", () => {
+            if (layer._path) layer._path.dataset.areaCode = areaCode;
+          });
         }
       }).addTo(this.map);
-      this.maLayer.bringToBack();
-      if (this.ghostLayer) this.ghostLayer.bringToBack();
+      this.maLayer.bringToFront();
     }
 
     onClick(handler) {
@@ -152,6 +170,11 @@
       this.dataset.municipalities.filter(predicate).forEach((item) => this.markCorrect(item.id));
     }
 
+    markAreaCodeCorrect(areaCode) {
+      this.answeredAreaCodes.add(areaCode);
+      this.refreshAreaCodeStyle(areaCode);
+    }
+
     flashWrong(id) {
       const layers = this.layersById.get(id) || [];
       layers.forEach((layer) => layer.setStyle({
@@ -161,6 +184,17 @@
         fillOpacity: 0.92
       }));
       window.setTimeout(() => this.refreshFeatureStyle(id), 260);
+    }
+
+    flashAreaCodeWrong(areaCode) {
+      const layers = this.areaCodeLayersByCode.get(areaCode) || [];
+      layers.forEach((layer) => layer.setStyle({
+        color: "#ffffff",
+        weight: 2.4,
+        fillColor: COLORS.miss3,
+        fillOpacity: 0.92
+      }));
+      window.setTimeout(() => this.refreshAreaCodeStyle(areaCode), 260);
     }
 
     showLabel(id) {
@@ -205,15 +239,48 @@
       return this.answeredIds.has(id) ? this.answeredStyle(id) : this.baseStyle();
     }
 
+    refreshAreaCodeStyle(areaCode) {
+      const layers = this.areaCodeLayersByCode.get(areaCode) || [];
+      layers.forEach((layer) => layer.setStyle(this.getAreaCodeStyle(areaCode)));
+    }
+
+    getAreaCodeStyle(areaCode) {
+      if (this.answeredAreaCodes.has(areaCode)) {
+        return {
+          color: "#d7e1e8",
+          weight: 1.2,
+          opacity: 0.95,
+          fillColor: Math.abs(hashCode(areaCode)) % 2 ? COLORS.correctAlt : COLORS.correct,
+          fillOpacity: 0.86
+        };
+      }
+      return {
+        color: "#78b7c6",
+        weight: 1.5,
+        opacity: 0.5,
+        fillColor: COLORS.pending,
+        fillOpacity: 0.84
+      };
+    }
+
     reset() {
       this.answeredIds.clear();
+      this.answeredAreaCodes.clear();
       this.heatmapStats = null;
       this.layersById.forEach((layers) => layers.forEach((layer) => layer.setStyle(this.baseStyle())));
+      this.areaCodeLayersByCode.forEach((layers, areaCode) => {
+        layers.forEach((layer) => layer.setStyle(this.getAreaCodeStyle(areaCode)));
+      });
       this.tooltipsById.forEach((marker) => marker.remove());
       this.tooltipsById.clear();
     }
 
     applyHeatmap(stats) {
+      if (this.maLayer) {
+        this.map.removeLayer(this.maLayer);
+        this.maLayer = null;
+        this.areaCodeLayersByCode.clear();
+      }
       this.heatmapStats = new Map(stats.map((item) => [item.id, item]));
       this.layersById.forEach((layers, id) => {
         this.refreshFeatureStyle(id);
