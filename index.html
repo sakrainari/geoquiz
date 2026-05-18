@@ -45,7 +45,9 @@
         </header>
 
         <div class="play-layout">
-          <div id="map" class="map-panel" aria-label="埼玉県クイズ地図"></div>
+          <div id="playMapSlot" class="map-slot">
+            <div id="map" class="map-panel" aria-label="埼玉県クイズ地図"></div>
+          </div>
           <aside class="status-panel">
             <div class="reference-panel" aria-label="参照ポリゴン">
               <span>参照ポリゴン</span>
@@ -83,6 +85,10 @@
           <div class="result-card"><span>ミス</span><strong id="resultMistakes">0</strong></div>
           <div class="result-card"><span>平均回答</span><strong id="resultAverage">0.0s</strong></div>
           <div class="result-card"><span>出題数</span><strong id="resultTotal">0</strong></div>
+        </div>
+        <div class="result-map-wrap">
+          <p class="eyebrow">Completed map</p>
+          <div id="resultMapSlot" class="result-map-slot"></div>
         </div>
         <div class="result-actions">
           <button id="downloadJsonButton" class="primary-button" type="button">弱点JSONをダウンロード</button>

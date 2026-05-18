@@ -177,9 +177,13 @@ h2 {
   min-height: 620px;
 }
 
+.map-slot,
 .map-panel {
   height: 100%;
   min-height: 520px;
+}
+
+.map-panel {
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -445,7 +449,7 @@ h2 {
   gap: 18px;
   align-content: center;
   min-height: calc(100vh - 40px);
-  max-width: 900px;
+  max-width: 1040px;
   margin: 0 auto;
 }
 
@@ -474,6 +478,20 @@ h2 {
   letter-spacing: 0;
 }
 
+.result-map-wrap {
+  display: grid;
+  gap: 8px;
+}
+
+.result-map-slot {
+  height: min(52vh, 520px);
+  min-height: 360px;
+}
+
+.result-map-slot .map-panel {
+  min-height: 360px;
+}
+
 @media (max-width: 900px) {
   .start-screen,
   .play-layout {
@@ -485,9 +503,16 @@ h2 {
     height: auto;
   }
 
+  .map-slot,
   .map-panel {
     height: 58vh;
     min-height: 58vh;
+  }
+
+  .result-map-slot,
+  .result-map-slot .map-panel {
+    height: 48vh;
+    min-height: 340px;
   }
 
   .status-panel {

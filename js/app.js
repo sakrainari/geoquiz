@@ -15,6 +15,9 @@
     startScreen: document.getElementById("startScreen"),
     gameScreen: document.getElementById("gameScreen"),
     resultScreen: document.getElementById("resultScreen"),
+    playMapSlot: document.getElementById("playMapSlot"),
+    resultMapSlot: document.getElementById("resultMapSlot"),
+    map: document.getElementById("map"),
     appSubtitle: document.getElementById("appSubtitle"),
     appTitle: document.getElementById("appTitle"),
     appDescription: document.getElementById("appDescription"),
@@ -107,6 +110,7 @@
   }
 
   function showGame() {
+    moveMapTo(els.playMapSlot);
     els.startScreen.classList.add("is-hidden");
     els.gameScreen.classList.remove("is-hidden");
     els.resultScreen.classList.add("is-hidden");
@@ -132,6 +136,11 @@
     els.startScreen.classList.add("is-hidden");
     els.gameScreen.classList.add("is-hidden");
     els.resultScreen.classList.remove("is-hidden");
+    moveMapTo(els.resultMapSlot);
+    window.setTimeout(() => {
+      renderer.map.invalidateSize();
+      renderer.fitToMain();
+    }, 80);
   }
 
   function updateHud() {
@@ -152,6 +161,10 @@
   function stopTimer() {
     if (timerId) window.clearInterval(timerId);
     timerId = null;
+  }
+
+  function moveMapTo(slot) {
+    if (slot && els.map.parentElement !== slot) slot.appendChild(els.map);
   }
 
   function speakMistake(featureProperties) {
