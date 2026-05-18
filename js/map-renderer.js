@@ -78,7 +78,7 @@
     }
 
     renderMaOverlay() {
-      const features = window.MaUnion.buildMaCollections(this.dataset);
+      const features = window.MaUnion.buildMaCollections(this.dataset, "area_code");
       this.maLayer = L.geoJSON({ type: "FeatureCollection", features }, {
         pane: "mainPane",
         interactive: false,

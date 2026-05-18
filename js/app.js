@@ -53,7 +53,7 @@
       if (result.ignored) return;
       if (result.correct) {
         if (currentMode === "ma") {
-          renderer.markGroupCorrect((item) => item.ma_name === result.question.ma_name || item.area_code === result.question.area_code);
+          renderer.markGroupCorrect((item) => result.question.memberIds.includes(item.id));
         } else {
           renderer.markCorrect(feature.properties.id);
         }

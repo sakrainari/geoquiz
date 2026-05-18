@@ -30,21 +30,32 @@
 
     buildQuestions(mode) {
       if (mode === "ma") {
-        const groups = new Map();
+        const areaCodeGroups = new Map();
+        const maGroups = new Map();
         this.answers.forEach((item) => {
-          const key = `${item.area_code}|${item.ma_name}`;
-          if (!groups.has(key)) {
-            groups.set(key, {
-              id: key,
+          if (!areaCodeGroups.has(item.area_code)) {
+            areaCodeGroups.set(item.area_code, {
+              id: `area_code:${item.area_code}`,
+              matchType: "area_code",
               area_code: item.area_code,
-              ma_name: item.ma_name,
-              answerLabel: Math.random() > 0.45 ? item.ma_name : item.area_code,
+              answerLabel: item.area_code,
               memberIds: []
             });
           }
-          groups.get(key).memberIds.push(item.id);
+          areaCodeGroups.get(item.area_code).memberIds.push(item.id);
+
+          if (!maGroups.has(item.ma_name)) {
+            maGroups.set(item.ma_name, {
+              id: `ma_name:${item.ma_name}`,
+              matchType: "ma_name",
+              ma_name: item.ma_name,
+              answerLabel: item.ma_name,
+              memberIds: []
+            });
+          }
+          maGroups.get(item.ma_name).memberIds.push(item.id);
         });
-        return shuffle([...groups.values()]);
+        return shuffle([...areaCodeGroups.values(), ...maGroups.values()]);
       }
 
       return shuffle(this.answers.map((item) => ({
@@ -71,14 +82,14 @@
       const q = this.currentQuestion();
       const stat = this.stats.get(featureProperties.id);
       const correct = this.mode === "ma"
-        ? featureProperties.ma_name === q.ma_name || featureProperties.area_code === q.area_code
+        ? q.memberIds.includes(featureProperties.id)
         : featureProperties.id === q.answerId;
 
       if (correct) {
         const elapsed = Date.now() - this.questionStartedAt;
         if (this.mode === "ma") {
           this.answers
-            .filter((item) => item.ma_name === q.ma_name || item.area_code === q.area_code)
+            .filter((item) => q.memberIds.includes(item.id))
             .forEach((item) => {
               const s = this.stats.get(item.id);
               if (s && !s.correct) {

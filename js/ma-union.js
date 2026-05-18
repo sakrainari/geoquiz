@@ -1,12 +1,14 @@
 (function () {
-  function buildMaCollections(featureCollection) {
+  function buildMaCollections(featureCollection, groupBy = "area_code") {
     const groups = new Map();
     featureCollection.features.forEach((feature) => {
-      const key = `${feature.properties.area_code}|${feature.properties.ma_name}`;
+      const key = feature.properties[groupBy];
       if (!groups.has(key)) {
         groups.set(key, {
           type: "FeatureCollection",
           properties: {
+            groupBy,
+            groupValue: key,
             area_code: feature.properties.area_code,
             ma_name: feature.properties.ma_name
           },
