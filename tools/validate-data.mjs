@@ -1,16 +1,46 @@
 import { readFile } from "node:fs/promises";
 
+const DEFAULT_PATH = "data/prefectures/saitama.js";
+const DEFAULT_GLOBAL = "SAITAMA_MUNICIPALITIES";
 const REQUIRED_DATASET_KEYS = ["type", "prefecture", "municipalities", "features"];
 const REQUIRED_MUNICIPALITY_KEYS = ["id", "name", "area_code", "ma_name", "region", "tags"];
 const REQUIRED_FEATURE_KEYS = ["id", "name", "area_code", "ma_name", "labelPoint", "labelAngle", "labelSize"];
 
 async function loadWindowAssignment(path, globalName) {
   const source = await readFile(path, "utf8");
-  const prefix = `window.${globalName} = `;
+  const resolvedGlobalName = globalName || inferGlobalName(source, path);
+  const prefix = `window.${resolvedGlobalName} = `;
   if (!source.startsWith(prefix)) {
     throw new Error(`${path}: expected ${prefix}`);
   }
   return JSON.parse(source.slice(prefix.length).replace(/;\s*$/, ""));
+}
+
+function inferGlobalName(source, path) {
+  const match = source.match(/^window\.([A-Z0-9_]+)\s*=/);
+  if (!match) {
+    throw new Error(`${path}: expected a window.GLOBAL_NAME assignment`);
+  }
+  return match[1];
+}
+
+function parseArgs(argv) {
+  const options = {
+    path: DEFAULT_PATH,
+    globalName: DEFAULT_GLOBAL
+  };
+
+  argv.forEach((arg) => {
+    if (arg.startsWith("--global=")) {
+      options.globalName = arg.slice("--global=".length);
+    } else if (arg === "--infer-global") {
+      options.globalName = null;
+    } else if (!arg.startsWith("--")) {
+      options.path = arg;
+    }
+  });
+
+  return options;
 }
 
 function assertKeys(target, keys, label) {
@@ -66,6 +96,7 @@ function validateDataset(dataset) {
   };
 }
 
-const dataset = await loadWindowAssignment("data/prefectures/saitama.js", "SAITAMA_MUNICIPALITIES");
+const options = parseArgs(process.argv.slice(2));
+const dataset = await loadWindowAssignment(options.path, options.globalName);
 const result = validateDataset(dataset);
 console.log(JSON.stringify(result, null, 2));
