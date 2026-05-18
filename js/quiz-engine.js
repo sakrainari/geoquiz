@@ -3,6 +3,7 @@
     constructor(dataset) {
       this.dataset = dataset;
       this.answers = dataset.municipalities;
+      this.dataset.imageQuestions = dataset.imageQuestions || [];
       this.reset("municipality", false);
     }
 

@@ -50,6 +50,33 @@
       correctMemberIds(question) {
         return question.memberIds;
       }
+    },
+    image: {
+      id: "image",
+      label: "画像判別モード",
+      buildQuestions(answers, dataset) {
+        return (dataset.imageQuestions || [])
+          .filter((item) => item.enabled)
+          .map((item) => ({
+            id: item.id,
+            type: item.type,
+            answerId: item.answerId,
+            answerLabel: item.answerName,
+            question: item.question,
+            image: item.image,
+            tags: item.tags || [],
+            memberIds: [item.answerId]
+          }));
+      },
+      questionText(question) {
+        return question.question || "この画像はどこ？";
+      },
+      isCorrect(question, answer) {
+        return answer.id === question.answerId || answer.answerId === question.answerId;
+      },
+      correctMemberIds(question) {
+        return question.memberIds;
+      }
     }
   };
 

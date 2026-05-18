@@ -5,6 +5,7 @@ const DEFAULT_GLOBAL = "SAITAMA_MUNICIPALITIES";
 const REQUIRED_DATASET_KEYS = ["type", "prefecture", "municipalities", "features"];
 const REQUIRED_MUNICIPALITY_KEYS = ["id", "name", "area_code", "ma_name", "region", "tags"];
 const REQUIRED_FEATURE_KEYS = ["id", "name", "area_code", "ma_name", "labelPoint", "labelAngle", "labelSize"];
+const REQUIRED_IMAGE_QUESTION_KEYS = ["id", "type", "question", "image", "answerId", "answerName", "tags"];
 
 async function loadWindowAssignment(path, globalName) {
   const source = await readFile(path, "utf8");
@@ -27,12 +28,18 @@ function inferGlobalName(source, path) {
 function parseArgs(argv) {
   const options = {
     path: DEFAULT_PATH,
-    globalName: DEFAULT_GLOBAL
+    globalName: DEFAULT_GLOBAL,
+    imagePath: null,
+    imageGlobalName: null
   };
 
   argv.forEach((arg) => {
     if (arg.startsWith("--global=")) {
       options.globalName = arg.slice("--global=".length);
+    } else if (arg.startsWith("--image=")) {
+      options.imagePath = arg.slice("--image=".length);
+    } else if (arg.startsWith("--image-global=")) {
+      options.imageGlobalName = arg.slice("--image-global=".length);
     } else if (arg === "--infer-global") {
       options.globalName = null;
     } else if (!arg.startsWith("--")) {
@@ -96,7 +103,32 @@ function validateDataset(dataset) {
   };
 }
 
+function validateImageQuestions(items) {
+  if (!Array.isArray(items)) {
+    throw new Error("image questions must be an array");
+  }
+  const ids = new Set();
+  items.forEach((item, index) => {
+    assertKeys(item, REQUIRED_IMAGE_QUESTION_KEYS, `imageQuestions[${index}]`);
+    if (ids.has(item.id)) {
+      throw new Error(`imageQuestions[${index}]: duplicate id ${item.id}`);
+    }
+    ids.add(item.id);
+    if (!Array.isArray(item.tags)) {
+      throw new Error(`imageQuestions[${index}]: tags must be an array`);
+    }
+  });
+  return {
+    imageQuestions: items.length,
+    enabledImageQuestions: items.filter((item) => item.enabled).length
+  };
+}
+
 const options = parseArgs(process.argv.slice(2));
 const dataset = await loadWindowAssignment(options.path, options.globalName);
 const result = validateDataset(dataset);
+if (options.imagePath) {
+  const imageQuestions = await loadWindowAssignment(options.imagePath, options.imageGlobalName);
+  Object.assign(result, validateImageQuestions(imageQuestions));
+}
 console.log(JSON.stringify(result, null, 2));

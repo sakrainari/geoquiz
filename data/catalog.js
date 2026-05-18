@@ -5,6 +5,7 @@ window.GEOQUIZ_DATASETS = [
     shortName: "埼玉",
     dataGlobal: "SAITAMA_MUNICIPALITIES",
     ghostGlobal: "KANTO_GHOST",
+    imageQuestionsGlobal: "SAITAMA_IMAGE_QUESTIONS",
     defaultMode: "municipality",
     enabledModes: ["municipality", "ma"],
     center: [35.96, 139.35],

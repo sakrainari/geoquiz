@@ -18,10 +18,12 @@ function assert(condition, message) {
 }
 
 await loadScript("data/prefectures/saitama.js");
+await loadScript("data/image-questions/saitama.js");
 await loadScript("js/quiz-modes.js");
 await loadScript("js/quiz-engine.js");
 
 const dataset = context.window.SAITAMA_MUNICIPALITIES;
+dataset.imageQuestions = context.window.SAITAMA_IMAGE_QUESTIONS;
 const QuizEngine = context.window.QuizEngine;
 const engine = new QuizEngine(dataset);
 
@@ -54,8 +56,12 @@ const wrongResult = engine.answer(wrongAnswer);
 assert(!wrongResult.correct, "area code mode should reject a different area code");
 assert(engine.mistakes === 1, "mistake count should increment on wrong answers");
 
+engine.reset("image", false);
+assert(engine.questions.length === 0, "disabled image placeholders should not create active questions");
+
 console.log(JSON.stringify({
   municipalityQuestions: 63,
   areaCodeQuestions: 8,
+  imageQuestions: 0,
   status: "ok"
 }, null, 2));

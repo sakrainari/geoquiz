@@ -1,7 +1,8 @@
 (function () {
-  const appConfig = resolveAppConfig("saitama");
+  const appConfig = resolveAppConfig(resolveDatasetId());
   const dataset = appConfig.dataset;
   const ghostData = appConfig.ghostData;
+  dataset.imageQuestions = appConfig.imageQuestions;
   const engine = new window.QuizEngine(dataset);
   let renderer;
   let currentMode = "municipality";
@@ -174,8 +175,14 @@
     return {
       ...config,
       dataset: resolvedDataset,
-      ghostData: window[config.ghostGlobal] || null
+      ghostData: window[config.ghostGlobal] || null,
+      imageQuestions: window[config.imageQuestionsGlobal] || []
     };
+  }
+
+  function resolveDatasetId() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("dataset") || params.get("id") || "saitama";
   }
 
   function formatTime(ms) {

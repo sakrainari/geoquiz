@@ -72,6 +72,12 @@ node tools\validate-data.mjs data\prefectures\tokyo.js --global=TOKYO_MUNICIPALI
 node tools\validate-data.mjs data\prefectures\tokyo.js --infer-global
 ```
 
+画像問題データも合わせて検証:
+
+```powershell
+node tools\validate-data.mjs data\prefectures\tokyo.js --global=TOKYO_MUNICIPALITIES --image=data\image-questions\tokyo.js --image-global=TOKYO_IMAGE_QUESTIONS
+```
+
 ## 6. クイズエンジンを確認する
 
 ```powershell
