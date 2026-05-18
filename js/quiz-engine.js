@@ -29,28 +29,8 @@
     }
 
     buildQuestions(mode) {
-      if (mode === "ma") {
-        const areaCodeGroups = new Map();
-        this.answers.forEach((item) => {
-          if (!areaCodeGroups.has(item.area_code)) {
-            areaCodeGroups.set(item.area_code, {
-              id: `area_code:${item.area_code}`,
-              matchType: "area_code",
-              area_code: item.area_code,
-              answerLabel: item.area_code,
-              memberIds: []
-            });
-          }
-          areaCodeGroups.get(item.area_code).memberIds.push(item.id);
-        });
-        return shuffle([...areaCodeGroups.values()]);
-      }
-
-      return shuffle(this.answers.map((item) => ({
-        id: item.id,
-        answerId: item.id,
-        answerLabel: item.name
-      })));
+      const modeDefinition = window.QuizModes.getMode(mode);
+      return shuffle(modeDefinition.buildQuestions(this.answers, this.dataset));
     }
 
     currentQuestion() {
@@ -60,35 +40,25 @@
     questionText() {
       const q = this.currentQuestion();
       if (!q) return "終了";
-      if (this.mode === "ma") return `${q.answerLabel} のエリアをクリック`;
-      return `${q.answerLabel} をクリック`;
+      return window.QuizModes.getMode(this.mode).questionText(q);
     }
 
     answer(featureProperties) {
       if (this.gameOver || !this.currentQuestion()) return { ignored: true };
 
       const q = this.currentQuestion();
-      const stat = this.stats.get(featureProperties.id);
-      const correct = this.mode === "ma"
-        ? q.memberIds.includes(featureProperties.id)
-        : featureProperties.id === q.answerId;
+      const modeDefinition = window.QuizModes.getMode(this.mode);
+      const correct = modeDefinition.isCorrect(q, featureProperties);
 
       if (correct) {
         const elapsed = Date.now() - this.questionStartedAt;
-        if (this.mode === "ma") {
-          this.answers
-            .filter((item) => q.memberIds.includes(item.id))
-            .forEach((item) => {
-              const s = this.stats.get(item.id);
-              if (s && !s.correct) {
-                s.correct = true;
-                s.answerTimeMs = elapsed;
-              }
-            });
-        } else if (stat && !stat.correct) {
-          stat.correct = true;
-          stat.answerTimeMs = elapsed;
-        }
+        modeDefinition.correctMemberIds(q, featureProperties).forEach((id) => {
+          const s = this.stats.get(id);
+          if (s && !s.correct) {
+            s.correct = true;
+            s.answerTimeMs = elapsed;
+          }
+        });
         this.correct += 1;
         this.index += 1;
         this.questionStartedAt = Date.now();

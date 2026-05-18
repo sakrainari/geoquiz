@@ -136,7 +136,7 @@
   }
 
   function modeName(mode) {
-    return mode === "ma" ? "市外局番モード" : "市区町村モード";
+    return window.QuizModes.getMode(mode).label;
   }
 
   function resolveAppConfig(datasetId) {
