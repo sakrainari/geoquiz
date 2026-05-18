@@ -136,7 +136,7 @@
   }
 
   function modeName(mode) {
-    return mode === "ma" ? "市外局番 / MAモード" : "市区町村モード";
+    return mode === "ma" ? "市外局番モード" : "市区町村モード";
   }
 
   function resolveAppConfig(datasetId) {

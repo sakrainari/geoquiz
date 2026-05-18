@@ -31,7 +31,6 @@
     buildQuestions(mode) {
       if (mode === "ma") {
         const areaCodeGroups = new Map();
-        const maGroups = new Map();
         this.answers.forEach((item) => {
           if (!areaCodeGroups.has(item.area_code)) {
             areaCodeGroups.set(item.area_code, {
@@ -43,19 +42,8 @@
             });
           }
           areaCodeGroups.get(item.area_code).memberIds.push(item.id);
-
-          if (!maGroups.has(item.ma_name)) {
-            maGroups.set(item.ma_name, {
-              id: `ma_name:${item.ma_name}`,
-              matchType: "ma_name",
-              ma_name: item.ma_name,
-              answerLabel: item.ma_name,
-              memberIds: []
-            });
-          }
-          maGroups.get(item.ma_name).memberIds.push(item.id);
         });
-        return shuffle([...areaCodeGroups.values(), ...maGroups.values()]);
+        return shuffle([...areaCodeGroups.values()]);
       }
 
       return shuffle(this.answers.map((item) => ({
