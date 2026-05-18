@@ -436,6 +436,10 @@ h2 {
   padding: 0;
 }
 
+.leaflet-tooltip.area-code-tooltip {
+  z-index: 680;
+}
+
 .result-screen {
   display: grid;
   gap: 18px;

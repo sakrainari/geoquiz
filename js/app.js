@@ -67,7 +67,6 @@
       if (result.correct) {
         if (currentMode === "ma") {
           renderer.markAreaCodeCorrect(result.question.area_code);
-          renderer.markGroupCorrect((item) => result.question.memberIds.includes(item.id));
         } else {
           renderer.markCorrect(feature.properties.id);
         }

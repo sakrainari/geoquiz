@@ -211,7 +211,11 @@
         || this.dataset.features.find((item) => item.properties.id === id);
       if (!feature) return;
       const props = feature.properties;
-      const label = buildLabelPlacement(feature);
+      const label = buildLabelPlacement(feature, {
+        sizeBoost: this.mode === "ma" ? -1.1 : 0,
+        maxSize: this.mode === "ma" ? 10.6 : 13,
+        angleLimit: this.mode === "ma" ? 18 : 28
+      });
       const point = label.point || props.labelPoint;
       if (!Array.isArray(point)) return;
       const html = `<div class="answered-label" style="font-size:${label.size}px; transform: translate(-50%, -50%) rotate(${label.angle}deg);">${props.name}</div>`;
@@ -235,10 +239,10 @@
       if (!feature) return;
       const label = buildLabelPlacement(feature, {
         text: areaCode,
-        minSize: 18,
-        maxSize: 26,
-        sizeBoost: 8,
-        angleLimit: 34
+        minSize: 20,
+        maxSize: 30,
+        sizeBoost: 10,
+        angleLimit: 26
       });
       if (!Array.isArray(label.point)) return;
       const html = `<div class="answered-label area-code-label" style="font-size:${label.size}px; transform: translate(-50%, -50%) rotate(${label.angle}deg);">${areaCode}</div>`;
@@ -361,7 +365,7 @@
 
   function buildLabelPlacement(feature, options = {}) {
     const box = geometryBounds(feature.geometry);
-    const point = labelPointFromGeometry(feature);
+    const point = labelPointFromGeometry(feature, options);
     const ratio = box.width / Math.max(box.height, 0.000001);
     const text = options.text || feature.properties.name;
     return {
@@ -371,7 +375,9 @@
     };
   }
 
-  function labelPointFromGeometry(feature) {
+  function labelPointFromGeometry(feature, options = {}) {
+    const visualCenter = polygonVisualCenter(feature.geometry, options);
+    if (visualCenter) return visualCenter;
     if (!window.turf) return null;
     const center = typeof window.turf.pointOnFeature === "function"
       ? window.turf.pointOnFeature(feature)
@@ -438,6 +444,129 @@
       width: Math.max(bounds.maxX - bounds.minX, 0),
       height: Math.max(bounds.maxY - bounds.minY, 0)
     };
+  }
+
+  function polygonVisualCenter(geometry, options = {}) {
+    const polygons = geometryPolygons(geometry);
+    if (!polygons.length) return null;
+    const polygon = largestPolygon(polygons);
+    const outer = polygon[0];
+    if (!outer || outer.length < 4) return null;
+
+    const bounds = ringBounds(outer);
+    const width = bounds.maxX - bounds.minX;
+    const height = bounds.maxY - bounds.minY;
+    if (width <= 0 || height <= 0) return null;
+
+    const steps = options.precise ? 18 : 12;
+    let best = null;
+    for (let ix = 0; ix <= steps; ix += 1) {
+      for (let iy = 0; iy <= steps; iy += 1) {
+        const x = bounds.minX + width * ix / steps;
+        const y = bounds.minY + height * iy / steps;
+        if (!pointInPolygon([x, y], polygon)) continue;
+        const score = distanceToPolygonEdge([x, y], polygon);
+        if (!best || score > best.score) best = { x, y, score };
+      }
+    }
+
+    const centroid = ringCentroid(outer);
+    if (centroid && pointInPolygon(centroid, polygon)) {
+      const centroidScore = distanceToPolygonEdge(centroid, polygon);
+      if (!best || centroidScore > best.score * 0.82) {
+        best = { x: centroid[0], y: centroid[1], score: centroidScore };
+      }
+    }
+
+    return best ? [best.y, best.x] : null;
+  }
+
+  function geometryPolygons(geometry) {
+    if (!geometry) return [];
+    if (geometry.type === "Polygon") return [geometry.coordinates];
+    if (geometry.type === "MultiPolygon") return geometry.coordinates;
+    if (geometry.type === "GeometryCollection") {
+      return geometry.geometries.flatMap((item) => geometryPolygons(item));
+    }
+    return [];
+  }
+
+  function largestPolygon(polygons) {
+    return polygons.reduce((largest, polygon) => (
+      Math.abs(ringArea(polygon[0])) > Math.abs(ringArea(largest[0])) ? polygon : largest
+    ), polygons[0]);
+  }
+
+  function ringBounds(ring) {
+    return ring.reduce((box, point) => ({
+      minX: Math.min(box.minX, point[0]),
+      minY: Math.min(box.minY, point[1]),
+      maxX: Math.max(box.maxX, point[0]),
+      maxY: Math.max(box.maxY, point[1])
+    }), { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity });
+  }
+
+  function ringCentroid(ring) {
+    const area = ringArea(ring);
+    if (!area) return null;
+    let x = 0;
+    let y = 0;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
+      const a = ring[j][0] * ring[i][1] - ring[i][0] * ring[j][1];
+      x += (ring[j][0] + ring[i][0]) * a;
+      y += (ring[j][1] + ring[i][1]) * a;
+    }
+    return [x / (6 * area), y / (6 * area)];
+  }
+
+  function ringArea(ring) {
+    return ring.reduce((area, point, index) => {
+      const prev = ring[index ? index - 1 : ring.length - 1];
+      return area + (prev[0] * point[1] - point[0] * prev[1]);
+    }, 0) / 2;
+  }
+
+  function pointInPolygon(point, polygon) {
+    if (!pointInRing(point, polygon[0])) return false;
+    return !polygon.slice(1).some((ring) => pointInRing(point, ring));
+  }
+
+  function pointInRing(point, ring) {
+    let inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
+      const xi = ring[i][0];
+      const yi = ring[i][1];
+      const xj = ring[j][0];
+      const yj = ring[j][1];
+      const intersects = ((yi > point[1]) !== (yj > point[1]))
+        && (point[0] < (xj - xi) * (point[1] - yi) / ((yj - yi) || 1e-12) + xi);
+      if (intersects) inside = !inside;
+    }
+    return inside;
+  }
+
+  function distanceToPolygonEdge(point, polygon) {
+    return polygon.reduce((minDistance, ring) => Math.min(minDistance, distanceToRing(point, ring)), Infinity);
+  }
+
+  function distanceToRing(point, ring) {
+    let minDistance = Infinity;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
+      minDistance = Math.min(minDistance, distanceToSegment(point, ring[j], ring[i]));
+    }
+    return minDistance;
+  }
+
+  function distanceToSegment(point, a, b) {
+    const x = point[0];
+    const y = point[1];
+    const dx = b[0] - a[0];
+    const dy = b[1] - a[1];
+    const lengthSq = dx * dx + dy * dy;
+    const t = lengthSq ? clamp(((x - a[0]) * dx + (y - a[1]) * dy) / lengthSq, 0, 1) : 0;
+    const px = a[0] + t * dx;
+    const py = a[1] + t * dy;
+    return Math.hypot(x - px, y - py);
   }
 
   function geometryPoints(geometry) {
