@@ -17,6 +17,7 @@
       this.ghostData = ghostData;
       this.layersById = new Map();
       this.areaCodeLayersByCode = new Map();
+      this.displayFeaturesById = new Map();
       this.tooltipsById = new Map();
       this.answeredIds = new Set();
       this.answeredAreaCodes = new Set();
@@ -53,7 +54,9 @@
     }
 
     renderMain() {
-      this.mainLayer = L.geoJSON(this.dataset, {
+      const displayFeatures = buildMunicipalityDisplayFeatures(this.dataset);
+      this.displayFeaturesById = new Map(displayFeatures.map((feature) => [feature.properties.id, feature]));
+      this.mainLayer = L.geoJSON({ type: "FeatureCollection", features: displayFeatures }, {
         pane: "mainPane",
         style: () => this.baseStyle(),
         onEachFeature: (feature, layer) => {
@@ -199,10 +202,11 @@
 
     showLabel(id) {
       if (this.tooltipsById.has(id)) return;
-      const feature = this.dataset.features.find((item) => item.properties.id === id);
+      const feature = this.displayFeaturesById.get(id)
+        || this.dataset.features.find((item) => item.properties.id === id);
       if (!feature) return;
       const props = feature.properties;
-      const point = props.labelPoint;
+      const point = props.labelPoint || labelPointFromGeometry(feature);
       if (!Array.isArray(point)) return;
       const html = `<div class="answered-label" style="font-size:${props.labelSize || 9.5}px; transform: rotate(${props.labelAngle || -25}deg);">${props.name}</div>`;
       const marker = L.marker(point, {
@@ -295,6 +299,55 @@
     if (stat.mistakes === 1) return COLORS.miss1;
     if (stat.mistakes === 2) return COLORS.miss2;
     return COLORS.miss3;
+  }
+
+  function buildMunicipalityDisplayFeatures(dataset) {
+    const groups = new Map();
+    dataset.features.forEach((feature) => {
+      const id = feature.properties.id;
+      if (!groups.has(id)) groups.set(id, []);
+      groups.get(id).push(feature);
+    });
+
+    return [...groups.values()].map((features) => {
+      if (features.length === 1) return features[0];
+
+      const properties = {
+        ...features[0].properties,
+        sourceCodes: features.map((feature) => feature.properties.sourceCode).filter(Boolean),
+        sourceFeatureCount: features.length
+      };
+      delete properties.labelPoint;
+
+      const collection = { type: "FeatureCollection", features };
+      let geometry = null;
+      if (window.turf && typeof window.turf.union === "function") {
+        try {
+          const unioned = window.turf.union(collection);
+          geometry = unioned && unioned.geometry;
+        } catch (error) {
+          geometry = null;
+        }
+      }
+
+      return {
+        type: "Feature",
+        properties,
+        geometry: geometry || {
+          type: "GeometryCollection",
+          geometries: features.map((feature) => feature.geometry)
+        }
+      };
+    });
+  }
+
+  function labelPointFromGeometry(feature) {
+    if (!window.turf) return null;
+    const center = typeof window.turf.pointOnFeature === "function"
+      ? window.turf.pointOnFeature(feature)
+      : null;
+    const coordinates = center && center.geometry && center.geometry.coordinates;
+    return Array.isArray(coordinates) ? [coordinates[1], coordinates[0]] : null;
   }
 
   function hashCode(value) {
