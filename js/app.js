@@ -1,6 +1,7 @@
 (function () {
-  const dataset = window.SAITAMA_MUNICIPALITIES;
-  const ghostData = window.KANTO_GHOST;
+  const appConfig = resolveAppConfig("saitama");
+  const dataset = appConfig.dataset;
+  const ghostData = appConfig.ghostData;
   const engine = new window.QuizEngine(dataset);
   let renderer;
   let currentMode = "municipality";
@@ -136,6 +137,21 @@
 
   function modeName(mode) {
     return mode === "ma" ? "市外局番 / MAモード" : "市区町村モード";
+  }
+
+  function resolveAppConfig(datasetId) {
+    const catalog = window.GEOQUIZ_DATASETS || [];
+    const config = catalog.find((item) => item.id === datasetId) || catalog[0];
+    if (!config) throw new Error("Geoquiz dataset catalog is empty.");
+
+    const resolvedDataset = window[config.dataGlobal];
+    if (!resolvedDataset) throw new Error(`Dataset global not found: ${config.dataGlobal}`);
+
+    return {
+      ...config,
+      dataset: resolvedDataset,
+      ghostData: window[config.ghostGlobal] || null
+    };
   }
 
   function formatTime(ms) {
