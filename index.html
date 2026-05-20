@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>日本市外局番マップクイズ</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+    <link rel="stylesheet" href="css/style.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <div id="storageNotice" class="notice-bar is-hidden">
+        <span id="storageNoticeText">累積成績を確認しています。</span>
+        <button id="storageNoticeClose" class="ghost-button" type="button">閉じる</button>
+      </div>
+      <section id="startScreen" class="start-screen">
+        <div class="brand-block">
+          <p class="eyebrow" id="appSubtitle">GeoGuessr training / Saitama MVP</p>
+          <h1 id="appTitle">日本市外局番マップクイズ</h1>
+          <p id="appDescription">未回答の白地図から、埼玉県の市町村と市外局番を叩き込むトレーニングツール。</p>
+        </div>
+        <div class="mode-grid" aria-label="モード選択">
+          <button class="mode-card" data-start-mode="municipality">
+            <span>市区町村</span>
+            <strong>市町村名から場所を当てる</strong>
+          </button>
+          <button class="mode-card" data-start-mode="ma">
+            <span>市外局番</span>
+            <strong>番号からエリアを当てる</strong>
+          </button>
+          <button class="mode-card" data-start-mode="puzzle">
+            <span>パズル</span>
+            <strong>ずれた市区町村を元の位置へ戻す</strong>
+          </button>
+          <button class="mode-card is-disabled" data-start-mode="image" disabled>
+            <span>画像判別</span>
+            <strong>県旗・市章・標識は今後追加</strong>
+          </button>
+        </div>
+      </section>
+
+      <section id="gameScreen" class="game-screen is-hidden">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow" id="modeLabel">市区町村モード</p>
+            <h2 id="questionText">読み込み中</h2>
+          </div>
+          <div class="top-actions">
+            <button id="backToMenuButton" class="ghost-button" type="button">モード選択</button>
+            <button id="resetButton" class="primary-button" type="button">リセット</button>
+          </div>
+        </header>
+
+        <div class="play-layout">
+          <div id="playMapSlot" class="map-slot">
+            <div id="map" class="map-panel" aria-label="埼玉県クイズ地図"></div>
+          </div>
+          <aside class="status-panel">
+            <div class="reference-panel" aria-label="参照ポリゴン">
+              <span>参照ポリゴン</span>
+              <div id="referencePreview" class="reference-preview"></div>
+            </div>
+            <div class="stat-row"><span>残り</span><strong id="remainingCount">0</strong></div>
+            <div class="stat-row"><span>正解</span><strong id="correctCount">0</strong></div>
+            <div class="stat-row"><span>ミス</span><strong id="mistakeCount">0</strong></div>
+            <div class="stat-row"><span>経過</span><strong id="elapsedTime">00:00</strong></div>
+            <label class="toggle-row">
+              <input id="suddenDeathToggle" type="checkbox">
+              <span>サドンデス</span>
+            </label>
+            <label class="toggle-row">
+              <input id="mistakeSpeechToggle" type="checkbox">
+              <span>ミス音声</span>
+            </label>
+            <div id="puzzleControls" class="puzzle-controls is-hidden">
+              <label>
+                <span>ピース</span>
+                <select id="puzzlePieceSelect">
+                  <option value="all">全市区町村</option>
+                  <option value="small">少なめ15</option>
+                </select>
+              </label>
+              <div class="puzzle-best"><span>ベスト</span><strong id="puzzleBestTime">--:--</strong></div>
+            </div>
+            <div class="legend-block">
+              <span class="legend-item"><i class="swatch pending"></i>未回答</span>
+              <span class="legend-item"><i class="swatch correct"></i>正解済み</span>
+              <span class="legend-item"><i class="swatch miss"></i>弱点</span>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <aside id="labelEditorPanel" class="label-editor-panel is-hidden" aria-label="ラベル調整">
+        <div>
+          <p class="eyebrow">Label editor</p>
+          <h3>ラベル調整</h3>
+          <p id="labelDraftStatus" class="editor-status">文字か丸点をドラッグして移動できます</p>
+        </div>
+        <div class="editor-tabs" role="tablist" aria-label="ラベル種別">
+          <button id="municipalityLabelEditButton" class="ranking-tab is-active" type="button" aria-selected="true">市区町村</button>
+          <button id="areaCodeLabelEditButton" class="ranking-tab" type="button" aria-selected="false">市外局番</button>
+        </div>
+        <label class="toggle-row editor-toggle">
+          <input id="labelVisibleToggle" type="checkbox" checked>
+          <span>ラベル表示</span>
+        </label>
+        <label class="editor-select-row">
+          <span>対象ラベル</span>
+          <select id="labelTargetSelect"></select>
+        </label>
+        <div class="editor-row">
+          <label>角度 <input id="labelAngleInput" type="range" min="-45" max="45" step="1" value="0"></label>
+          <label>サイズ <input id="labelSizeInput" type="range" min="7" max="18" step="0.5" value="10"></label>
+        </div>
+        <p class="editor-hint">矢印キーで微調整、Shift+矢印で大きく移動。</p>
+        <textarea id="labelOverrideOutput" readonly spellcheck="false"></textarea>
+        <div class="editor-actions">
+          <button id="copyLabelOverridesButton" class="primary-button" type="button">補正JSONをコピー</button>
+          <button id="discardLabelDraftButton" class="ghost-button" type="button">下書きを破棄</button>
+        </div>
+      </aside>
+
+      <section id="resultScreen" class="result-screen is-hidden">
+        <div class="result-copy">
+          <p class="eyebrow" id="resultModeLabel">Result</p>
+          <h2 id="resultTitle">リザルト</h2>
+          <p id="resultSummary">結果を集計しています。</p>
+        </div>
+        <div class="result-grid">
+          <div class="result-card"><span>正解</span><strong id="resultCorrect">0</strong></div>
+          <div class="result-card"><span>ミス</span><strong id="resultMistakes">0</strong></div>
+          <div class="result-card"><span>平均回答</span><strong id="resultAverage">0.0s</strong></div>
+          <div class="result-card"><span>出題数</span><strong id="resultTotal">0</strong></div>
+        </div>
+        <section class="ranking-panel" aria-label="累積苦手ランキング">
+          <div class="ranking-heading">
+            <div>
+              <p class="eyebrow">Ranking</p>
+              <h3 id="rankingTitle">苦手ランキング</h3>
+            </div>
+            <div class="ranking-tabs" role="tablist" aria-label="ランキング切替">
+              <button class="ranking-tab is-active" type="button" data-ranking-type="weak" role="tab" aria-selected="true">ミス</button>
+              <button class="ranking-tab" type="button" data-ranking-type="accuracy" role="tab" aria-selected="false">正答率</button>
+              <button class="ranking-tab" type="button" data-ranking-type="time" role="tab" aria-selected="false">平均時間</button>
+            </div>
+          </div>
+          <ol id="weakRankingList" class="ranking-list"></ol>
+          <div class="ranking-actions">
+            <button id="practiceWeakButton" class="ghost-button" type="button" disabled>このランキングだけ再出題</button>
+            <button id="practiceLastMistakeButton" class="ghost-button" type="button" disabled>前回ミスだけ再出題</button>
+            <button id="practiceUnansweredButton" class="ghost-button" type="button" disabled>未正解だけ再出題</button>
+            <button id="practiceRecentMistakeButton" class="ghost-button" type="button" disabled>最近ミスだけ再出題</button>
+            <button id="practiceLowAccuracyButton" class="ghost-button" type="button" disabled>低正答率を優先出題</button>
+          </div>
+        </section>
+        <div class="result-map-wrap">
+          <p class="eyebrow">Completed map</p>
+          <div id="resultMapSlot" class="result-map-slot"></div>
+        </div>
+        <div class="result-actions">
+          <button id="downloadJsonButton" class="primary-button" type="button">弱点JSONをダウンロード</button>
+          <button id="exportProgressButton" class="ghost-button" type="button">累積成績を書き出し</button>
+          <button id="importProgressButton" class="ghost-button" type="button">累積成績を読み込み</button>
+          <input id="importProgressInput" class="is-hidden" type="file" accept="application/json,.json">
+          <button id="retryButton" class="ghost-button" type="button">もう一度プレイ</button>
+          <button id="resultBackToMenuButton" class="ghost-button" type="button">トップへ戻る</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="vendor/leaflet/leaflet.js"></script>
+    <script src="vendor/turf/turf.min.js"></script>
+    <script src="data/prefectures/saitama.js"></script>
+    <script src="data/saitama/label-overrides.js"></script>
+    <script src="data/ghost/kanto-ghost.js"></script>
+    <script src="data/image-questions/saitama.js"></script>
+    <script src="data/catalog.js"></script>
+    <script src="js/ma-union.js"></script>
+    <script src="js/quiz-modes.js"></script>
+    <script src="js/quiz-engine.js"></script>
+    <script src="js/result-analytics.js"></script>
+    <script src="js/progress-store.js"></script>
+    <script src="js/map-renderer.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
