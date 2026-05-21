@@ -92,10 +92,9 @@
 
   function broadAreaCode(code) {
     const str = String(code || "");
-    if (/^049[3-9]/.test(str)) return str.slice(0, 4); // 0493, 0494, 0495 など
-    if (str.startsWith("048")) return "048";            // 048, 0480
-    if (str.startsWith("049")) return "049";            // 049
-    if (str.startsWith("04")) return "04";              // 04, 042
+    if (str.startsWith("049")) return "049"; // 049, 0493, 0494, 0495
+    if (str.startsWith("048")) return "048"; // 048, 0480
+    if (str.startsWith("04")) return "04";   // 042
     return str;
   }
 
