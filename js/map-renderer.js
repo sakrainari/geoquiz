@@ -31,6 +31,7 @@
       this.areaCodeHeatmapStats = null;
       this._topAreaIdsCache = null;
       this.confirmMode = false;
+      this.labelEditDisplayCodes = new Set();
       this.labelEditEnabled = false;
       this.labelEditSelectedId = null;
       this.labelEditScope = "municipality";
@@ -109,8 +110,14 @@
                 fillOpacity: 0.95
               });
             },
-            mouseout: () => this.refreshFeatureStyle(id),
-            click: () => this.onFeatureClick && this.onFeatureClick(feature, layer)
+            mouseout: () => {
+              if (this.labelEditEnabled) return;
+              this.refreshFeatureStyle(id);
+            },
+            click: () => {
+              if (this.labelEditEnabled) { this.selectEditableLabel(id); return; }
+              this.onFeatureClick && this.onFeatureClick(feature, layer);
+            }
           });
           if (layer.dragging) layer.dragging.disable();
           layer.once("add", () => {
@@ -377,7 +384,7 @@
           this.areaCodeLayersByCode.get(areaCode).push(layer);
           layer.on({
             mouseover: () => {
-              if (this.liteMode) return;
+              if (this.liteMode || this.labelEditEnabled) return;
               layer.setStyle({
                 ...this.getAreaCodeStyle(areaCode),
                 color: COLORS.hover,
@@ -386,8 +393,14 @@
                 fillOpacity: 0.94
               });
             },
-            mouseout: () => this.refreshAreaCodeStyle(areaCode),
-            click: () => this.onFeatureClick && this.onFeatureClick(feature, layer)
+            mouseout: () => {
+              if (this.labelEditEnabled) return;
+              this.refreshAreaCodeStyle(areaCode);
+            },
+            click: () => {
+              if (this.labelEditEnabled) { this.selectEditableAreaCodeLabel(areaCode); return; }
+              this.onFeatureClick && this.onFeatureClick(feature, layer);
+            }
           });
           layer.once("add", () => {
             if (layer._path) layer._path.dataset.areaCode = areaCode;
@@ -434,12 +447,12 @@
     }
 
     _refreshVisibleLabels() {
-      this.tooltipsById.forEach((marker) => marker.remove());
+      this.tooltipsById.forEach((layer) => layer.unbindTooltip());
       this.tooltipsById.clear();
       this._invalidateTopAreaCache();
       this.answeredIds.forEach(id => this.showLabel(id));
 
-      this.areaCodeTooltipsByCode.forEach((marker) => marker.remove());
+      this.areaCodeTooltipsByCode.forEach((layer) => layer.unbindTooltip());
       this.areaCodeTooltipsByCode.clear();
       this.answeredAreaCodes.forEach(code => this.showAreaCodeLabel(code));
     }
@@ -558,40 +571,19 @@
         angleLimit: this.mode === "ma" ? 18 : 28,
         zoom: this.map.getZoom()
       });
-      const point = label.point || props.labelPoint;
-      if (!Array.isArray(point)) return;
+      const layers = this.layersById.get(id);
+      if (!layers || !layers.length) return;
+      const layer = layers[0];
       const selected = this.labelEditSelectedId === id;
       const html = `<div class="answered-label${selected ? " is-selected" : ""}" style="font-size:${label.size}px; transform: translate(-50%, -50%) rotate(${label.angle}deg);">${props.name}</div>`;
-      const markerOptions = {
-        pane: "labelPane",
-        interactive: this.labelEditEnabled,
-        draggable: this.labelEditEnabled,
-        opacity: this.labelEditEnabled ? 1 : 0
-      };
-      if (this.labelEditEnabled) {
-        markerOptions.title = `${props.name}をドラッグして移動`;
-        markerOptions.icon = L.divIcon({
-          className: `label-edit-anchor${selected ? " is-selected" : ""}`,
-          html: `<span class="label-edit-hitbox" aria-hidden="true"></span><span class="label-edit-handle"></span>`,
-          iconSize: [92, 40],
-          iconAnchor: [46, 20]
-        });
-      }
-      const marker = L.marker(point, markerOptions).addTo(this.map);
-      marker.bindTooltip(html, {
+      layer.bindTooltip(html, {
         permanent: true,
         direction: "center",
         className: "answered-tooltip",
+        pane: "labelPane",
         opacity: 1
       }).openTooltip();
-      if (this.labelEditEnabled) {
-        marker.on("click", () => this.selectEditableLabel(id));
-        marker.on("dragend", () => {
-          const latLng = marker.getLatLng();
-          this.updateLabelState(id, { point: [roundCoord(latLng.lat), roundCoord(latLng.lng)] });
-        });
-      }
-      this.tooltipsById.set(id, marker);
+      this.tooltipsById.set(id, layer);
     }
 
     shouldShowLiteLabel(props) {
@@ -604,7 +596,6 @@
     enableLabelEditor(onChange) {
       this.labelEditEnabled = true;
       this.onLabelEditChange = onChange;
-      this.map.getPane("labelPane").style.pointerEvents = "auto";
       this.setLabelEditorScope("municipality");
       this.fitToMain();
       this.notifyLabelEditChange();
@@ -614,12 +605,14 @@
       this.labelEditScope = scope === "areaCode" ? "areaCode" : "municipality";
       if (!options.preserveSelection) this.labelEditSelectedId = null;
       this.layersById.forEach((layers) => layers.forEach((layer) => layer.setStyle(this.baseStyle())));
+      this.labelEditDisplayCodes.clear();
       this.clearMunicipalityLabels();
       this.clearAreaCodeLabels();
       if (this.labelEditScope === "areaCode") {
         this.setMode("ma");
         this.areaCodeFeaturesByCode.forEach((feature, areaCode) => {
-          this.answeredAreaCodes.add(areaCode);
+          this.labelEditDisplayCodes.add(areaCode);
+          this.refreshAreaCodeStyle(areaCode);
           this.showAreaCodeLabel(areaCode);
         });
       } else {
@@ -654,15 +647,8 @@
       }
     }
 
-    nudgeSelectedLabel(deltaLat, deltaLng) {
-      const selected = this.selectedLabelState();
-      if (!this.labelEditSelectedId || !Array.isArray(selected && selected.point)) return;
-      this.updateSelectedLabel({
-        point: [
-          roundCoord(selected.point[0] + deltaLat),
-          roundCoord(selected.point[1] + deltaLng)
-        ]
-      });
+    nudgeSelectedLabel(_deltaLat, _deltaLng) {
+      // Position is auto-computed from polygon bounds; nudge not applicable
     }
 
     selectLabelTarget(targetId) {
@@ -695,9 +681,9 @@
     updateLabelState(id, values) {
       const existing = this.currentLabelState(id);
       this.labelStatesById.set(id, { ...existing, ...values });
-      const marker = this.tooltipsById.get(id);
-      if (marker) {
-        marker.remove();
+      const layer = this.tooltipsById.get(id);
+      if (layer) {
+        layer.unbindTooltip();
         this.tooltipsById.delete(id);
       }
       this.showLabel(id);
@@ -716,7 +702,7 @@
       const override = this.labelStatesById.get(id);
       if (!override) return base;
       return {
-        point: override.point !== undefined ? override.point : base.point,
+        point: base.point,
         angle: override.angle !== undefined ? override.angle : base.angle,
         size: override.size !== undefined ? override.size : base.size
       };
@@ -763,50 +749,29 @@
         forceAngle: 0,
         precise: true,
         preferVisualCenter: true,
-        preferredPoint: feature.properties.labelPoint,
         zoom: this.map.getZoom()
       });
-      if (!Array.isArray(label.point)) return;
+      const layers = this.areaCodeLayersByCode.get(areaCode);
+      if (!layers || !layers.length) return;
+      const layer = layers[0];
       const selected = this.labelEditSelectedId === `areaCode:${areaCode}`;
       const html = `<div class="answered-label area-code-label${selected ? " is-selected" : ""}" style="font-size:${label.size}px; transform: translate(-50%, -50%) rotate(${label.angle}deg);">${areaCode}</div>`;
-      const markerOptions = {
-        pane: "labelPane",
-        interactive: this.labelEditEnabled,
-        draggable: this.labelEditEnabled,
-        opacity: this.labelEditEnabled ? 1 : 0
-      };
-      if (this.labelEditEnabled) {
-        markerOptions.title = `${areaCode}をドラッグして移動`;
-        markerOptions.icon = L.divIcon({
-          className: `label-edit-anchor${selected ? " is-selected" : ""}`,
-          html: `<span class="label-edit-hitbox" aria-hidden="true"></span><span class="label-edit-handle"></span>`,
-          iconSize: [92, 40],
-          iconAnchor: [46, 20]
-        });
-      }
-      const marker = L.marker(label.point, markerOptions).addTo(this.map);
-      marker.bindTooltip(html, {
+      layer.bindTooltip(html, {
         permanent: true,
         direction: "center",
         className: "answered-tooltip area-code-tooltip",
+        pane: "labelPane",
         opacity: 1
       }).openTooltip();
-      if (this.labelEditEnabled) {
-        marker.on("click", () => this.selectEditableAreaCodeLabel(areaCode));
-        marker.on("dragend", () => {
-          const latLng = marker.getLatLng();
-          this.updateAreaCodeLabelState(areaCode, { point: [roundCoord(latLng.lat), roundCoord(latLng.lng)] });
-        });
-      }
-      this.areaCodeTooltipsByCode.set(areaCode, marker);
+      this.areaCodeTooltipsByCode.set(areaCode, layer);
     }
 
     updateAreaCodeLabelState(areaCode, values) {
       const existing = this.currentAreaCodeLabelState(areaCode);
       this.areaCodeLabelStatesByCode.set(areaCode, { ...existing, ...values });
-      const marker = this.areaCodeTooltipsByCode.get(areaCode);
-      if (marker) {
-        marker.remove();
+      const layer = this.areaCodeTooltipsByCode.get(areaCode);
+      if (layer) {
+        layer.unbindTooltip();
         this.areaCodeTooltipsByCode.delete(areaCode);
       }
       this.showAreaCodeLabel(areaCode);
@@ -843,35 +808,35 @@
       const override = this.areaCodeLabelStatesByCode.get(areaCode);
       if (!override) return base;
       return {
-        point: override.point !== undefined ? override.point : base.point,
+        point: base.point,
         angle: override.angle !== undefined ? override.angle : base.angle,
         size: override.size !== undefined ? override.size : base.size
       };
     }
 
     clearMunicipalityLabels() {
-      this.tooltipsById.forEach((marker) => marker.remove());
+      this.tooltipsById.forEach((layer) => layer.unbindTooltip());
       this.tooltipsById.clear();
     }
 
     refreshLabel(id) {
-      const marker = this.tooltipsById.get(id);
-      if (marker) {
-        marker.remove();
+      const layer = this.tooltipsById.get(id);
+      if (layer) {
+        layer.unbindTooltip();
         this.tooltipsById.delete(id);
       }
       this.showLabel(id);
     }
 
     clearAreaCodeLabels() {
-      this.areaCodeTooltipsByCode.forEach((marker) => marker.remove());
+      this.areaCodeTooltipsByCode.forEach((layer) => layer.unbindTooltip());
       this.areaCodeTooltipsByCode.clear();
     }
 
     refreshAreaCodeLabel(areaCode) {
-      const marker = this.areaCodeTooltipsByCode.get(areaCode);
-      if (marker) {
-        marker.remove();
+      const layer = this.areaCodeTooltipsByCode.get(areaCode);
+      if (layer) {
+        layer.unbindTooltip();
         this.areaCodeTooltipsByCode.delete(areaCode);
       }
       this.showAreaCodeLabel(areaCode);
@@ -903,6 +868,15 @@
     }
 
     getAreaCodeStyle(areaCode) {
+      if (this.labelEditEnabled && this.labelEditDisplayCodes.has(areaCode)) {
+        return {
+          color: "#d7e1e8",
+          weight: 1.2,
+          opacity: 0.95,
+          fillColor: answerColor(0),
+          fillOpacity: 0.86
+        };
+      }
       if (this.areaCodeHeatmapStats && this.areaCodeHeatmapStats.has(areaCode)) {
         const stat = this.areaCodeHeatmapStats.get(areaCode);
         return {
@@ -938,6 +912,7 @@
       this.areaCodeMistakesByCode.clear();
       this.heatmapStats = null;
       this.areaCodeHeatmapStats = null;
+      this.labelEditDisplayCodes.clear();
       this._invalidateTopAreaCache();
       this.layersById.forEach((layers) => layers.forEach((layer) => layer.setStyle(this.baseStyle())));
       this.areaCodeLayersByCode.forEach((layers, areaCode) => {
