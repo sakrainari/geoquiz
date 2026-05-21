@@ -302,13 +302,13 @@
     const puzzleIds = mode === "puzzle" ? puzzlePieceIds() : null;
     if (mode === "puzzle") options = { ...options, questionIds: puzzleIds };
     engine.reset(mode, els.suddenDeathToggle.checked, options);
-    showGame();
     ensureMap().reset();
     renderer.setMode(mode);
     if (mode === "puzzle") {
       renderer.startPuzzle(updatePuzzleState, { pieceIds: puzzleIds });
       updatePuzzleBestTime();
     }
+    showGame();
     lastReferenceKey = null;
     updateHud();
     if (!engine.currentQuestion()) {
@@ -455,7 +455,7 @@
     const savedProgress = window.ProgressStore.saveSession(appConfig.id, dataset, result);
     const datasetProgress = savedProgress.progress.datasets[appConfig.id];
     currentDatasetProgress = datasetProgress;
-    renderer.applyHeatmap(result.stats, result.mode);
+    renderer.applyProgressHeatmap(currentDatasetProgress, result.mode);
     lastResultPayload = window.ResultAnalytics.buildWeakPointExport(result, dataset.prefecture);
 
     els.resultModeLabel.textContent = currentPracticeLabel

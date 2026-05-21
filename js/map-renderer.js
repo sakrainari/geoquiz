@@ -9,7 +9,7 @@
     correctAlt: "#d4b46a",
     miss1: "#d6c75f",
     miss2: "#d28d46",
-    miss3: "#dc5c55",
+    miss3: "#e35d5d",
     unanswered: "#4b5563"
   };
 
@@ -959,6 +959,21 @@
       });
     }
 
+    applyProgressHeatmap(datasetProgress, mode) {
+      if (!datasetProgress || !datasetProgress.stats) return;
+      const stats = Object.values(datasetProgress.stats).map((stat) => {
+        const modeStat = (stat.modes && stat.modes[mode]) || null;
+        return {
+          id: stat.id,
+          name: stat.name,
+          area_code: stat.area_code,
+          correct: modeStat ? modeStat.correct > 0 : false,
+          mistakes: modeStat ? (modeStat.mistakes || 0) : 0
+        };
+      });
+      this.applyHeatmap(stats, mode);
+    }
+
     applyAreaCodeHeatmap(stats) {
       if (!this.maLayer) this.renderMaOverlay();
       const statsById = new Map(stats.map((item) => [item.id, item]));
@@ -967,6 +982,11 @@
         const memberStats = (feature.properties.memberIds || [])
           .map((id) => statsById.get(id))
           .filter(Boolean);
+        // ma_broad では broad_area_code:xxx 形式で直接参照するフォールバック
+        if (!memberStats.length) {
+          const direct = statsById.get(`broad_area_code:${areaCode}`) || statsById.get(`area_code:${areaCode}`);
+          if (direct) memberStats.push(direct);
+        }
         const mistakes = memberStats.reduce((max, item) => Math.max(max, item.mistakes || 0), 0);
         const correct = memberStats.length > 0 && memberStats.every((item) => item.correct);
         this.areaCodeHeatmapStats.set(areaCode, { id: areaCode, mistakes, correct });
@@ -986,15 +1006,14 @@
 
   function answerColor(mistakes) {
     if (mistakes <= 0) return COLORS.correct;
-    if (mistakes === 1) return COLORS.miss1;
+    if (mistakes === 1) return COLORS.correctAlt;
     return COLORS.miss3;
   }
 
   function heatColor(stat) {
     if (!stat || !stat.correct) return COLORS.unanswered;
     if (stat.mistakes === 0) return COLORS.correct;
-    if (stat.mistakes === 1) return COLORS.miss1;
-    if (stat.mistakes === 2) return COLORS.miss2;
+    if (stat.mistakes === 1) return COLORS.correctAlt;
     return COLORS.miss3;
   }
 
