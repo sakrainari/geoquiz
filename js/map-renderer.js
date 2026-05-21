@@ -126,6 +126,8 @@
       this.puzzleStatesById.clear();
       this.resetPuzzleLabelsAndStyles();
       this.renderPuzzleOutlines(selectedIds);
+      const totalPieces = selectedIds.size;
+      let pieceIndex = 0;
       this.displayFeaturesById.forEach((feature, id) => {
         if (!selectedIds.has(id)) {
           this.layersById.get(id).forEach((layer) => {
@@ -140,7 +142,8 @@
           });
           return;
         }
-        const offset = puzzleInitialOffset(id);
+        const offset = puzzleInitialOffset(pieceIndex, totalPieces);
+        pieceIndex++;
         this.puzzleStatesById.set(id, {
           original: feature.geometry,
           offset,
@@ -603,7 +606,7 @@
     }
 
     updateLabelState(id, values) {
-      const existing = this.labelStatesById.get(id) || this.currentLabelState(id);
+      const existing = this.currentLabelState(id);
       this.labelStatesById.set(id, { ...existing, ...values });
       const marker = this.tooltipsById.get(id);
       if (marker) {
@@ -624,7 +627,12 @@
     resolveLabelPlacement(id, feature, options = {}) {
       const base = buildLabelPlacement(feature, options);
       const override = this.labelStatesById.get(id);
-      return override ? { ...base, ...override } : base;
+      if (!override) return base;
+      return {
+        point: override.point !== undefined ? override.point : base.point,
+        angle: override.angle !== undefined ? override.angle : base.angle,
+        size: override.size !== undefined ? override.size : base.size
+      };
     }
 
     labelOverrideExport() {
@@ -706,7 +714,7 @@
     }
 
     updateAreaCodeLabelState(areaCode, values) {
-      const existing = this.areaCodeLabelStatesByCode.get(areaCode) || this.currentAreaCodeLabelState(areaCode);
+      const existing = this.currentAreaCodeLabelState(areaCode);
       this.areaCodeLabelStatesByCode.set(areaCode, { ...existing, ...values });
       const marker = this.areaCodeTooltipsByCode.get(areaCode);
       if (marker) {
@@ -745,7 +753,12 @@
     resolveAreaCodeLabelPlacement(areaCode, feature, options = {}) {
       const base = buildLabelPlacement(feature, options);
       const override = this.areaCodeLabelStatesByCode.get(areaCode);
-      return override ? { ...base, ...override } : base;
+      if (!override) return base;
+      return {
+        point: override.point !== undefined ? override.point : base.point,
+        angle: override.angle !== undefined ? override.angle : base.angle,
+        size: override.size !== undefined ? override.size : base.size
+      };
     }
 
     clearMunicipalityLabels() {
@@ -965,6 +978,9 @@
   }
 
   function labelAngle(feature, ratio, options = {}) {
+    const angleLimit = options.angleLimit || 28;
+    if (ratio > 1.35) return clamp(principalAngle(feature.geometry), -angleLimit, angleLimit);
+    if (ratio < 0.72) return clamp(principalAngle(feature.geometry), -18, 18);
     return 0;
   }
 
@@ -1213,10 +1229,9 @@
     return ring.map((point) => [point[1], point[0]]);
   }
 
-  function puzzleInitialOffset(id) {
-    const hash = Math.abs(hashCode(id));
-    const angle = (hash % 360) * Math.PI / 180;
-    const radius = 0.07 + (hash % 5) * 0.018;
+  function puzzleInitialOffset(index, total) {
+    const angle = (index / Math.max(total, 1)) * 2 * Math.PI;
+    const radius = 0.13;
     return {
       lat: Math.sin(angle) * radius,
       lng: Math.cos(angle) * radius
