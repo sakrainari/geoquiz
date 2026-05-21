@@ -18,45 +18,126 @@
         <button id="storageNoticeClose" class="ghost-button" type="button">閉じる</button>
       </div>
       <section id="startScreen" class="start-screen">
-        <div class="brand-block">
-          <p class="eyebrow" id="appSubtitle">GeoGuessr training </p>
-          <h1 id="appTitle">GeoQuiz</h1>
-          <p id="appDescription">地図から、知識を叩き込むトレーニングツール。</p>
+
+        <!-- 左カラム：ブランド + クイズモード -->
+        <div class="start-left">
+          <header class="start-header">
+            <div class="brand-block">
+              <p class="eyebrow" id="appSubtitle">GeoGuessr training</p>
+              <h1 id="appTitle">GeoQuiz</h1>
+              <p id="appDescription">地図から、知識を叩き込むトレーニングツール。</p>
+            </div>
+            <button id="regionSelector" class="ghost-button region-selector" type="button">埼玉県 ▾</button>
+          </header>
+
+          <p class="section-label">クイズ</p>
+          <div class="mode-grid" aria-label="モード選択">
+
+            <button class="mode-card" data-start-mode="municipality">
+              <div class="mode-card-icon">▣</div>
+              <div class="mode-card-body">
+                <div class="mode-card-tag">MUNICIPALITY</div>
+                <div class="mode-card-title">市区町村</div>
+                <div class="mode-card-desc">市町村名から場所を当てる · 63問</div>
+              </div>
+              <span class="mode-card-arrow">›</span>
+            </button>
+
+            <button class="mode-card" data-start-mode="ma">
+              <div class="mode-card-icon">#</div>
+              <div class="mode-card-body">
+                <div class="mode-card-tag">AREA CODE</div>
+                <div class="mode-card-title">市外局番</div>
+                <div class="mode-card-desc">番号からエリアを当てる · 8問</div>
+              </div>
+              <span class="mode-card-arrow">›</span>
+            </button>
+
+            <button class="mode-card" data-start-mode="ma_broad">
+              <div class="mode-card-icon">≋</div>
+              <div class="mode-card-body">
+                <div class="mode-card-tag">AREA CODE · BROAD</div>
+                <div class="mode-card-title">市外局番（広域）</div>
+                <div class="mode-card-desc">2〜3桁の広域番号を当てる · 3問</div>
+              </div>
+              <span class="mode-card-arrow">›</span>
+            </button>
+
+            <button class="mode-card" data-start-mode="puzzle">
+              <div class="mode-card-icon">⊞</div>
+              <div class="mode-card-body">
+                <div class="mode-card-tag">PUZZLE</div>
+                <div class="mode-card-title">パズル</div>
+                <div class="mode-card-desc">ずれた市区町村を元の位置へ戻す</div>
+              </div>
+              <span class="mode-card-arrow">›</span>
+            </button>
+
+            <button class="mode-card is-disabled" data-start-mode="image" disabled>
+              <div class="mode-card-icon">⊡</div>
+              <div class="mode-card-body">
+                <div class="mode-card-tag">IMAGE · COMING SOON</div>
+                <div class="mode-card-title">画像判別</div>
+                <div class="mode-card-desc">様々なクイズを搭載予定</div>
+              </div>
+              <span class="mode-card-arrow">›</span>
+            </button>
+
+          </div>
         </div>
-        <div class="mode-grid" aria-label="モード選択">
-          <button class="mode-card" data-start-mode="municipality">
-            <span>市区町村</span>
-            <strong>市町村名から場所を当てる</strong>
-          </button>
-          <button class="mode-card" data-start-mode="ma">
-            <span>市外局番</span>
-            <strong>番号からエリアを当てる</strong>
-          </button>
-          <button class="mode-card" data-start-mode="puzzle">
-            <span>パズル</span>
-            <strong>ずれた市区町村を元の位置へ戻す</strong>
-          </button>
-          <button class="mode-card" data-start-mode="confirm">
-            <span>確認マップ</span>
-            <strong>全市区町村を表示して確認する</strong>
-          </button>
-          <button class="mode-card" data-start-mode="confirm_ma">
-            <span>市外局番を確認</span>
-            <strong>市外局番エリアを表示して確認する</strong>
-          </button>
-          <button class="mode-card" data-start-mode="ma_broad">
-            <span>広域市外局番</span>
-            <strong>2〜3桁の広域番号からエリアを当てる</strong>
-          </button>
-          <button class="mode-card" data-start-mode="confirm_ma_broad">
-            <span>広域局番を確認</span>
-            <strong>広域市外局番エリアを表示して確認する</strong>
-          </button>
-          <button class="mode-card is-disabled" data-start-mode="image" disabled>
-            <span>画像判別</span>
-            <strong>様々なクイズを搭載予定</strong>
-          </button>
+
+        <!-- 右カラム：確認マップ + 統計パネル -->
+        <div class="start-right">
+          <p class="section-label">確認マップ</p>
+          <div class="mode-grid-confirm" aria-label="確認マップ">
+
+            <button class="mode-card mode-card-confirm" data-start-mode="confirm">
+              <div class="mode-card-icon">◎</div>
+              <div class="mode-card-body">
+                <div class="mode-card-title">市区町村マップ</div>
+                <div class="mode-card-desc">全市区町村を表示して確認</div>
+              </div>
+            </button>
+
+            <button class="mode-card mode-card-confirm" data-start-mode="confirm_ma">
+              <div class="mode-card-icon">◎</div>
+              <div class="mode-card-body">
+                <div class="mode-card-title">市外局番マップ</div>
+                <div class="mode-card-desc">市外局番エリアを表示して確認</div>
+              </div>
+            </button>
+
+            <button class="mode-card mode-card-confirm" data-start-mode="confirm_ma_broad">
+              <div class="mode-card-icon">◎</div>
+              <div class="mode-card-body">
+                <div class="mode-card-title">広域局番マップ</div>
+                <div class="mode-card-desc">広域市外局番エリアを確認</div>
+              </div>
+            </button>
+
+          </div>
+
+          <div id="topStatsPanel" class="top-stats-panel">
+            <div class="top-stat">
+              <div class="top-stat-value" id="topStatSessions">—</div>
+              <div class="top-stat-label">セッション</div>
+            </div>
+            <div class="top-stat">
+              <div class="top-stat-value" id="topStatAccuracy">—</div>
+              <div class="top-stat-label">正答率</div>
+            </div>
+            <div class="top-stat">
+              <div class="top-stat-value" id="topStatWeak">—</div>
+              <div class="top-stat-label">苦手問題</div>
+            </div>
+            <div class="top-stat">
+              <div class="top-stat-value" id="topStatLastPlay">—</div>
+              <div class="top-stat-label">最終プレイ</div>
+            </div>
+            <div id="topMiniHeatmap" class="top-mini-heatmap"></div>
+          </div>
         </div>
+
       </section>
 
       <section id="gameScreen" class="game-screen is-hidden">

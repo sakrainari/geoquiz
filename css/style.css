@@ -56,10 +56,11 @@ button {
 
 .start-screen {
   display: grid;
-  grid-template-columns: minmax(260px, 0.85fr) minmax(320px, 1.15fr);
-  gap: 28px;
-  align-items: center;
+  grid-template-columns: minmax(300px, 1.3fr) minmax(240px, 1fr);
+  gap: 32px;
+  align-items: start;
   min-height: calc(100vh - 40px);
+  padding-top: 8px;
 }
 
 .brand-block {
@@ -110,10 +111,12 @@ h2 {
 
 .mode-card {
   display: grid;
-  gap: 8px;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
   width: 100%;
-  min-height: 132px;
-  padding: 22px;
+  min-height: 80px;
+  padding: 14px 16px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
@@ -126,20 +129,167 @@ h2 {
   background: #1b272b;
 }
 
-.mode-card span {
+.mode-card.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* ── スタート画面 レイアウト ── */
+.start-left,
+.start-right {
+  display: grid;
+  align-content: start;
+}
+
+.start-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.region-selector {
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 10px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.section-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+/* ── モードカード内部 ── */
+.mode-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--panel-soft);
+  font-size: 17px;
   color: var(--accent);
+}
+
+.mode-card-body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mode-card-tag {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mode-card-title {
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.mode-card-desc {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.mode-card .mode-card-arrow {
+  font-size: 22px;
+  color: var(--muted);
+  font-weight: 300;
+  line-height: 1;
+}
+
+.mode-card:hover:not(:disabled) .mode-card-arrow {
+  color: var(--accent);
+}
+
+/* ── 確認マップカード ── */
+.mode-grid-confirm {
+  display: grid;
+  gap: 8px;
+}
+
+.mode-card-confirm {
+  min-height: 0;
+  padding: 10px 14px;
+  background: transparent;
+}
+
+.mode-card-confirm .mode-card-icon {
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
+  background: transparent;
+  color: var(--muted);
+}
+
+.mode-card-confirm .mode-card-title {
   font-size: 13px;
   font-weight: 700;
 }
 
-.mode-card strong {
-  font-size: 22px;
-  letter-spacing: 0;
+.mode-card-confirm .mode-card-desc {
+  font-size: 11px;
 }
 
-.mode-card.is-disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
+/* ── 統計パネル ── */
+.top-stats-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.top-stat {
+  display: grid;
+  gap: 4px;
+}
+
+.top-stat-value {
+  font-family: 'Dela Gothic One', sans-serif;
+  font-size: 22px;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.top-stat-label {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.top-mini-heatmap {
+  grid-column: 1 / -1;
+  height: 48px;
+  border-radius: 6px;
+  background: var(--panel-soft);
 }
 
 .game-screen {
@@ -859,6 +1009,10 @@ h2 {
   .start-screen,
   .play-layout {
     grid-template-columns: 1fr;
+  }
+
+  .start-right {
+    padding-bottom: 32px;
   }
 
   .play-layout {
