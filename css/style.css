@@ -86,7 +86,7 @@ p {
 h1 {
   margin-bottom: 16px;
   font-family: 'Dela Gothic One', sans-serif;
-  font-size: clamp(42px, 7vw, 82px);
+  font-size: clamp(36px, 5vw, 60px);
   line-height: 0.98;
   letter-spacing: 0;
 }
@@ -102,6 +102,15 @@ h2 {
 .result-copy p:not(.eyebrow) {
   color: var(--muted);
   line-height: 1.75;
+}
+
+.brand-block p:not(.eyebrow) {
+  margin-bottom: 16px;
+}
+
+.top-stat-value:empty::after {
+  content: '-';
+  color: var(--line);
 }
 
 .mode-grid {
@@ -139,6 +148,10 @@ h2 {
 .start-right {
   display: grid;
   align-content: start;
+}
+
+.start-right {
+  padding-top: 48px;
 }
 
 .start-header {
