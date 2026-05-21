@@ -11,7 +11,7 @@ window.GEOQUIZ_DATASETS = [
     imageQuestionsGlobal: "SAITAMA_IMAGE_QUESTIONS",
     labelOverridesGlobal: "SAITAMA_LABEL_OVERRIDES",
     defaultMode: "municipality",
-    enabledModes: ["municipality", "ma", "puzzle", "confirm", "confirm_ma"],
+    enabledModes: ["municipality", "ma", "puzzle", "confirm", "confirm_ma", "ma_broad", "confirm_ma_broad"],
     center: [35.96, 139.35],
     version: "0.2.0"
   }

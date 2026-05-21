@@ -138,6 +138,7 @@
       this.areaCodeLayersByCode.clear();
       this.areaCodeFeaturesByCode.clear();
       if (mode === "ma") this.renderMaOverlay();
+      if (mode === "ma_broad") this.renderMaBroadOverlay();
     }
 
     startPuzzle(onChange, options = {}) {
@@ -373,6 +374,15 @@
 
     renderMaOverlay() {
       const features = window.MaUnion.buildMaCollections(this.dataset, "area_code");
+      this._renderAreaCodeLayer(features);
+    }
+
+    renderMaBroadOverlay() {
+      const features = window.MaUnion.buildMaBroadCollections(this.dataset);
+      this._renderAreaCodeLayer(features);
+    }
+
+    _renderAreaCodeLayer(features) {
       this.areaCodeFeaturesByCode = new Map(features.map((feature) => [feature.properties.area_code, feature]));
       this.maLayer = L.geoJSON({ type: "FeatureCollection", features }, {
         pane: "mainPane",
@@ -447,12 +457,12 @@
     }
 
     _refreshVisibleLabels() {
-      this.tooltipsById.forEach((layer) => layer.unbindTooltip());
+      this.tooltipsById.forEach((marker) => marker.remove());
       this.tooltipsById.clear();
       this._invalidateTopAreaCache();
       this.answeredIds.forEach(id => this.showLabel(id));
 
-      this.areaCodeTooltipsByCode.forEach((layer) => layer.unbindTooltip());
+      this.areaCodeTooltipsByCode.forEach((marker) => marker.remove());
       this.areaCodeTooltipsByCode.clear();
       this.answeredAreaCodes.forEach(code => this.showAreaCodeLabel(code));
     }
@@ -571,19 +581,23 @@
         angleLimit: this.mode === "ma" ? 18 : 28,
         zoom: this.map.getZoom()
       });
-      const layers = this.layersById.get(id);
-      if (!layers || !layers.length) return;
-      const layer = layers[0];
+      const point = label.point || featureCenterOfMass(feature);
+      if (!Array.isArray(point)) return;
       const selected = this.labelEditSelectedId === id;
       const html = `<div class="answered-label${selected ? " is-selected" : ""}" style="font-size:${label.size}px; transform: translate(-50%, -50%) rotate(${label.angle}deg);">${props.name}</div>`;
-      layer.bindTooltip(html, {
+      const marker = L.marker(point, {
+        pane: "labelPane",
+        opacity: 0,
+        interactive: false,
+        icon: L.divIcon({ className: "", iconSize: [0, 0] })
+      }).addTo(this.map);
+      marker.bindTooltip(html, {
         permanent: true,
         direction: "center",
         className: "answered-tooltip",
-        pane: "labelPane",
         opacity: 1
       }).openTooltip();
-      this.tooltipsById.set(id, layer);
+      this.tooltipsById.set(id, marker);
     }
 
     shouldShowLiteLabel(props) {
@@ -681,9 +695,9 @@
     updateLabelState(id, values) {
       const existing = this.currentLabelState(id);
       this.labelStatesById.set(id, { ...existing, ...values });
-      const layer = this.tooltipsById.get(id);
-      if (layer) {
-        layer.unbindTooltip();
+      const marker = this.tooltipsById.get(id);
+      if (marker) {
+        marker.remove();
         this.tooltipsById.delete(id);
       }
       this.showLabel(id);
@@ -702,7 +716,7 @@
       const override = this.labelStatesById.get(id);
       if (!override) return base;
       return {
-        point: base.point,
+        point: override.point !== undefined ? override.point : base.point,
         angle: override.angle !== undefined ? override.angle : base.angle,
         size: override.size !== undefined ? override.size : base.size
       };
@@ -751,27 +765,31 @@
         preferVisualCenter: true,
         zoom: this.map.getZoom()
       });
-      const layers = this.areaCodeLayersByCode.get(areaCode);
-      if (!layers || !layers.length) return;
-      const layer = layers[0];
+      const point = label.point || featureCenterOfMass(feature);
+      if (!Array.isArray(point)) return;
       const selected = this.labelEditSelectedId === `areaCode:${areaCode}`;
       const html = `<div class="answered-label area-code-label${selected ? " is-selected" : ""}" style="font-size:${label.size}px; transform: translate(-50%, -50%) rotate(${label.angle}deg);">${areaCode}</div>`;
-      layer.bindTooltip(html, {
+      const marker = L.marker(point, {
+        pane: "labelPane",
+        opacity: 0,
+        interactive: false,
+        icon: L.divIcon({ className: "", iconSize: [0, 0] })
+      }).addTo(this.map);
+      marker.bindTooltip(html, {
         permanent: true,
         direction: "center",
         className: "answered-tooltip area-code-tooltip",
-        pane: "labelPane",
         opacity: 1
       }).openTooltip();
-      this.areaCodeTooltipsByCode.set(areaCode, layer);
+      this.areaCodeTooltipsByCode.set(areaCode, marker);
     }
 
     updateAreaCodeLabelState(areaCode, values) {
       const existing = this.currentAreaCodeLabelState(areaCode);
       this.areaCodeLabelStatesByCode.set(areaCode, { ...existing, ...values });
-      const layer = this.areaCodeTooltipsByCode.get(areaCode);
-      if (layer) {
-        layer.unbindTooltip();
+      const marker = this.areaCodeTooltipsByCode.get(areaCode);
+      if (marker) {
+        marker.remove();
         this.areaCodeTooltipsByCode.delete(areaCode);
       }
       this.showAreaCodeLabel(areaCode);
@@ -808,35 +826,35 @@
       const override = this.areaCodeLabelStatesByCode.get(areaCode);
       if (!override) return base;
       return {
-        point: base.point,
+        point: override.point !== undefined ? override.point : base.point,
         angle: override.angle !== undefined ? override.angle : base.angle,
         size: override.size !== undefined ? override.size : base.size
       };
     }
 
     clearMunicipalityLabels() {
-      this.tooltipsById.forEach((layer) => layer.unbindTooltip());
+      this.tooltipsById.forEach((marker) => marker.remove());
       this.tooltipsById.clear();
     }
 
     refreshLabel(id) {
-      const layer = this.tooltipsById.get(id);
-      if (layer) {
-        layer.unbindTooltip();
+      const marker = this.tooltipsById.get(id);
+      if (marker) {
+        marker.remove();
         this.tooltipsById.delete(id);
       }
       this.showLabel(id);
     }
 
     clearAreaCodeLabels() {
-      this.areaCodeTooltipsByCode.forEach((layer) => layer.unbindTooltip());
+      this.areaCodeTooltipsByCode.forEach((marker) => marker.remove());
       this.areaCodeTooltipsByCode.clear();
     }
 
     refreshAreaCodeLabel(areaCode) {
-      const layer = this.areaCodeTooltipsByCode.get(areaCode);
-      if (layer) {
-        layer.unbindTooltip();
+      const marker = this.areaCodeTooltipsByCode.get(areaCode);
+      if (marker) {
+        marker.remove();
         this.areaCodeTooltipsByCode.delete(areaCode);
       }
       this.showAreaCodeLabel(areaCode);
@@ -923,7 +941,7 @@
     }
 
     applyHeatmap(stats, mode = this.mode) {
-      if (mode === "ma") {
+      if (mode === "ma" || mode === "ma_broad") {
         this.applyAreaCodeHeatmap(stats);
         return;
       }
@@ -1338,6 +1356,19 @@
       angle: state.angle,
       size: state.size
     }]));
+  }
+
+  function featureCenterOfMass(feature) {
+    if (window.turf && typeof window.turf.centerOfMass === "function") {
+      try {
+        const result = window.turf.centerOfMass(feature);
+        const coords = result && result.geometry && result.geometry.coordinates;
+        if (Array.isArray(coords)) return [coords[1], coords[0]];
+      } catch {
+        // fall through
+      }
+    }
+    return null;
   }
 
   function hashCode(value) {

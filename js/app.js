@@ -166,6 +166,7 @@
       if (currentMode === "puzzle") return;
       if (currentMode === "confirm") return;
       if (currentMode === "confirm_ma") return;
+      if (currentMode === "confirm_ma_broad") return;
       if (inputLocked) return;
       const result = engine.answer(feature.properties);
       if (result.ignored) return;
@@ -173,12 +174,14 @@
         lockInput();
         if (currentMode === "ma") {
           renderer.markAreaCodeCorrect(result.question.area_code, result.mistakesBeforeCorrect);
+        } else if (currentMode === "ma_broad") {
+          renderer.markAreaCodeCorrect(result.question.broad_area_code, result.mistakesBeforeCorrect);
         } else {
           renderer.markCorrect(feature.properties.id, result.mistakesBeforeCorrect);
         }
       } else {
         lockInput();
-        if (currentMode === "ma") {
+        if (currentMode === "ma" || currentMode === "ma_broad") {
           renderer.flashAreaCodeWrong(feature.properties.area_code);
         } else {
           renderer.flashWrong(feature.properties.id);
@@ -201,6 +204,7 @@
     unlockInput();
     cancelSpeech();
     currentMode = "confirm_ma";
+    areaReferenceFeatures = null;
     currentPracticeLabel = "";
     puzzleState = null;
     previousPuzzleFixed = 0;
@@ -213,6 +217,35 @@
     els.resetButton.classList.add("is-hidden");
     els.modeLabel.textContent = "市外局番確認マップ";
     els.questionText.textContent = "全市外局番エリアを確認中";
+    els.remainingCount.textContent = "0";
+    els.correctCount.textContent = `${renderer.areaCodeFeaturesByCode.size}`;
+    els.mistakeCount.textContent = "0";
+    els.elapsedTime.textContent = "00:00";
+    window.setTimeout(() => {
+      renderer.map.invalidateSize();
+      renderer.fitToMain();
+    }, 80);
+  }
+
+  function startConfirmMaBroad() {
+    clearResultTimer();
+    clearInputUnlockTimer();
+    unlockInput();
+    cancelSpeech();
+    currentMode = "confirm_ma_broad";
+    currentPracticeLabel = "";
+    puzzleState = null;
+    previousPuzzleFixed = 0;
+    areaReferenceFeatures = null;
+    showGame();
+    ensureMap().reset();
+    renderer.setMode("ma_broad");
+    renderer.areaCodeFeaturesByCode.forEach((feature, areaCode) => {
+      renderer.markAreaCodeCorrect(areaCode, 0);
+    });
+    els.resetButton.classList.add("is-hidden");
+    els.modeLabel.textContent = "広域市外局番確認マップ";
+    els.questionText.textContent = "全広域市外局番エリアを確認中";
     els.remainingCount.textContent = "0";
     els.correctCount.textContent = `${renderer.areaCodeFeaturesByCode.size}`;
     els.mistakeCount.textContent = "0";
@@ -252,11 +285,13 @@
   function start(mode, options = {}) {
     if (mode === "confirm") { startConfirm(); return; }
     if (mode === "confirm_ma") { startConfirmMa(); return; }
+    if (mode === "confirm_ma_broad") { startConfirmMaBroad(); return; }
     clearResultTimer();
     clearInputUnlockTimer();
     unlockInput();
     cancelSpeech();
     currentMode = mode;
+    areaReferenceFeatures = null;
     currentPracticeLabel = options.practiceLabel || "";
     puzzleState = null;
     previousPuzzleFixed = 0;
@@ -536,6 +571,11 @@
         .filter(Boolean)
         .map((areaCode) => `area_code:${areaCode}`))];
     }
+    if (mode === "ma_broad") {
+      return [...new Set(ranking
+        .map((item) => item.id)
+        .filter((id) => id && id.startsWith("broad_area_code:")))];
+    }
     return ranking.map((item) => item.id).filter(Boolean);
   }
 
@@ -702,7 +742,7 @@
 
   function speakMistake(featureProperties) {
     if (!els.mistakeSpeechToggle.checked || !("speechSynthesis" in window)) return;
-    const label = currentMode === "ma" ? pronounceAreaCode(featureProperties.area_code) : featureProperties.name;
+    const label = (currentMode === "ma" || currentMode === "ma_broad") ? pronounceAreaCode(featureProperties.area_code) : featureProperties.name;
     if (!label) return;
 
     window.speechSynthesis.cancel();
@@ -752,6 +792,12 @@
         areaReferenceFeatures = window.MaUnion.buildMaCollections(dataset, "area_code");
       }
       return areaReferenceFeatures.find((feature) => feature.properties.area_code === question.area_code);
+    }
+    if (currentMode === "ma_broad") {
+      if (!areaReferenceFeatures) {
+        areaReferenceFeatures = window.MaUnion.buildMaBroadCollections(dataset);
+      }
+      return areaReferenceFeatures.find((feature) => feature.properties.area_code === question.broad_area_code);
     }
 
     const memberIds = question.memberIds || [question.answerId];
