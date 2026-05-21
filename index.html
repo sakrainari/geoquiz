@@ -224,50 +224,60 @@
       </aside>
 
       <section id="resultScreen" class="result-screen is-hidden">
-        <div class="result-copy">
-          <p class="eyebrow" id="resultModeLabel">Result</p>
-          <h2 id="resultTitle">リザルト</h2>
-          <p id="resultSummary">結果を集計しています。</p>
-        </div>
-        <div class="result-grid">
-          <div class="result-card"><span>正解</span><strong id="resultCorrect">0</strong></div>
-          <div class="result-card"><span>ミス</span><strong id="resultMistakes">0</strong></div>
-          <div class="result-card"><span>平均回答</span><strong id="resultAverage">0.0s</strong></div>
-          <div class="result-card"><span>出題数</span><strong id="resultTotal">0</strong></div>
-        </div>
-        <section class="ranking-panel" aria-label="累積苦手ランキング">
-          <div class="ranking-heading">
-            <div>
-              <p class="eyebrow">Ranking</p>
-              <h3 id="rankingTitle">苦手ランキング</h3>
-            </div>
-            <div class="ranking-tabs" role="tablist" aria-label="ランキング切替">
-              <button class="ranking-tab is-active" type="button" data-ranking-type="weak" role="tab" aria-selected="true">ミス</button>
-              <button class="ranking-tab" type="button" data-ranking-type="accuracy" role="tab" aria-selected="false">正答率</button>
-              <button class="ranking-tab" type="button" data-ranking-type="time" role="tab" aria-selected="false">平均時間</button>
-            </div>
+
+        <!-- 左カラム：スコア・ランキング・アクション -->
+        <div class="result-left">
+          <div class="result-copy">
+            <p class="eyebrow" id="resultModeLabel">Result</p>
+            <h2 id="resultTitle">リザルト</h2>
+            <p id="resultSummary">結果を集計しています。</p>
           </div>
-          <ol id="weakRankingList" class="ranking-list"></ol>
-          <div class="ranking-actions">
-            <button id="practiceWeakButton" class="ghost-button" type="button" disabled>このランキングだけ再出題</button>
-            <button id="practiceLastMistakeButton" class="ghost-button" type="button" disabled>前回ミスだけ再出題</button>
-            <button id="practiceUnansweredButton" class="ghost-button" type="button" disabled>未正解だけ再出題</button>
-            <button id="practiceRecentMistakeButton" class="ghost-button" type="button" disabled>最近ミスだけ再出題</button>
-            <button id="practiceLowAccuracyButton" class="ghost-button" type="button" disabled>低正答率を優先出題</button>
+
+          <div class="result-grid">
+            <div class="result-card"><span>正解</span><strong id="resultCorrect">0</strong></div>
+            <div class="result-card"><span>ミス</span><strong id="resultMistakes">0</strong></div>
+            <div class="result-card"><span>平均回答</span><strong id="resultAverage">0.0s</strong></div>
+            <div class="result-card"><span>出題数</span><strong id="resultTotal">0</strong></div>
           </div>
-        </section>
-        <div class="result-map-wrap">
+
+          <section class="ranking-panel" aria-label="累積苦手ランキング">
+            <div class="ranking-heading">
+              <div>
+                <p class="eyebrow">Ranking</p>
+                <h3 id="rankingTitle">苦手ランキング</h3>
+              </div>
+              <div class="ranking-tabs" role="tablist" aria-label="ランキング切替">
+                <button class="ranking-tab is-active" type="button" data-ranking-type="weak" role="tab" aria-selected="true">ミス</button>
+                <button class="ranking-tab" type="button" data-ranking-type="accuracy" role="tab" aria-selected="false">正答率</button>
+                <button class="ranking-tab" type="button" data-ranking-type="time" role="tab" aria-selected="false">平均時間</button>
+              </div>
+            </div>
+            <ol id="weakRankingList" class="ranking-list"></ol>
+            <div class="ranking-actions">
+              <button id="practiceWeakButton" class="ghost-button" type="button" disabled>このランキングだけ再出題</button>
+              <button id="practiceLastMistakeButton" class="ghost-button" type="button" disabled>前回ミスだけ再出題</button>
+              <button id="practiceUnansweredButton" class="ghost-button" type="button" disabled>未正解だけ再出題</button>
+              <button id="practiceRecentMistakeButton" class="ghost-button" type="button" disabled>最近ミスだけ再出題</button>
+              <button id="practiceLowAccuracyButton" class="ghost-button" type="button" disabled>低正答率を優先出題</button>
+            </div>
+          </section>
+
+          <div class="result-actions">
+            <button id="downloadJsonButton" class="primary-button" type="button">弱点JSONをダウンロード</button>
+            <button id="exportProgressButton" class="ghost-button" type="button">累積成績を書き出し</button>
+            <button id="importProgressButton" class="ghost-button" type="button">累積成績を読み込み</button>
+            <input id="importProgressInput" class="is-hidden" type="file" accept="application/json,.json">
+            <button id="retryButton" class="ghost-button" type="button">もう一度プレイ</button>
+            <button id="resultBackToMenuButton" class="ghost-button" type="button">トップへ戻る</button>
+          </div>
+        </div>
+
+        <!-- 右カラム：完成地図 -->
+        <div class="result-right">
           <p class="eyebrow">Completed map</p>
           <div id="resultMapSlot" class="result-map-slot"></div>
         </div>
-        <div class="result-actions">
-          <button id="downloadJsonButton" class="primary-button" type="button">弱点JSONをダウンロード</button>
-          <button id="exportProgressButton" class="ghost-button" type="button">累積成績を書き出し</button>
-          <button id="importProgressButton" class="ghost-button" type="button">累積成績を読み込み</button>
-          <input id="importProgressInput" class="is-hidden" type="file" accept="application/json,.json">
-          <button id="retryButton" class="ghost-button" type="button">もう一度プレイ</button>
-          <button id="resultBackToMenuButton" class="ghost-button" type="button">トップへ戻る</button>
-        </div>
+
       </section>
     </main>
 
