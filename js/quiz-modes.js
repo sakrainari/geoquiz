@@ -72,6 +72,14 @@
         return question.memberIds;
       }
     },
+    confirm: {
+      id: "confirm",
+      label: "確認マップ",
+      buildQuestions() { return []; },
+      questionText() { return "全市区町村を確認中"; },
+      isCorrect() { return false; },
+      correctMemberIds() { return []; }
+    },
     image: {
       id: "image",
       label: "画像判別モード",

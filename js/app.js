@@ -48,6 +48,7 @@
     puzzleBestTime: document.getElementById("puzzleBestTime"),
     suddenDeathToggle: document.getElementById("suddenDeathToggle"),
     mistakeSpeechToggle: document.getElementById("mistakeSpeechToggle"),
+    tileLayerToggle: document.getElementById("tileLayerToggle"),
     resetButton: document.getElementById("resetButton"),
     retryButton: document.getElementById("retryButton"),
     resultBackToMenuButton: document.getElementById("resultBackToMenuButton"),
@@ -96,6 +97,11 @@
     button.addEventListener("click", () => start(button.dataset.startMode));
   });
 
+  els.tileLayerToggle.addEventListener("click", () => {
+    if (!renderer) return;
+    const active = renderer.toggleTileLayer();
+    els.tileLayerToggle.classList.toggle("is-active", active);
+  });
   els.resetButton.addEventListener("click", () => start(currentMode));
   els.retryButton.addEventListener("click", () => start(currentMode));
   els.resultBackToMenuButton.addEventListener("click", showStart);
@@ -155,8 +161,11 @@
     if (renderer) return renderer;
     renderer = new window.MapRenderer("map", dataset, ghostData, { labelOverrides, liteMode });
     window.__geoquizRenderer = renderer;
+    els.tileLayerToggle.classList.toggle("is-active", renderer.tileLayerVisible);
     renderer.onClick((feature) => {
       if (currentMode === "puzzle") return;
+      if (currentMode === "confirm") return;
+      if (currentMode === "confirm_ma") return;
       if (inputLocked) return;
       const result = engine.answer(feature.properties);
       if (result.ignored) return;
@@ -186,7 +195,63 @@
     return renderer;
   }
 
+  function startConfirmMa() {
+    clearResultTimer();
+    clearInputUnlockTimer();
+    unlockInput();
+    cancelSpeech();
+    currentMode = "confirm_ma";
+    currentPracticeLabel = "";
+    puzzleState = null;
+    previousPuzzleFixed = 0;
+    showGame();
+    ensureMap().reset();
+    renderer.setMode("ma");
+    renderer.areaCodeFeaturesByCode.forEach((feature, areaCode) => {
+      renderer.markAreaCodeCorrect(areaCode, 0);
+    });
+    els.resetButton.classList.add("is-hidden");
+    els.modeLabel.textContent = "市外局番確認マップ";
+    els.questionText.textContent = "全市外局番エリアを確認中";
+    els.remainingCount.textContent = "0";
+    els.correctCount.textContent = `${renderer.areaCodeFeaturesByCode.size}`;
+    els.mistakeCount.textContent = "0";
+    els.elapsedTime.textContent = "00:00";
+    window.setTimeout(() => {
+      renderer.map.invalidateSize();
+      renderer.fitToMain();
+    }, 80);
+  }
+
+  function startConfirm() {
+    clearResultTimer();
+    clearInputUnlockTimer();
+    unlockInput();
+    cancelSpeech();
+    currentMode = "confirm";
+    currentPracticeLabel = "";
+    puzzleState = null;
+    previousPuzzleFixed = 0;
+    showGame();
+    ensureMap().reset();
+    renderer.setMode("confirm");
+    dataset.municipalities.forEach((item) => renderer.markCorrect(item.id, 0));
+    els.resetButton.classList.add("is-hidden");
+    els.modeLabel.textContent = "確認マップ";
+    els.questionText.textContent = "全市区町村を確認中";
+    els.remainingCount.textContent = "0";
+    els.correctCount.textContent = `${dataset.municipalities.length}`;
+    els.mistakeCount.textContent = "0";
+    els.elapsedTime.textContent = "00:00";
+    window.setTimeout(() => {
+      renderer.map.invalidateSize();
+      renderer.fitToMain();
+    }, 80);
+  }
+
   function start(mode, options = {}) {
+    if (mode === "confirm") { startConfirm(); return; }
+    if (mode === "confirm_ma") { startConfirmMa(); return; }
     clearResultTimer();
     clearInputUnlockTimer();
     unlockInput();
@@ -195,6 +260,7 @@
     currentPracticeLabel = options.practiceLabel || "";
     puzzleState = null;
     previousPuzzleFixed = 0;
+    els.resetButton.classList.remove("is-hidden");
     if (mode === "puzzle" && liteMode && els.puzzlePieceSelect.value === "all") {
       els.puzzlePieceSelect.value = "small";
     }
@@ -226,6 +292,7 @@
     unlockInput();
     cancelSpeech();
     stopTimer();
+    els.resetButton.classList.remove("is-hidden");
     els.startScreen.classList.remove("is-hidden");
     els.gameScreen.classList.add("is-hidden");
     els.resultScreen.classList.add("is-hidden");
@@ -251,6 +318,10 @@
     ensureMap().reset();
     renderer.setMode("municipality");
     renderer.enableLabelEditor(updateLabelEditorPanel);
+    if (!renderer.tileLayerVisible) {
+      renderer.toggleTileLayer();
+      els.tileLayerToggle.classList.add("is-active");
+    }
     els.labelEditorPanel.classList.remove("is-hidden");
     els.modeLabel.textContent = "ラベル調整モード";
     els.remainingCount.textContent = "0";

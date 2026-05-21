@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>日本市外局番マップクイズ</title>
+ <title>GeoQuiz</title>   
     <link rel="icon" href="data:,">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,9 +19,9 @@
       </div>
       <section id="startScreen" class="start-screen">
         <div class="brand-block">
-          <p class="eyebrow" id="appSubtitle">GeoGuessr training / Saitama MVP</p>
-          <h1 id="appTitle">日本市外局番マップクイズ</h1>
-          <p id="appDescription">未回答の白地図から、埼玉県の市町村と市外局番を叩き込むトレーニングツール。</p>
+          <p class="eyebrow" id="appSubtitle">GeoGuessr training </p>
+          <h1 id="appTitle">GeoQuiz</h1>
+          <p id="appDescription">地図から、知識を叩き込むトレーニングツール。</p>
         </div>
         <div class="mode-grid" aria-label="モード選択">
           <button class="mode-card" data-start-mode="municipality">
@@ -36,9 +36,17 @@
             <span>パズル</span>
             <strong>ずれた市区町村を元の位置へ戻す</strong>
           </button>
+          <button class="mode-card" data-start-mode="confirm">
+            <span>確認マップ</span>
+            <strong>全市区町村を表示して確認する</strong>
+          </button>
+          <button class="mode-card" data-start-mode="confirm_ma">
+            <span>市外局番を確認</span>
+            <strong>市外局番エリアを表示して確認する</strong>
+          </button>
           <button class="mode-card is-disabled" data-start-mode="image" disabled>
             <span>画像判別</span>
-            <strong>県旗・市章・標識は今後追加</strong>
+            <strong>様々なクイズを搭載予定</strong>
           </button>
         </div>
       </section>
@@ -50,6 +58,7 @@
             <h2 id="questionText">読み込み中</h2>
           </div>
           <div class="top-actions">
+            <button id="tileLayerToggle" class="ghost-button" type="button">地図</button>
             <button id="backToMenuButton" class="ghost-button" type="button">モード選択</button>
             <button id="resetButton" class="primary-button" type="button">リセット</button>
           </div>

@@ -29,6 +29,8 @@
       this.areaCodeMistakesByCode = new Map();
       this.heatmapStats = null;
       this.areaCodeHeatmapStats = null;
+      this._topAreaIdsCache = null;
+      this.confirmMode = false;
       this.labelEditEnabled = false;
       this.labelEditSelectedId = null;
       this.labelEditScope = "municipality";
@@ -53,9 +55,21 @@
       this.map.createPane("mainPane").style.zIndex = 450;
       this.map.createPane("labelPane").style.zIndex = 650;
       this.map.getPane("labelPane").style.pointerEvents = "none";
+      // OSM tile layer — requires internet connection; disabled by default
+      this.tileLayerVisible = false;
+      this.tileLayer = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        opacity: 0.35,
+        maxZoom: 19
+      });
+      if (this._loadTileLayerPref()) {
+        this.tileLayer.addTo(this.map);
+        this.tileLayerVisible = true;
+      }
       this.renderGhost();
       this.renderMain();
       this.fitToMain();
+      this.map.on("zoomend", () => this._refreshVisibleLabels());
     }
 
     renderGhost() {
@@ -85,7 +99,7 @@
           this.layersById.get(id).push(layer);
           layer.on({
             mouseover: () => {
-              if (this.liteMode || this.puzzleEnabled) return;
+              if (this.liteMode || this.puzzleEnabled || this.labelEditEnabled) return;
               const base = this.getFeatureStyle(id);
               layer.setStyle({
                 ...base,
@@ -108,6 +122,7 @@
 
     setMode(mode) {
       this.mode = mode;
+      this.confirmMode = (mode === "confirm");
       if (this.puzzleEnabled && mode !== "puzzle") this.stopPuzzle();
       if (this.maLayer) {
         this.map.removeLayer(this.maLayer);
@@ -234,6 +249,7 @@
       this.answeredIds.clear();
       this.answerMistakesById.clear();
       this.heatmapStats = null;
+      this._invalidateTopAreaCache();
       this.clearMunicipalityLabels();
       this.clearAreaCodeLabels();
     }
@@ -381,6 +397,34 @@
       this.maLayer.bringToFront();
     }
 
+    toggleTileLayer() {
+      this.tileLayerVisible = !this.tileLayerVisible;
+      if (this.tileLayerVisible) {
+        this.tileLayer.addTo(this.map);
+        this.tileLayer.bringToBack();
+      } else {
+        this.map.removeLayer(this.tileLayer);
+      }
+      this._saveTileLayerPref(this.tileLayerVisible);
+      return this.tileLayerVisible;
+    }
+
+    _loadTileLayerPref() {
+      try {
+        return window.localStorage.getItem("geoquiz:tilelayer") === "1";
+      } catch {
+        return false;
+      }
+    }
+
+    _saveTileLayerPref(visible) {
+      try {
+        window.localStorage.setItem("geoquiz:tilelayer", visible ? "1" : "0");
+      } catch {
+        // localStorage unavailable; tile preference is non-critical
+      }
+    }
+
     onClick(handler) {
       this.onFeatureClick = handler;
     }
@@ -389,13 +433,52 @@
       this.map.fitBounds(this.mainLayer.getBounds(), { padding: [24, 24] });
     }
 
+    _refreshVisibleLabels() {
+      this.tooltipsById.forEach((marker) => marker.remove());
+      this.tooltipsById.clear();
+      this._invalidateTopAreaCache();
+      this.answeredIds.forEach(id => this.showLabel(id));
+
+      this.areaCodeTooltipsByCode.forEach((marker) => marker.remove());
+      this.areaCodeTooltipsByCode.clear();
+      this.answeredAreaCodes.forEach(code => this.showAreaCodeLabel(code));
+    }
+
+    _invalidateTopAreaCache() {
+      this._topAreaIdsCache = null;
+    }
+
+    _getTopAreaIds() {
+      if (this._topAreaIdsCache) return this._topAreaIdsCache;
+      const areas = [];
+      this.answeredIds.forEach(id => {
+        const feature = this.displayFeaturesById.get(id);
+        if (!feature) return;
+        const box = geometryBounds(feature.geometry);
+        areas.push({ id, area: box.width * box.height });
+      });
+      areas.sort((a, b) => b.area - a.area);
+      this._topAreaIdsCache = new Set(areas.slice(0, 15).map(item => item.id));
+      return this._topAreaIdsCache;
+    }
+
+    _shouldShowAtCurrentZoom(id, feature) {
+      if (this.puzzleEnabled) return true;
+      const zoom = this.map.getZoom();
+      if (zoom >= 11) return true;
+      const name = feature.properties.name || "";
+      const isCity = /[市区]$/.test(name);
+      if (zoom >= 10) return isCity;
+      return this._getTopAreaIds().has(id);
+    }
+
     baseStyle() {
       return {
         color: COLORS.border,
         weight: 0.8,
         opacity: 0.65,
         fillColor: COLORS.pending,
-        fillOpacity: 0.82
+        fillOpacity: this.labelEditEnabled ? 0.45 : 0.82
       };
     }
 
@@ -422,6 +505,7 @@
     markCorrect(id, mistakesBeforeCorrect = 0) {
       this.answeredIds.add(id);
       this.answerMistakesById.set(id, mistakesBeforeCorrect);
+      this._invalidateTopAreaCache();
       this.refreshFeatureStyle(id);
       this.showLabel(id);
     }
@@ -467,10 +551,12 @@
       if (!feature) return;
       const props = feature.properties;
       if (this.liteMode && !this.labelEditEnabled && !this.shouldShowLiteLabel(props)) return;
+      if (!this.labelEditEnabled && !this.liteMode && !this.confirmMode && !this._shouldShowAtCurrentZoom(id, feature)) return;
       const label = this.resolveLabelPlacement(id, feature, {
         sizeBoost: this.mode === "ma" ? -1.1 : 0,
         maxSize: this.mode === "ma" ? 10.6 : 13,
-        angleLimit: this.mode === "ma" ? 18 : 28
+        angleLimit: this.mode === "ma" ? 18 : 28,
+        zoom: this.map.getZoom()
       });
       const point = label.point || props.labelPoint;
       if (!Array.isArray(point)) return;
@@ -527,6 +613,7 @@
     setLabelEditorScope(scope, options = {}) {
       this.labelEditScope = scope === "areaCode" ? "areaCode" : "municipality";
       if (!options.preserveSelection) this.labelEditSelectedId = null;
+      this.layersById.forEach((layers) => layers.forEach((layer) => layer.setStyle(this.baseStyle())));
       this.clearMunicipalityLabels();
       this.clearAreaCodeLabels();
       if (this.labelEditScope === "areaCode") {
@@ -676,7 +763,8 @@
         forceAngle: 0,
         precise: true,
         preferVisualCenter: true,
-        preferredPoint: feature.properties.labelPoint
+        preferredPoint: feature.properties.labelPoint,
+        zoom: this.map.getZoom()
       });
       if (!Array.isArray(label.point)) return;
       const selected = this.labelEditSelectedId === `areaCode:${areaCode}`;
@@ -850,6 +938,7 @@
       this.areaCodeMistakesByCode.clear();
       this.heatmapStats = null;
       this.areaCodeHeatmapStats = null;
+      this._invalidateTopAreaCache();
       this.layersById.forEach((layers) => layers.forEach((layer) => layer.setStyle(this.baseStyle())));
       this.areaCodeLayersByCode.forEach((layers, areaCode) => {
         layers.forEach((layer) => layer.setStyle(this.getAreaCodeStyle(areaCode)));
@@ -965,22 +1054,24 @@
   function labelSize(name, box, options = {}) {
     const span = Math.max(box.width, box.height);
     const chars = String(name || "").length;
-    const base = span > 0.18 ? 12.8
-      : span > 0.12 ? 11.8
-        : span > 0.07 ? 10.6
-          : span > 0.035 ? 9.4
-            : 8.2;
+    const base = span > 0.25 ? 15
+      : span > 0.18 ? 13
+        : span > 0.12 ? 12
+          : span > 0.07 ? 11
+            : span > 0.04 ? 10
+              : span > 0.02 ? 9
+                : 8;
+    const zoom = options.zoom || 9;
+    const zoomScale = Math.pow(1.28, zoom - 9);
+    const raw = (base + (options.sizeBoost || 0) - Math.max(chars - 4, 0) * 0.45) * zoomScale;
     return clamp(
-      base + (options.sizeBoost || 0) - Math.max(chars - 4, 0) * 0.45,
+      raw,
       options.minSize || 7.2,
-      options.maxSize || 13
+      (options.maxSize || 13) * Math.max(zoomScale, 1)
     );
   }
 
-  function labelAngle(feature, ratio, options = {}) {
-    const angleLimit = options.angleLimit || 28;
-    if (ratio > 1.35) return clamp(principalAngle(feature.geometry), -angleLimit, angleLimit);
-    if (ratio < 0.72) return clamp(principalAngle(feature.geometry), -18, 18);
+  function labelAngle() {
     return 0;
   }
 
