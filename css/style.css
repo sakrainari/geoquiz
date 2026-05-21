@@ -741,7 +741,7 @@ h2 {
 
 .result-screen {
   display: grid;
-  grid-template-columns: 450px minmax(0, 1fr);
+  grid-template-columns: 480px minmax(0, 1fr);
   gap: 24px;
   align-content: start;
   min-height: calc(100vh - 40px);
@@ -752,8 +752,13 @@ h2 {
   gap: 16px;
   align-content: start;
   overflow-y: auto;
+  scrollbar-width: none;
   max-height: calc(100vh - 40px);
   padding-right: 4px;
+}
+
+.result-left::-webkit-scrollbar {
+  display: none;
 }
 
 .result-right {
@@ -891,10 +896,9 @@ h2 {
 
 .ranking-meta {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.45;
   text-align: right;
-  white-space: nowrap;
 }
 
 .ranking-empty {
