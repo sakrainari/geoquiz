@@ -20,7 +20,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: 'Zen Kaku Gothic New', system-ui, sans-serif;
 }
 
 button,
@@ -84,6 +84,7 @@ p {
 
 h1 {
   margin-bottom: 16px;
+  font-family: 'Dela Gothic One', sans-serif;
   font-size: clamp(42px, 7vw, 82px);
   line-height: 0.98;
   letter-spacing: 0;
@@ -132,6 +133,7 @@ h2 {
 }
 
 .mode-card strong {
+  font-family: 'Dela Gothic One', sans-serif;
   font-size: 22px;
   letter-spacing: 0;
 }
@@ -483,6 +485,7 @@ h2 {
 }
 
 .answered-label.area-code-label {
+  font-family: 'Dela Gothic One', sans-serif;
   color: #fff8d6;
   font-weight: 900;
   text-shadow:
@@ -604,6 +607,7 @@ h2 {
 }
 
 .result-card strong {
+  font-family: 'Dela Gothic One', sans-serif;
   font-size: 32px;
   letter-spacing: 0;
 }
