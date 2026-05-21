@@ -85,10 +85,16 @@
     practiceRecentMistakeButton: document.getElementById("practiceRecentMistakeButton"),
     practiceLowAccuracyButton: document.getElementById("practiceLowAccuracyButton"),
     rankingTitle: document.getElementById("rankingTitle"),
-    rankingTabs: [...document.querySelectorAll("[data-ranking-type]")]
+    rankingTabs: [...document.querySelectorAll("[data-ranking-type]")],
+    topStatSessions: document.getElementById("topStatSessions"),
+    topStatAccuracy: document.getElementById("topStatAccuracy"),
+    topStatWeak: document.getElementById("topStatWeak"),
+    topStatLastPlay: document.getElementById("topStatLastPlay"),
+    topMiniHeatmap: document.getElementById("topMiniHeatmap")
   };
 
   applyDatasetMeta();
+  updateTopStats();
   applyAvailableModes();
   document.body.classList.toggle("is-lite-mode", liteMode);
 
@@ -332,6 +338,7 @@
     els.gameScreen.classList.add("is-hidden");
     els.resultScreen.classList.add("is-hidden");
     els.puzzleControls.classList.add("is-hidden");
+    updateTopStats();
   }
 
   function showGame() {
@@ -980,6 +987,99 @@
       progress: window.ProgressStore.exportProgress()
     };
     window.ResultAnalytics.downloadJson(payload, "geoquiz-progress");
+  }
+
+  function updateTopStats() {
+    const dp = window.ProgressStore.getDatasetProgress(appConfig.id);
+    if (!dp) {
+      els.topStatSessions.textContent = "";
+      els.topStatAccuracy.textContent = "";
+      els.topStatWeak.textContent = "";
+      els.topStatLastPlay.textContent = "";
+      renderMiniHeatmap(null);
+      return;
+    }
+
+    els.topStatSessions.textContent = `${dp.sessions || 0}`;
+
+    const statValues = Object.values(dp.stats || {});
+    const totalPlays = statValues.reduce((sum, s) => sum + (s.plays || 0), 0);
+    const totalCorrect = statValues.reduce((sum, s) => sum + (s.correct || 0), 0);
+    els.topStatAccuracy.textContent = totalPlays > 0
+      ? `${Math.round((totalCorrect / totalPlays) * 100)}%`
+      : "";
+
+    let weakCount = 0;
+    statValues.forEach((stat) => {
+      const mStat = stat.modes && stat.modes["municipality"];
+      if (!mStat || !mStat.recentResults || !mStat.recentResults.length) return;
+      const score = mStat.recentResults.reduce((sum, v) => sum + v, 0) / mStat.recentResults.length;
+      if (score < 0.4) weakCount++;
+    });
+    els.topStatWeak.textContent = weakCount > 0 ? `${weakCount}` : "";
+
+    if (dp.updatedAt) {
+      const played = new Date(dp.updatedAt);
+      const now = new Date();
+      const diffDays = Math.floor((now - played) / (1000 * 60 * 60 * 24));
+      if (diffDays === 0) {
+        els.topStatLastPlay.textContent = "今日";
+      } else if (diffDays === 1) {
+        els.topStatLastPlay.textContent = "昨日";
+      } else {
+        els.topStatLastPlay.textContent = `${diffDays}日前`;
+      }
+    } else {
+      els.topStatLastPlay.textContent = "";
+    }
+
+    renderMiniHeatmap(dp);
+  }
+
+  function renderMiniHeatmap(dp) {
+    if (!els.topMiniHeatmap) return;
+    if (!dp || !dp.stats) {
+      els.topMiniHeatmap.innerHTML = "";
+      return;
+    }
+
+    const bars = [];
+    Object.values(dp.stats).forEach((stat) => {
+      const mStat = stat.modes && stat.modes["municipality"];
+      if (!mStat || !mStat.recentResults || !mStat.recentResults.length) return;
+      const score = mStat.recentResults.reduce((sum, v) => sum + v, 0) / mStat.recentResults.length;
+      bars.push(score);
+    });
+
+    bars.sort((a, b) => b - a);
+    const display = bars.slice(0, 20);
+
+    if (!display.length) {
+      els.topMiniHeatmap.innerHTML = "";
+      return;
+    }
+
+    const BAR_W = 8;
+    const BAR_MAX_H = 32;
+    const COLOR_STEPS = [
+      { threshold: 0.8, color: "#4fb7a5" },
+      { threshold: 0.6, color: "#d4b46a" },
+      { threshold: 0.4, color: "#e09a5a" },
+      { threshold: 0, color: "#e35d5d" }
+    ];
+
+    function barColor(score) {
+      for (const step of COLOR_STEPS) {
+        if (score >= step.threshold) return step.color;
+      }
+      return COLOR_STEPS[COLOR_STEPS.length - 1].color;
+    }
+
+    els.topMiniHeatmap.innerHTML = display.map((score) => {
+      const h = Math.max(4, Math.round(score * BAR_MAX_H));
+      const color = barColor(score);
+      return `<span style="display:inline-block;width:${BAR_W}px;height:${h}px;background:${color};border-radius:2px;margin-right:2px;vertical-align:bottom;"></span>`;
+    }).join("");
   }
 
   function showStorageRecoveryNotice() {
