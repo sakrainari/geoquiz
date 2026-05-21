@@ -963,12 +963,20 @@
       if (!datasetProgress || !datasetProgress.stats) return;
       const stats = Object.values(datasetProgress.stats).map((stat) => {
         const modeStat = (stat.modes && stat.modes[mode]) || null;
+        if (!modeStat) {
+          return { id: stat.id, name: stat.name, area_code: stat.area_code, correct: false, recentScore: null };
+        }
+        const rr = modeStat.recentResults;
+        const recentScore = (rr && rr.length > 0)
+          ? rr.reduce((sum, v) => sum + v, 0) / rr.length
+          : null;
         return {
           id: stat.id,
           name: stat.name,
           area_code: stat.area_code,
-          correct: modeStat ? modeStat.correct > 0 : false,
-          mistakes: modeStat ? (modeStat.mistakes || 0) : 0
+          correct: modeStat.correct > 0,
+          mistakes: modeStat.mistakes || 0,
+          recentScore
         };
       });
       this.applyHeatmap(stats, mode);
@@ -988,8 +996,13 @@
           if (direct) memberStats.push(direct);
         }
         const mistakes = memberStats.reduce((max, item) => Math.max(max, item.mistakes || 0), 0);
-        const correct = memberStats.length > 0 && memberStats.every((item) => item.correct);
-        this.areaCodeHeatmapStats.set(areaCode, { id: areaCode, mistakes, correct });
+        const scoredMembers = memberStats.filter((item) => item.recentScore != null);
+        const recentScore = scoredMembers.length > 0
+          ? scoredMembers.reduce((sum, item) => sum + item.recentScore, 0) / scoredMembers.length
+          : null;
+        const correct = memberStats.length > 0
+          && (recentScore !== null || memberStats.some((item) => item.correct));
+        this.areaCodeHeatmapStats.set(areaCode, { id: areaCode, mistakes, correct, recentScore });
         this.refreshAreaCodeStyle(areaCode);
         this.showAreaCodeLabel(areaCode);
       });
@@ -1012,6 +1025,14 @@
 
   function heatColor(stat) {
     if (!stat || !stat.correct) return COLORS.unanswered;
+    // 直近5回の正答率ベースで色を決める（recentScore が存在する場合）
+    if (stat.recentScore != null) {
+      if (stat.recentScore >= 0.8) return COLORS.correct;    // 4〜5/5 → 緑
+      if (stat.recentScore >= 0.6) return COLORS.correctAlt; // 3/5   → ゴールド
+      if (stat.recentScore >= 0.4) return COLORS.miss2;      // 2/5   → オレンジ
+      return COLORS.miss3;                                    // 0〜1/5 → 赤
+    }
+    // recentResults 未保存（旧データ）は累積ミス数にフォールバック
     if (stat.mistakes === 0) return COLORS.correct;
     if (stat.mistakes === 1) return COLORS.correctAlt;
     return COLORS.miss3;

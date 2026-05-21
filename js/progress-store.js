@@ -70,6 +70,13 @@
       modeStat.correct += wasCorrect ? 1 : 0;
       modeStat.mistakes += item.mistakes || 0;
       modeStat.totalAnswerMs += item.answerTimeMs || 0;
+
+      // 直近5回の結果（1=1発正解, 0=ミスあり）をモード別に保持
+      if (wasCorrect) {
+        if (!modeStat.recentResults) modeStat.recentResults = [];
+        modeStat.recentResults.unshift((item.mistakes || 0) === 0 ? 1 : 0);
+        if (modeStat.recentResults.length > 5) modeStat.recentResults.length = 5;
+      }
     });
 
     return persist(progress);
