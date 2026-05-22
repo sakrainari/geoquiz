@@ -143,7 +143,7 @@
       <section id="gameScreen" class="game-screen is-hidden" data-layout="left">
 
         <!-- サイドパネル（left/rightで使用） -->
-        <aside class="game-panel">
+        <aside id="gamePanel" class="game-panel">
           <p class="eyebrow" id="modeLabel">市区町村モード</p>
           <h2 id="questionMain"></h2>
           <div id="referencePreview" class="reference-preview"></div>
@@ -195,12 +195,15 @@
         </aside>
 
         <!-- 上バー（topで使用） -->
-        <header class="game-topbar">
+        <header id="gameTopbar" class="game-topbar">
           <div class="game-topbar-left">
             <p class="eyebrow" id="modeLabelTop"></p>
-            <h2 id="questionMainTop"></h2>
           </div>
-          <div id="referencePreviewTop" class="reference-preview-top"></div>
+          <div class="game-topbar-question">
+            <h2 id="questionMainTop"></h2>
+            <div id="referencePreviewTop" class="reference-preview-inline"></div>
+            <span id="questionSubTop" class="game-hud-sub"></span>
+          </div>
           <div class="game-topbar-stats">
             <div class="stat-pill"><span class="stat-pill-label">残り</span><strong id="remainingCountTop">0</strong></div>
             <div class="stat-pill"><span class="stat-pill-label">正解</span><strong id="correctCountTop">0</strong></div>
@@ -222,18 +225,17 @@
         <!-- 地図 -->
         <div id="playMapSlot" class="map-slot">
           <div id="map" class="map-panel" aria-label="埼玉県クイズ地図"></div>
-        </div>
-
-        <!-- 上バー時の追加オーバーレイ -->
-        <div class="top-overlay-bottom">
-          <label class="game-toggle-row">
-            <input id="suddenDeathToggleTop" type="checkbox">
-            <span>サドンデス</span>
-          </label>
-          <label class="game-toggle-row">
-            <input id="mistakeSpeechToggleTop" type="checkbox">
-            <span>ミス音声</span>
-          </label>
+          <!-- 上バー時の追加オーバーレイ（.map-slot内でposition:absolute） -->
+          <div class="top-overlay-bottom">
+            <label class="game-toggle-row">
+              <input id="suddenDeathToggleTop" type="checkbox">
+              <span>サドンデス</span>
+            </label>
+            <label class="game-toggle-row">
+              <input id="mistakeSpeechToggleTop" type="checkbox">
+              <span>ミス音声</span>
+            </label>
+          </div>
         </div>
 
       </section>
@@ -348,35 +350,18 @@
   var LAYOUT_KEY = 'geoquiz:layout';
   var gameScreen = document.getElementById('gameScreen');
 
+  /* Leaflet へリサイズを通知するヘルパー */
+  function triggerResize() {
+    setTimeout(function () { window.dispatchEvent(new Event('resize')); }, 30);
+  }
+
   function applyLayout(layout) {
     gameScreen.dataset.layout = layout;
     localStorage.setItem(LAYOUT_KEY, layout);
     document.querySelectorAll('.layout-btn').forEach(function (btn) {
       btn.classList.toggle('is-active', btn.dataset.layout === layout);
     });
-    syncTopBar(layout);
-    setTimeout(function () {
-      window.dispatchEvent(new Event('resize'));
-    }, 30);
-  }
-
-  function syncTopBar(layout) {
-    var isTop = layout === 'top';
-    var ids = [
-      ['modeLabel', 'modeLabelTop'],
-      ['questionMain', 'questionMainTop'],
-      ['remainingCount', 'remainingCountTop'],
-      ['correctCount', 'correctCountTop'],
-      ['mistakeCount', 'mistakeCountTop'],
-      ['elapsedTime', 'elapsedTimeTop']
-    ];
-    if (isTop) {
-      ids.forEach(function (pair) {
-        var src = document.getElementById(pair[0]);
-        var dst = document.getElementById(pair[1]);
-        if (src && dst) dst.textContent = src.textContent;
-      });
-    }
+    triggerResize();
   }
 
   var saved = localStorage.getItem(LAYOUT_KEY) || 'left';
@@ -388,7 +373,7 @@
     });
   });
 
-  // tileLayerToggle・backToMenuButton・resetButton の二重バインド
+  /* tileLayerToggle・backToMenuButton・resetButton の上バー→パネル橋渡し */
   ['tileLayerToggle', 'backToMenuButton', 'resetButton'].forEach(function (id) {
     var top = document.getElementById(id + 'Top');
     var orig = document.getElementById(id);
@@ -397,7 +382,7 @@
     }
   });
 
-  // 上バーのトグル同期
+  /* サドンデス・ミス音声トグルの双方向同期 */
   ['suddenDeathToggle', 'mistakeSpeechToggle'].forEach(function (id) {
     var top = document.getElementById(id + 'Top');
     var orig = document.getElementById(id);
@@ -412,14 +397,32 @@
     }
   });
 
-  // questionText の変更を questionMain に反映
-  var questionText = document.getElementById('questionText');
-  var questionMain = document.getElementById('questionMain');
-  var questionMainTop = document.getElementById('questionMainTop');
-  var questionSub = document.getElementById('questionSub');
-  var referencePreview = document.getElementById('referencePreview');
+  /* 200ms インターバルでスタット・モードラベルを上バーへ同期 */
+  var statPairs = [
+    ['remainingCount', 'remainingCountTop'],
+    ['correctCount',   'correctCountTop'],
+    ['mistakeCount',   'mistakeCountTop'],
+    ['elapsedTime',    'elapsedTimeTop'],
+    ['modeLabel',      'modeLabelTop']
+  ];
+  setInterval(function () {
+    statPairs.forEach(function (pair) {
+      var src = document.getElementById(pair[0]);
+      var dst = document.getElementById(pair[1]);
+      if (src && dst) dst.textContent = src.textContent;
+    });
+  }, 200);
 
-  function updateQuestion() {
+  /* questionText の変更を各表示要素へ反映 */
+  var questionText      = document.getElementById('questionText');
+  var questionMain      = document.getElementById('questionMain');
+  var questionMainTop   = document.getElementById('questionMainTop');
+  var questionSub       = document.getElementById('questionSub');
+  var questionSubTop    = document.getElementById('questionSubTop');
+  var referencePreview    = document.getElementById('referencePreview');
+  var referencePreviewTop = document.getElementById('referencePreviewTop');
+
+  function syncQuestion() {
     var text = (questionText ? questionText.textContent : '').trim();
     if (!text) return;
     var isMa = /のエリアをクリック/.test(text);
@@ -427,27 +430,26 @@
       ? text.replace(/\s*のエリアをクリック.*$/, '')
       : text.replace(/\s*をクリック.*$/, '');
     var sub = isMa ? 'エリアをクリック' : 'をクリック';
-    if (questionMain) questionMain.textContent = main;
+    if (questionMain)    questionMain.textContent    = main;
     if (questionMainTop) questionMainTop.textContent = main;
-    if (questionSub) questionSub.textContent = sub;
-    if (referencePreview) referencePreview.style.display = isMa ? 'none' : '';
+    if (questionSub)     questionSub.textContent     = sub;
+    if (questionSubTop)  questionSubTop.textContent  = sub;
+    if (referencePreview)    referencePreview.style.display    = isMa ? 'none' : '';
+    if (referencePreviewTop) referencePreviewTop.style.display = isMa ? 'none' : '';
     if (gameScreen) gameScreen.classList.toggle('is-ma-mode', isMa);
-    syncTopBar(gameScreen.dataset.layout);
   }
 
   if (questionText) {
-    new MutationObserver(updateQuestion).observe(
+    new MutationObserver(syncQuestion).observe(
       questionText, { childList: true, subtree: true, characterData: true }
     );
-    updateQuestion();
+    syncQuestion();
   }
 
-  // ゲーム画面表示時に Leaflet へリサイズを通知
+  /* ゲーム画面表示時に Leaflet へリサイズを通知 */
   var gsObs = new MutationObserver(function () {
     if (!gameScreen.classList.contains('is-hidden')) {
-      setTimeout(function () {
-        window.dispatchEvent(new Event('resize'));
-      }, 50);
+      setTimeout(function () { window.dispatchEvent(new Event('resize')); }, 50);
     }
   });
   gsObs.observe(gameScreen, { attributes: true, attributeFilter: ['class'] });

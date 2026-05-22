@@ -321,7 +321,7 @@ h2 {
 }
 
 .game-screen {
-  display: flex;
+  display: none;
   position: relative;
   width: 100%;
   height: 100dvh;
@@ -330,15 +330,20 @@ h2 {
   background: var(--bg);
 }
 
+/* is-hidden との競合を避けるため :not(.is-hidden) で flex を付与 */
+.game-screen:not(.is-hidden) {
+  display: flex;
+}
+
 /* ── レイアウト切り替え ── */
 .game-screen[data-layout="left"] { flex-direction: row; }
-.game-screen[data-layout="left"] .game-panel { order: 0; }
+.game-screen[data-layout="left"] .game-panel { display: flex; order: 0; }
 .game-screen[data-layout="left"] .map-slot { order: 1; }
 .game-screen[data-layout="left"] .game-topbar { display: none; }
 .game-screen[data-layout="left"] .top-overlay-bottom { display: none; }
 
 .game-screen[data-layout="right"] { flex-direction: row; }
-.game-screen[data-layout="right"] .game-panel { order: 1; }
+.game-screen[data-layout="right"] .game-panel { display: flex; order: 1; }
 .game-screen[data-layout="right"] .map-slot { order: 0; }
 .game-screen[data-layout="right"] .game-topbar { display: none; }
 .game-screen[data-layout="right"] .top-overlay-bottom { display: none; }
@@ -347,9 +352,11 @@ h2 {
 .game-screen[data-layout="top"] .game-panel { display: none; }
 .game-screen[data-layout="top"] .game-topbar { display: flex; }
 .game-screen[data-layout="top"] .map-slot { flex: 1; }
+.game-screen[data-layout="top"] .top-overlay-bottom { display: flex; }
 
 /* ── サイドパネル ── */
 .game-panel {
+  display: none; /* レイアウトルールで flex に切り替え */
   width: 220px;
   min-width: 220px;
   max-width: 220px;
@@ -357,7 +364,6 @@ h2 {
   height: 100%;
   background: var(--panel);
   border-right: 1px solid var(--line);
-  display: flex;
   flex-direction: column;
   gap: 8px;
   padding: 14px;
@@ -437,12 +443,7 @@ h2 {
 }
 .game-topbar-left { display: flex; flex-direction: column; gap: 1px; }
 .game-topbar-left .eyebrow { margin: 0; }
-.game-topbar-left h2 {
-  font-family: 'Dela Gothic One', sans-serif;
-  font-size: 22px;
-  margin: 0;
-  line-height: 1.1;
-}
+/* h2 は .game-topbar-question に移動したため、ここは空（互換維持のみ） */
 .game-topbar-stats {
   display: flex;
   gap: 8px;
@@ -450,7 +451,7 @@ h2 {
 }
 .game-topbar-actions { display: flex; gap: 6px; }
 
-/* ── 上バー時のオーバーレイ ── */
+/* ── 上バー時のオーバーレイ（.map-slot 内で absolute） ── */
 .top-overlay-bottom {
   display: none;
   position: absolute;
@@ -460,13 +461,57 @@ h2 {
   flex-direction: column;
   gap: 6px;
 }
-.game-screen[data-layout="top"] .top-overlay-bottom { display: flex; }
+
+/* ── 上バー：問題エリア ── */
+.game-topbar-question {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.game-topbar-question h2 {
+  font-family: 'Dela Gothic One', sans-serif;
+  font-size: 22px;
+  margin: 0;
+  line-height: 1.1;
+}
+.game-topbar-question .game-hud-sub {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ── 上バー内のポリゴンプレビュー（小型） ── */
+.reference-preview-inline {
+  flex-shrink: 0;
+  width: 64px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #10161a;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+.reference-preview-inline svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.reference-preview-inline path {
+  fill: #4fb7a5;
+  fill-opacity: 0.68;
+  stroke: #d7e1e8;
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
 
 /* ── MAモード（数字を大きく） ── */
 .game-screen.is-ma-mode .game-panel h2 {
   font-size: clamp(36px, 4vw, 56px);
 }
-.game-screen.is-ma-mode .game-topbar-left h2 {
+.game-screen.is-ma-mode .game-topbar-question h2 {
   font-size: 32px;
 }
 
