@@ -326,23 +326,33 @@
     <script src="js/app.js"></script>
     <script>
 (function () {
-  var questionText = document.getElementById('questionText');
-  var questionMain = document.getElementById('questionMain');
-  var questionSub  = document.getElementById('questionSub');
+  var questionText    = document.getElementById('questionText');
+  var questionMain    = document.getElementById('questionMain');
+  var questionSub     = document.getElementById('questionSub');
+  var referencePreview = document.getElementById('referencePreview');
+  var hudCard         = document.querySelector('.game-hud-card');
 
   function updateDisplay() {
     var text = (questionText ? questionText.textContent : '').trim();
     if (!text) return;
 
-    if (/のエリアをクリック/.test(text)) {
+    var isMaMode = /のエリアをクリック/.test(text);
+
+    if (isMaMode) {
       questionMain.textContent = text.replace(/\s*のエリアをクリック.*$/, '');
       questionSub.textContent  = 'エリアをクリック';
+      if (referencePreview) referencePreview.style.display = 'none';
+      if (hudCard) hudCard.classList.add('is-ma-mode');
     } else if (/をクリック/.test(text)) {
       questionMain.textContent = text.replace(/\s*をクリック.*$/, '');
       questionSub.textContent  = 'をクリック';
+      if (referencePreview) referencePreview.style.display = '';
+      if (hudCard) hudCard.classList.remove('is-ma-mode');
     } else {
       questionMain.textContent = text;
       questionSub.textContent  = '';
+      if (referencePreview) referencePreview.style.display = '';
+      if (hudCard) hudCard.classList.remove('is-ma-mode');
     }
   }
 

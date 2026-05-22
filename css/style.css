@@ -353,6 +353,11 @@ h2 {
   border-radius: 6px;
 }
 
+.game-hud-card.is-ma-mode #questionMain {
+  font-size: clamp(42px, 6vw, 72px);
+  color: var(--accent-2);
+}
+
 .game-hud-sub {
   font-family: 'Zen Kaku Gothic New', sans-serif;
   font-size: 12px;
