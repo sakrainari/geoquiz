@@ -37,6 +37,10 @@ button {
   padding: 20px;
 }
 
+.app-shell:has(#gameScreen:not(.is-hidden)) {
+  padding: 0;
+}
+
 .is-hidden {
   display: none !important;
 }
@@ -306,11 +310,12 @@ h2 {
 }
 
 .game-screen {
+  display: flex;
   position: relative;
   width: 100%;
   height: 100vh;
+  min-height: 0;
   overflow: hidden;
-  display: flex;
   background: var(--bg);
 }
 
@@ -334,8 +339,11 @@ h2 {
 
 /* ── サイドパネル ── */
 .game-panel {
-  width: 200px;
+  width: 220px;
+  min-width: 220px;
+  max-width: 220px;
   flex-shrink: 0;
+  height: 100%;
   background: var(--panel);
   border-right: 1px solid var(--line);
   display: flex;
@@ -344,6 +352,7 @@ h2 {
   padding: 14px;
   overflow-y: auto;
   scrollbar-width: none;
+  box-sizing: border-box;
 }
 .game-panel::-webkit-scrollbar { display: none; }
 .game-screen[data-layout="right"] .game-panel {
@@ -490,6 +499,7 @@ h2 {
   background: #0b0f12;
   overflow: hidden;
 }
+/* 旧 .map-panel 定義（上書き済み） */
 
 /* ── ゲーム画面 オーバーレイUI（旧スタイル・互換維持） ── */
 .game-hud-card {
@@ -707,14 +717,7 @@ h2 {
   border-color: var(--line);
 }
 
-/* .play-layout は廃止（レイアウト切り替え実装で不要） */
-
-.map-panel {
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #0b0f12;
-}
+/* .play-layout / .map-panel 旧定義は廃止済み */
 
 .status-panel {
   display: grid;
