@@ -355,6 +355,9 @@
       btn.classList.toggle('is-active', btn.dataset.layout === layout);
     });
     syncTopBar(layout);
+    setTimeout(function () {
+      window.dispatchEvent(new Event('resize'));
+    }, 30);
   }
 
   function syncTopBar(layout) {
@@ -438,6 +441,16 @@
     );
     updateQuestion();
   }
+
+  // ゲーム画面表示時に Leaflet へリサイズを通知
+  var gsObs = new MutationObserver(function () {
+    if (!gameScreen.classList.contains('is-hidden')) {
+      setTimeout(function () {
+        window.dispatchEvent(new Event('resize'));
+      }, 50);
+    }
+  });
+  gsObs.observe(gameScreen, { attributes: true, attributeFilter: ['class'] });
 })();
     </script>
   </body>
