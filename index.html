@@ -140,23 +140,13 @@
 
       </section>
 
-      <section id="gameScreen" class="game-screen is-hidden">
+      <section id="gameScreen" class="game-screen is-hidden" data-layout="left">
 
-        <!-- 地図：全画面 -->
-        <div class="play-layout">
-          <div id="playMapSlot" class="map-slot">
-            <div id="map" class="map-panel" aria-label="埼玉県クイズ地図"></div>
-          </div>
-        </div>
-
-        <!-- 中央上：統合HUDカード -->
-        <div class="game-hud-card">
+        <!-- サイドパネル（left/rightで使用） -->
+        <aside class="game-panel">
           <p class="eyebrow" id="modeLabel">市区町村モード</p>
           <h2 id="questionMain"></h2>
           <div id="referencePreview" class="reference-preview"></div>
-          <div id="areaCodeDisplay" class="area-code-display is-hidden">
-            <span id="areaCodeDisplayText"></span>
-          </div>
           <p id="questionSub" class="game-hud-sub">をクリック</p>
           <div id="puzzleControls" class="puzzle-controls is-hidden">
             <label>
@@ -171,40 +161,14 @@
               <strong id="puzzleBestTime">--:--</strong>
             </div>
           </div>
-        </div>
-
-        <!-- app.js が参照するため questionText は非表示で残す -->
-        <h2 id="questionText" class="is-hidden" aria-hidden="true"></h2>
-
-        <!-- 右上：統計ピル -->
-        <div class="game-stats-float">
-          <div class="stat-pill">
-            <span class="stat-pill-label">残り</span>
-            <strong id="remainingCount">0</strong>
+          <div class="game-panel-divider"></div>
+          <div class="stat-grid">
+            <div class="stat-box"><span class="stat-lbl">残り</span><strong id="remainingCount">0</strong></div>
+            <div class="stat-box"><span class="stat-lbl">正解</span><strong id="correctCount">0</strong></div>
+            <div class="stat-box stat-box-danger"><span class="stat-lbl">ミス</span><strong id="mistakeCount">0</strong></div>
+            <div class="stat-box"><span class="stat-lbl">経過</span><strong id="elapsedTime">00:00</strong></div>
           </div>
-          <div class="stat-pill">
-            <span class="stat-pill-label">正解</span>
-            <strong id="correctCount">0</strong>
-          </div>
-          <div class="stat-pill stat-pill-danger">
-            <span class="stat-pill-label">ミス</span>
-            <strong id="mistakeCount">0</strong>
-          </div>
-          <div class="stat-pill">
-            <span class="stat-pill-label">経過</span>
-            <strong id="elapsedTime">00:00</strong>
-          </div>
-        </div>
-
-        <!-- 右下：コントロール -->
-        <div class="game-controls-float">
-          <button id="tileLayerToggle" class="game-float-btn" type="button">地図</button>
-          <button id="backToMenuButton" class="game-float-btn" type="button">モード選択</button>
-          <button id="resetButton" class="game-float-btn game-float-btn-primary" type="button">リセット</button>
-        </div>
-
-        <!-- 左下：トグル＋凡例 -->
-        <div class="game-bottom-left">
+          <div class="game-panel-divider"></div>
           <label class="game-toggle-row">
             <input id="suddenDeathToggle" type="checkbox">
             <span>サドンデス</span>
@@ -218,9 +182,64 @@
             <span class="legend-item"><i class="swatch correct"></i>正解済み</span>
             <span class="legend-item"><i class="swatch miss"></i>弱点</span>
           </div>
+          <div class="game-panel-actions">
+            <button id="tileLayerToggle" class="ghost-button" type="button">地図</button>
+            <button id="backToMenuButton" class="ghost-button" type="button">モード選択</button>
+            <button id="resetButton" class="primary-button" type="button">リセット</button>
+          </div>
+          <div class="layout-switcher">
+            <button class="layout-btn" data-layout="left" title="左パネル">◧</button>
+            <button class="layout-btn" data-layout="top" title="上バー">⬒</button>
+            <button class="layout-btn" data-layout="right" title="右パネル">◨</button>
+          </div>
+        </aside>
+
+        <!-- 上バー（topで使用） -->
+        <header class="game-topbar">
+          <div class="game-topbar-left">
+            <p class="eyebrow" id="modeLabelTop"></p>
+            <h2 id="questionMainTop"></h2>
+          </div>
+          <div id="referencePreviewTop" class="reference-preview-top"></div>
+          <div class="game-topbar-stats">
+            <div class="stat-pill"><span class="stat-pill-label">残り</span><strong id="remainingCountTop">0</strong></div>
+            <div class="stat-pill"><span class="stat-pill-label">正解</span><strong id="correctCountTop">0</strong></div>
+            <div class="stat-pill stat-pill-danger"><span class="stat-pill-label">ミス</span><strong id="mistakeCountTop">0</strong></div>
+            <div class="stat-pill"><span class="stat-pill-label">経過</span><strong id="elapsedTimeTop">00:00</strong></div>
+          </div>
+          <div class="game-topbar-actions">
+            <button id="tileLayerToggleTop" class="ghost-button" type="button">地図</button>
+            <button id="backToMenuButtonTop" class="ghost-button" type="button">モード選択</button>
+            <button id="resetButtonTop" class="primary-button" type="button">リセット</button>
+          </div>
+          <div class="layout-switcher">
+            <button class="layout-btn" data-layout="left" title="左パネル">◧</button>
+            <button class="layout-btn" data-layout="top" title="上バー">⬒</button>
+            <button class="layout-btn" data-layout="right" title="右パネル">◨</button>
+          </div>
+        </header>
+
+        <!-- 地図 -->
+        <div id="playMapSlot" class="map-slot">
+          <div id="map" class="map-panel" aria-label="埼玉県クイズ地図"></div>
+        </div>
+
+        <!-- 上バー時の追加オーバーレイ -->
+        <div class="top-overlay-bottom">
+          <label class="game-toggle-row">
+            <input id="suddenDeathToggleTop" type="checkbox">
+            <span>サドンデス</span>
+          </label>
+          <label class="game-toggle-row">
+            <input id="mistakeSpeechToggleTop" type="checkbox">
+            <span>ミス音声</span>
+          </label>
         </div>
 
       </section>
+
+      <!-- app.js参照用の非表示要素 -->
+      <h2 id="questionText" class="is-hidden" aria-hidden="true"></h2>
 
       <aside id="labelEditorPanel" class="label-editor-panel is-hidden" aria-label="ラベル調整">
         <div>
@@ -326,41 +345,98 @@
     <script src="js/app.js"></script>
     <script>
 (function () {
-  var questionText    = document.getElementById('questionText');
-  var questionMain    = document.getElementById('questionMain');
-  var questionSub     = document.getElementById('questionSub');
-  var referencePreview = document.getElementById('referencePreview');
-  var hudCard         = document.querySelector('.game-hud-card');
+  var LAYOUT_KEY = 'geoquiz:layout';
+  var gameScreen = document.getElementById('gameScreen');
 
-  function updateDisplay() {
-    var text = (questionText ? questionText.textContent : '').trim();
-    if (!text) return;
+  function applyLayout(layout) {
+    gameScreen.dataset.layout = layout;
+    localStorage.setItem(LAYOUT_KEY, layout);
+    document.querySelectorAll('.layout-btn').forEach(function (btn) {
+      btn.classList.toggle('is-active', btn.dataset.layout === layout);
+    });
+    syncTopBar(layout);
+  }
 
-    var isMaMode = /のエリアをクリック/.test(text);
-
-    if (isMaMode) {
-      questionMain.textContent = text.replace(/\s*のエリアをクリック.*$/, '');
-      questionSub.textContent  = 'エリアをクリック';
-      if (referencePreview) referencePreview.style.display = 'none';
-      if (hudCard) hudCard.classList.add('is-ma-mode');
-    } else if (/をクリック/.test(text)) {
-      questionMain.textContent = text.replace(/\s*をクリック.*$/, '');
-      questionSub.textContent  = 'をクリック';
-      if (referencePreview) referencePreview.style.display = '';
-      if (hudCard) hudCard.classList.remove('is-ma-mode');
-    } else {
-      questionMain.textContent = text;
-      questionSub.textContent  = '';
-      if (referencePreview) referencePreview.style.display = '';
-      if (hudCard) hudCard.classList.remove('is-ma-mode');
+  function syncTopBar(layout) {
+    var isTop = layout === 'top';
+    var ids = [
+      ['modeLabel', 'modeLabelTop'],
+      ['questionMain', 'questionMainTop'],
+      ['remainingCount', 'remainingCountTop'],
+      ['correctCount', 'correctCountTop'],
+      ['mistakeCount', 'mistakeCountTop'],
+      ['elapsedTime', 'elapsedTimeTop']
+    ];
+    if (isTop) {
+      ids.forEach(function (pair) {
+        var src = document.getElementById(pair[0]);
+        var dst = document.getElementById(pair[1]);
+        if (src && dst) dst.textContent = src.textContent;
+      });
     }
   }
 
-  var observer = new MutationObserver(updateDisplay);
+  var saved = localStorage.getItem(LAYOUT_KEY) || 'left';
+  applyLayout(saved);
+
+  document.querySelectorAll('.layout-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      applyLayout(btn.dataset.layout);
+    });
+  });
+
+  // tileLayerToggle・backToMenuButton・resetButton の二重バインド
+  ['tileLayerToggle', 'backToMenuButton', 'resetButton'].forEach(function (id) {
+    var top = document.getElementById(id + 'Top');
+    var orig = document.getElementById(id);
+    if (top && orig) {
+      top.addEventListener('click', function () { orig.click(); });
+    }
+  });
+
+  // 上バーのトグル同期
+  ['suddenDeathToggle', 'mistakeSpeechToggle'].forEach(function (id) {
+    var top = document.getElementById(id + 'Top');
+    var orig = document.getElementById(id);
+    if (top && orig) {
+      top.addEventListener('change', function () {
+        orig.checked = top.checked;
+        orig.dispatchEvent(new Event('change'));
+      });
+      orig.addEventListener('change', function () {
+        top.checked = orig.checked;
+      });
+    }
+  });
+
+  // questionText の変更を questionMain に反映
+  var questionText = document.getElementById('questionText');
+  var questionMain = document.getElementById('questionMain');
+  var questionMainTop = document.getElementById('questionMainTop');
+  var questionSub = document.getElementById('questionSub');
+  var referencePreview = document.getElementById('referencePreview');
+
+  function updateQuestion() {
+    var text = (questionText ? questionText.textContent : '').trim();
+    if (!text) return;
+    var isMa = /のエリアをクリック/.test(text);
+    var main = isMa
+      ? text.replace(/\s*のエリアをクリック.*$/, '')
+      : text.replace(/\s*をクリック.*$/, '');
+    var sub = isMa ? 'エリアをクリック' : 'をクリック';
+    if (questionMain) questionMain.textContent = main;
+    if (questionMainTop) questionMainTop.textContent = main;
+    if (questionSub) questionSub.textContent = sub;
+    if (referencePreview) referencePreview.style.display = isMa ? 'none' : '';
+    if (gameScreen) gameScreen.classList.toggle('is-ma-mode', isMa);
+    syncTopBar(gameScreen.dataset.layout);
+  }
+
   if (questionText) {
-    observer.observe(questionText,
-      { childList: true, subtree: true, characterData: true });
-    updateDisplay();
+    new MutationObserver(updateQuestion).observe(
+      questionText, { childList: true, subtree: true, characterData: true }
+    );
+    updateQuestion();
   }
 })();
     </script>
