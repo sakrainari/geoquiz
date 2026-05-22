@@ -306,10 +306,12 @@ h2 {
 }
 
 .game-screen {
-  position: fixed;
-  inset: 0;
-  z-index: 10;
   display: grid;
+  gap: 0;
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
   background: var(--bg);
 }
 
@@ -318,7 +320,7 @@ h2 {
   position: absolute;
   top: 16px;
   left: 16px;
-  z-index: 20;
+  z-index: 1000;
   background: rgba(23, 29, 34, 0.94);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -347,7 +349,7 @@ h2 {
   position: absolute;
   top: 16px;
   right: 16px;
-  z-index: 20;
+  z-index: 1000;
   display: flex;
   gap: 6px;
 }
@@ -387,7 +389,7 @@ h2 {
   position: absolute;
   bottom: 16px;
   right: 16px;
-  z-index: 20;
+  z-index: 1000;
   display: flex;
   gap: 6px;
 }
@@ -425,7 +427,7 @@ h2 {
   position: absolute;
   bottom: 16px;
   left: 16px;
-  z-index: 20;
+  z-index: 1000;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -493,15 +495,23 @@ h2 {
 .play-layout {
   display: grid;
   grid-template-columns: 1fr;
-  height: 100%;
   gap: 0;
+  position: absolute;
+  inset: 0;
+}
+
+.map-slot {
+  height: 100%;
   min-height: 0;
 }
 
-.map-slot,
 .map-panel {
   height: 100%;
   min-height: 0;
+  overflow: hidden;
+  border: none;
+  border-radius: 0;
+  background: #0b0f12;
 }
 
 .map-panel {
