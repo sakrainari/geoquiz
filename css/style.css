@@ -49,7 +49,7 @@ button {
 .app-shell:has(#gameScreen:not(.is-hidden)) {
   padding: 0;
   overflow: hidden;
-  height: 100vh;
+  height: 100dvh;
 }
 
 .is-hidden {
@@ -324,7 +324,7 @@ h2 {
   display: flex;
   position: relative;
   width: 100%;
-  height: 100vh;
+  height: 100dvh;
   min-height: 0;
   overflow: hidden;
   background: var(--bg);
