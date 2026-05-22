@@ -345,6 +345,24 @@ h2 {
   margin-top: 4px;
 }
 
+.area-code-display {
+  margin-top: 8px;
+  text-align: center;
+  padding: 8px 0;
+}
+
+.area-code-display span {
+  font-family: 'Dela Gothic One', sans-serif;
+  font-size: 52px;
+  color: var(--accent-2);
+  line-height: 1;
+  text-shadow:
+    -2px -2px 0 #020304,
+    2px -2px 0 #020304,
+    -2px 2px 0 #020304,
+    2px 2px 0 #020304;
+}
+
 .game-stats-float {
   position: absolute;
   top: 16px;

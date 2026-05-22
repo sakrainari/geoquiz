@@ -154,6 +154,9 @@
           <p class="eyebrow" id="modeLabel">市区町村モード</p>
           <h2 id="questionText">読み込み中</h2>
           <div id="referencePreview" class="reference-preview"></div>
+          <div id="areaCodeDisplay" class="area-code-display is-hidden">
+            <span id="areaCodeDisplayText"></span>
+          </div>
           <div id="puzzleControls" class="puzzle-controls is-hidden">
             <label>
               <span>ピース</span>
@@ -317,5 +320,42 @@
     <script src="js/progress-store.js"></script>
     <script src="js/map-renderer.js"></script>
     <script src="js/app.js"></script>
+    <script>
+(function () {
+  var gameScreen = document.getElementById('gameScreen');
+  var areaCodeDisplay = document.getElementById('areaCodeDisplay');
+  var areaCodeDisplayText = document.getElementById('areaCodeDisplayText');
+  var referencePreview = document.getElementById('referencePreview');
+  var questionText = document.getElementById('questionText');
+
+  document.querySelectorAll('.mode-card').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var mode = btn.dataset.startMode || '';
+      gameScreen.dataset.mode = mode;
+    });
+  });
+
+  var MA_MODES = ['ma', 'ma_broad', 'confirm_ma', 'confirm_ma_broad'];
+
+  var observer = new MutationObserver(function () {
+    var mode = gameScreen.dataset.mode || '';
+    if (MA_MODES.indexOf(mode) !== -1) {
+      var text = questionText ? questionText.textContent : '';
+      var match = text.match(/[\d]+/);
+      if (match) {
+        areaCodeDisplayText.textContent = match[0];
+        areaCodeDisplay.classList.remove('is-hidden');
+        referencePreview.classList.add('is-hidden');
+      }
+    } else {
+      areaCodeDisplay.classList.add('is-hidden');
+      referencePreview.classList.remove('is-hidden');
+    }
+  });
+
+  observer.observe(document.getElementById('questionText'),
+    { childList: true, subtree: true, characterData: true });
+})();
+    </script>
   </body>
 </html>
