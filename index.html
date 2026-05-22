@@ -326,45 +326,23 @@
     <script src="js/app.js"></script>
     <script>
 (function () {
-  var gameScreen = document.getElementById('gameScreen');
   var questionText = document.getElementById('questionText');
   var questionMain = document.getElementById('questionMain');
-  var questionSub = document.getElementById('questionSub');
-  var areaCodeDisplay = document.getElementById('areaCodeDisplay');
-  var areaCodeDisplayText = document.getElementById('areaCodeDisplayText');
-  var referencePreview = document.getElementById('referencePreview');
-
-  var MA_MODES = ['ma', 'ma_broad', 'confirm_ma', 'confirm_ma_broad'];
-
-  document.querySelectorAll('.mode-card').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      var mode = btn.dataset.startMode || '';
-      gameScreen.dataset.mode = mode;
-    });
-  });
+  var questionSub  = document.getElementById('questionSub');
 
   function updateDisplay() {
-    var text = questionText ? questionText.textContent : '';
-    var mode = gameScreen.dataset.mode || '';
+    var text = (questionText ? questionText.textContent : '').trim();
+    if (!text) return;
 
-    if (MA_MODES.indexOf(mode) !== -1) {
-      // 市外局番モード：数字を大きく表示、ポリゴン非表示
-      var match = text.match(/\d+/);
-      if (match) {
-        areaCodeDisplayText.textContent = match[0];
-        areaCodeDisplay.classList.remove('is-hidden');
-      } else {
-        areaCodeDisplay.classList.add('is-hidden');
-      }
-      referencePreview.classList.add('is-hidden');
-      questionMain.textContent = text;
-      if (questionSub) questionSub.classList.add('is-hidden');
+    if (/のエリアをクリック/.test(text)) {
+      questionMain.textContent = text.replace(/\s*のエリアをクリック.*$/, '');
+      questionSub.textContent  = 'エリアをクリック';
+    } else if (/をクリック/.test(text)) {
+      questionMain.textContent = text.replace(/\s*をクリック.*$/, '');
+      questionSub.textContent  = 'をクリック';
     } else {
-      // 通常モード：問題文を表示、ポリゴン表示
-      areaCodeDisplay.classList.add('is-hidden');
-      referencePreview.classList.remove('is-hidden');
       questionMain.textContent = text;
-      if (questionSub) questionSub.classList.remove('is-hidden');
+      questionSub.textContent  = '';
     }
   }
 
@@ -372,6 +350,7 @@
   if (questionText) {
     observer.observe(questionText,
       { childList: true, subtree: true, characterData: true });
+    updateDisplay();
   }
 })();
     </script>
