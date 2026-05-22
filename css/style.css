@@ -316,7 +316,7 @@ h2 {
 }
 
 /* ── ゲーム画面 オーバーレイUI ── */
-.game-question-center {
+.game-hud-card {
   position: absolute;
   top: 16px;
   left: 50%;
@@ -325,42 +325,40 @@ h2 {
   background: rgba(23, 29, 34, 0.94);
   border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 10px 20px;
+  padding: 12px 20px 14px;
   text-align: center;
-  white-space: nowrap;
-  max-width: 60vw;
+  min-width: 180px;
+  max-width: 300px;
   backdrop-filter: blur(4px);
 }
 
-.game-question-center #questionText {
+.game-hud-card .eyebrow {
+  margin-bottom: 6px;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+}
+
+.game-hud-card #questionMain {
   font-family: 'Dela Gothic One', sans-serif;
-  font-size: clamp(22px, 3vw, 36px);
-  line-height: 1.05;
-  margin: 0;
+  font-size: clamp(24px, 3.5vw, 42px);
+  line-height: 1.0;
+  margin: 0 0 10px;
   color: var(--text);
-  white-space: nowrap;
 }
 
-.game-question-card {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  z-index: 1000;
-  background: rgba(23, 29, 34, 0.94);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 14px 16px;
-  max-width: 240px;
-  backdrop-filter: blur(4px);
+.game-hud-card .reference-preview {
+  width: 160px;
+  height: 100px;
+  margin: 0 auto 8px;
+  border-radius: 6px;
 }
 
-.game-question-card .eyebrow {
-  margin-bottom: 8px;
-}
-
-.game-question-card .reference-preview {
-  min-height: 60px;
-  margin-top: 4px;
+.game-hud-sub {
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  margin: 0;
 }
 
 .area-code-display {

@@ -149,18 +149,15 @@
           </div>
         </div>
 
-        <!-- 中央上：問題文カード -->
-        <div class="game-question-center">
-          <h2 id="questionText">読み込み中</h2>
-        </div>
-
-        <!-- 左上：モード名・参照ポリゴン・パズル設定 -->
-        <div class="game-question-card">
+        <!-- 中央上：統合HUDカード -->
+        <div class="game-hud-card">
           <p class="eyebrow" id="modeLabel">市区町村モード</p>
+          <h2 id="questionMain"></h2>
           <div id="referencePreview" class="reference-preview"></div>
           <div id="areaCodeDisplay" class="area-code-display is-hidden">
             <span id="areaCodeDisplayText"></span>
           </div>
+          <p id="questionSub" class="game-hud-sub">をクリック</p>
           <div id="puzzleControls" class="puzzle-controls is-hidden">
             <label>
               <span>ピース</span>
@@ -175,6 +172,9 @@
             </div>
           </div>
         </div>
+
+        <!-- app.js が参照するため questionText は非表示で残す -->
+        <h2 id="questionText" class="is-hidden" aria-hidden="true"></h2>
 
         <!-- 右上：統計ピル -->
         <div class="game-stats-float">
@@ -327,10 +327,14 @@
     <script>
 (function () {
   var gameScreen = document.getElementById('gameScreen');
+  var questionText = document.getElementById('questionText');
+  var questionMain = document.getElementById('questionMain');
+  var questionSub = document.getElementById('questionSub');
   var areaCodeDisplay = document.getElementById('areaCodeDisplay');
   var areaCodeDisplayText = document.getElementById('areaCodeDisplayText');
   var referencePreview = document.getElementById('referencePreview');
-  var questionText = document.getElementById('questionText');
+
+  var MA_MODES = ['ma', 'ma_broad', 'confirm_ma', 'confirm_ma_broad'];
 
   document.querySelectorAll('.mode-card').forEach(function (btn) {
     btn.addEventListener('click', function () {
@@ -339,26 +343,36 @@
     });
   });
 
-  var MA_MODES = ['ma', 'ma_broad', 'confirm_ma', 'confirm_ma_broad'];
-
-  var observer = new MutationObserver(function () {
+  function updateDisplay() {
+    var text = questionText ? questionText.textContent : '';
     var mode = gameScreen.dataset.mode || '';
+
     if (MA_MODES.indexOf(mode) !== -1) {
-      var text = questionText ? questionText.textContent : '';
-      var match = text.match(/[\d]+/);
+      // 市外局番モード：数字を大きく表示、ポリゴン非表示
+      var match = text.match(/\d+/);
       if (match) {
         areaCodeDisplayText.textContent = match[0];
         areaCodeDisplay.classList.remove('is-hidden');
-        referencePreview.classList.add('is-hidden');
+      } else {
+        areaCodeDisplay.classList.add('is-hidden');
       }
+      referencePreview.classList.add('is-hidden');
+      questionMain.textContent = text;
+      if (questionSub) questionSub.classList.add('is-hidden');
     } else {
+      // 通常モード：問題文を表示、ポリゴン表示
       areaCodeDisplay.classList.add('is-hidden');
       referencePreview.classList.remove('is-hidden');
+      questionMain.textContent = text;
+      if (questionSub) questionSub.classList.remove('is-hidden');
     }
-  });
+  }
 
-  observer.observe(document.getElementById('questionText'),
-    { childList: true, subtree: true, characterData: true });
+  var observer = new MutationObserver(updateDisplay);
+  if (questionText) {
+    observer.observe(questionText,
+      { childList: true, subtree: true, characterData: true });
+  }
 })();
     </script>
   </body>
