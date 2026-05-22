@@ -355,7 +355,7 @@ h2 {
 
 .game-hud-card.is-ma-mode #questionMain {
   font-size: clamp(42px, 6vw, 72px);
-  color: var(--accent-2);
+  color: var(--text);
 }
 
 .game-hud-sub {
