@@ -306,8 +306,151 @@ h2 {
 }
 
 .game-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
   display: grid;
-  gap: 16px;
+  background: var(--bg);
+}
+
+/* ── ゲーム画面 オーバーレイUI ── */
+.game-question-card {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 20;
+  background: rgba(23, 29, 34, 0.94);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 16px;
+  max-width: 240px;
+  backdrop-filter: blur(4px);
+}
+
+.game-question-card .eyebrow {
+  margin-bottom: 4px;
+}
+
+.game-question-card #questionText {
+  font-family: 'Dela Gothic One', sans-serif;
+  font-size: clamp(20px, 2.5vw, 28px);
+  line-height: 1.05;
+  margin: 2px 0 10px;
+}
+
+.game-question-card .reference-preview {
+  min-height: 60px;
+  margin-top: 4px;
+}
+
+.game-stats-float {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 20;
+  display: flex;
+  gap: 6px;
+}
+
+.stat-pill {
+  background: rgba(23, 29, 34, 0.94);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 10px;
+  text-align: center;
+  min-width: 52px;
+  backdrop-filter: blur(4px);
+}
+
+.stat-pill-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  display: block;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.stat-pill strong {
+  font-family: 'Dela Gothic One', sans-serif;
+  font-size: 20px;
+  color: var(--text);
+  display: block;
+  line-height: 1.1;
+}
+
+.stat-pill-danger strong {
+  color: var(--danger);
+}
+
+.game-controls-float {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  z-index: 20;
+  display: flex;
+  gap: 6px;
+}
+
+.game-float-btn {
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: rgba(23, 29, 34, 0.94);
+  color: var(--text);
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+
+.game-float-btn:hover {
+  border-color: var(--accent);
+}
+
+.game-float-btn-primary {
+  background: var(--accent);
+  color: #061312;
+  border-color: var(--accent);
+}
+
+.game-float-btn-primary:hover {
+  background: #3ea593;
+  border-color: #3ea593;
+}
+
+.game-bottom-left {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.game-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(23, 29, 34, 0.94);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  backdrop-filter: blur(4px);
+}
+
+.game-toggle-row input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--danger);
 }
 
 .topbar {
@@ -349,16 +492,16 @@ h2 {
 
 .play-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 260px;
-  gap: 16px;
-  height: clamp(620px, calc(100vh - 138px), 780px);
-  min-height: 620px;
+  grid-template-columns: 1fr;
+  height: 100%;
+  gap: 0;
+  min-height: 0;
 }
 
 .map-slot,
 .map-panel {
   height: 100%;
-  min-height: 520px;
+  min-height: 0;
 }
 
 .map-panel {
@@ -1046,14 +1189,26 @@ h2 {
   }
 
   .play-layout {
-    min-height: 0;
-    height: auto;
+    height: 100%;
   }
 
-  .map-slot,
-  .map-panel {
-    height: 58vh;
-    min-height: 58vh;
+  .game-stats-float {
+    flex-wrap: wrap;
+    max-width: calc(100vw - 32px);
+    justify-content: flex-end;
+  }
+
+  .stat-pill {
+    min-width: 44px;
+    padding: 5px 8px;
+  }
+
+  .stat-pill strong {
+    font-size: 17px;
+  }
+
+  .game-question-card {
+    max-width: 200px;
   }
 
   .result-left {

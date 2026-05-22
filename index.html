@@ -141,56 +141,78 @@
       </section>
 
       <section id="gameScreen" class="game-screen is-hidden">
-        <header class="topbar">
-          <div>
-            <p class="eyebrow" id="modeLabel">市区町村モード</p>
-            <h2 id="questionText">読み込み中</h2>
-          </div>
-          <div class="top-actions">
-            <button id="tileLayerToggle" class="ghost-button" type="button">地図</button>
-            <button id="backToMenuButton" class="ghost-button" type="button">モード選択</button>
-            <button id="resetButton" class="primary-button" type="button">リセット</button>
-          </div>
-        </header>
 
+        <!-- 地図：全画面 -->
         <div class="play-layout">
           <div id="playMapSlot" class="map-slot">
             <div id="map" class="map-panel" aria-label="埼玉県クイズ地図"></div>
           </div>
-          <aside class="status-panel">
-            <div class="reference-panel" aria-label="参照ポリゴン">
-              <span>参照ポリゴン</span>
-              <div id="referencePreview" class="reference-preview"></div>
-            </div>
-            <div class="stat-row"><span>残り</span><strong id="remainingCount">0</strong></div>
-            <div class="stat-row"><span>正解</span><strong id="correctCount">0</strong></div>
-            <div class="stat-row"><span>ミス</span><strong id="mistakeCount">0</strong></div>
-            <div class="stat-row"><span>経過</span><strong id="elapsedTime">00:00</strong></div>
-            <label class="toggle-row">
-              <input id="suddenDeathToggle" type="checkbox">
-              <span>サドンデス</span>
-            </label>
-            <label class="toggle-row">
-              <input id="mistakeSpeechToggle" type="checkbox">
-              <span>ミス音声</span>
-            </label>
-            <div id="puzzleControls" class="puzzle-controls is-hidden">
-              <label>
-                <span>ピース</span>
-                <select id="puzzlePieceSelect">
-                  <option value="all">全市区町村</option>
-                  <option value="small">少なめ15</option>
-                </select>
-              </label>
-              <div class="puzzle-best"><span>ベスト</span><strong id="puzzleBestTime">--:--</strong></div>
-            </div>
-            <div class="legend-block">
-              <span class="legend-item"><i class="swatch pending"></i>未回答</span>
-              <span class="legend-item"><i class="swatch correct"></i>正解済み</span>
-              <span class="legend-item"><i class="swatch miss"></i>弱点</span>
-            </div>
-          </aside>
         </div>
+
+        <!-- 左上：問題カード（参照ポリゴン統合） -->
+        <div class="game-question-card">
+          <p class="eyebrow" id="modeLabel">市区町村モード</p>
+          <h2 id="questionText">読み込み中</h2>
+          <div id="referencePreview" class="reference-preview"></div>
+          <div id="puzzleControls" class="puzzle-controls is-hidden">
+            <label>
+              <span>ピース</span>
+              <select id="puzzlePieceSelect">
+                <option value="all">全市区町村</option>
+                <option value="small">少なめ15</option>
+              </select>
+            </label>
+            <div class="puzzle-best">
+              <span>ベスト</span>
+              <strong id="puzzleBestTime">--:--</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右上：統計ピル -->
+        <div class="game-stats-float">
+          <div class="stat-pill">
+            <span class="stat-pill-label">残り</span>
+            <strong id="remainingCount">0</strong>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-pill-label">正解</span>
+            <strong id="correctCount">0</strong>
+          </div>
+          <div class="stat-pill stat-pill-danger">
+            <span class="stat-pill-label">ミス</span>
+            <strong id="mistakeCount">0</strong>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-pill-label">経過</span>
+            <strong id="elapsedTime">00:00</strong>
+          </div>
+        </div>
+
+        <!-- 右下：コントロール -->
+        <div class="game-controls-float">
+          <button id="tileLayerToggle" class="game-float-btn" type="button">地図</button>
+          <button id="backToMenuButton" class="game-float-btn" type="button">モード選択</button>
+          <button id="resetButton" class="game-float-btn game-float-btn-primary" type="button">リセット</button>
+        </div>
+
+        <!-- 左下：トグル＋凡例 -->
+        <div class="game-bottom-left">
+          <label class="game-toggle-row">
+            <input id="suddenDeathToggle" type="checkbox">
+            <span>サドンデス</span>
+          </label>
+          <label class="game-toggle-row">
+            <input id="mistakeSpeechToggle" type="checkbox">
+            <span>ミス音声</span>
+          </label>
+          <div class="legend-block">
+            <span class="legend-item"><i class="swatch pending"></i>未回答</span>
+            <span class="legend-item"><i class="swatch correct"></i>正解済み</span>
+            <span class="legend-item"><i class="swatch miss"></i>弱点</span>
+          </div>
+        </div>
+
       </section>
 
       <aside id="labelEditorPanel" class="label-editor-panel is-hidden" aria-label="ラベル調整">
