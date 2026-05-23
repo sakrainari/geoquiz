@@ -598,6 +598,7 @@ window.GEOQUIZ_DATASETS = [
       center: [35.34, 139.47],
       zoom: 12
     },
+    mapMaxZoom: 18,
     category: "special",
     version: "0.1.0"
   }

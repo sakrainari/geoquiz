@@ -509,7 +509,8 @@
       labelOverrides,
       liteMode,
       initialView: appConfig.initialView || null,
-      labelBehavior: appConfig.labelBehavior || null
+      labelBehavior: appConfig.labelBehavior || null,
+      mapMaxZoom: appConfig.mapMaxZoom || null
     });
     window.__geoquizRenderer = renderer;
     currentSessionSettings.tileLayerVisible = renderer.tileLayerVisible;

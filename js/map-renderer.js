@@ -58,7 +58,7 @@
         zoomControl: true,
         attributionControl: true,
         minZoom: 8,
-        maxZoom: 13
+        maxZoom: options.mapMaxZoom || 13
       });
       this.map.createPane("ghostPane").style.zIndex = 300;
       this.map.createPane("mainPane").style.zIndex = 450;
