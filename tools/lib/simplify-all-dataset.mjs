@@ -62,6 +62,32 @@ function labelPoint(geometry) {
   ];
 }
 
+const PREFECTURE_SIMPLIFY_OPTIONS = {
+  interval: "200m",
+  weighting: 0.75,
+  minIslandArea: "50000m2",
+  minSliverArea: "60000m2",
+  sliverControl: 0.90
+};
+
+/**
+ * 単県データ用: preFilterSmallIslands + 中程度の simplification。
+ * interval=200m で形状品質を保ちつつ頂点数を削減する。
+ */
+export async function simplifyPrefectureFeatures(rawFeatures) {
+  const rawCount = countFeatureVertices({ type: "FeatureCollection", features: rawFeatures });
+  const filtered = preFilterSmallIslands(rawFeatures);
+  const simplified = await simplifyFeatureCollectionWithMapshaper(
+    { type: "FeatureCollection", features: filtered },
+    PREFECTURE_SIMPLIFY_OPTIONS
+  );
+  for (const feature of simplified.features) {
+    feature.properties.labelPoint = labelPoint(feature.geometry);
+  }
+  const simplifiedCount = countFeatureVertices(simplified);
+  return { features: simplified.features, rawCount, simplifiedCount };
+}
+
 /**
  * rawFeatures に preFilterSmallIslands + simplification を適用して返す。
  * 各 feature の properties.labelPoint も付与する。
