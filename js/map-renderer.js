@@ -496,12 +496,19 @@
     }
 
     baseStyle() {
+      const areaCodeMode = this.mode === "ma" || this.mode === "ma_broad";
       return {
         color: COLORS.border,
         weight: 0.8,
-        opacity: 0.65,
+        opacity: areaCodeMode
+          ? (this.tileLayerVisible ? 0.12 : 0.34)
+          : (this.tileLayerVisible ? 0.58 : 0.65),
         fillColor: COLORS.pending,
-        fillOpacity: this.labelEditEnabled ? 0.45 : 0.82
+        fillOpacity: this.labelEditEnabled
+          ? 0.45
+          : areaCodeMode
+            ? (this.tileLayerVisible ? 0.08 : 0.28)
+            : (this.tileLayerVisible ? 0.68 : 0.82)
       };
     }
 
@@ -521,7 +528,7 @@
         weight: 1,
         opacity: 0.95,
         fillColor: answerColor(mistakes),
-        fillOpacity: 0.86
+        fillOpacity: this.tileLayerVisible ? 0.74 : 0.86
       };
     }
 
@@ -566,6 +573,31 @@
       window.setTimeout(() => this.refreshAreaCodeStyle(areaCode), 260);
     }
 
+    highlightFailureFeature(id) {
+      if (!id) return;
+      this.refreshFeatureStyle(id, {
+        color: "#ffffff",
+        weight: 2.6,
+        opacity: 1,
+        fillColor: COLORS.miss3,
+        fillOpacity: 0.92
+      });
+      this.showLabel(id);
+    }
+
+    highlightFailureAreaCode(areaCode) {
+      if (!areaCode) return;
+      const layers = this.areaCodeLayersByCode.get(areaCode) || [];
+      layers.forEach((layer) => layer.setStyle({
+        color: "#ffffff",
+        weight: 2.8,
+        opacity: 1,
+        fillColor: COLORS.miss3,
+        fillOpacity: 0.92
+      }));
+      this.showAreaCodeLabel(areaCode);
+    }
+
     showLabel(id) {
       if (this.labelEditEnabled && (!this.labelEditLabelsVisible || this.labelEditScope !== "municipality")) return;
       if (this.tooltipsById.has(id)) return;
@@ -576,15 +608,16 @@
       if (this.liteMode && !this.labelEditEnabled && !this.shouldShowLiteLabel(props)) return;
       if (!this.labelEditEnabled && !this.liteMode && !this.confirmMode && !this._shouldShowAtCurrentZoom(id, feature)) return;
       const label = this.resolveLabelPlacement(id, feature, {
-        sizeBoost: this.mode === "ma" ? -1.1 : 0,
-        maxSize: this.mode === "ma" ? 10.6 : 13,
+        sizeBoost: this.mode === "ma" ? -0.8 : 0.2,
+        minSize: this.mode === "ma" ? 8.4 : 8.2,
+        maxSize: this.mode === "ma" ? 11.2 : 13.8,
         angleLimit: this.mode === "ma" ? 18 : 28,
         zoom: this.map.getZoom()
       });
       const point = label.point || featureCenterOfMass(feature);
       if (!Array.isArray(point)) return;
       const selected = this.labelEditSelectedId === id;
-      const html = `<div class="answered-label${selected ? " is-selected" : ""}" style="font-size:${label.size}px; transform: translate(-50%, -50%) rotate(${label.angle}deg);">${props.name}</div>`;
+      const html = `<div class="answered-label municipality-label${selected ? " is-selected" : ""}" style="font-size:${label.size}px; transform: translate(-50%, -50%) rotate(${label.angle}deg);">${props.name}</div>`;
       const marker = L.marker(point, {
         pane: "labelPane",
         opacity: 0,
@@ -708,7 +741,7 @@
       const feature = this.displayFeaturesById.get(id)
         || this.dataset.features.find((item) => item.properties.id === id);
       if (!feature) return { point: null, angle: 0, size: 10 };
-      return this.resolveLabelPlacement(id, feature, { maxSize: 13, angleLimit: 28 });
+      return this.resolveLabelPlacement(id, feature, { minSize: 8.2, maxSize: 13.8, angleLimit: 28 });
     }
 
     resolveLabelPlacement(id, feature, options = {}) {
@@ -757,12 +790,14 @@
       if (!feature) return;
       const label = this.resolveAreaCodeLabelPlacement(areaCode, feature, {
         text: areaCode,
-        minSize: 20,
-        maxSize: 30,
-        sizeBoost: 10,
+        minSize: 16,
+        maxSize: 27,
+        sizeBoost: 7.8,
+        fitByShortSide: true,
         forceAngle: 0,
         precise: true,
         preferVisualCenter: true,
+        preferredPoint: feature.properties.labelPoint,
         zoom: this.map.getZoom()
       });
       const point = label.point || featureCenterOfMass(feature);
@@ -811,9 +846,10 @@
       if (!feature) return { point: null, angle: 0, size: 24 };
       return this.resolveAreaCodeLabelPlacement(areaCode, feature, {
         text: areaCode,
-        minSize: 20,
-        maxSize: 30,
-        sizeBoost: 10,
+        minSize: 16,
+        maxSize: 27,
+        sizeBoost: 7.8,
+        fitByShortSide: true,
         forceAngle: 0,
         precise: true,
         preferVisualCenter: true,
@@ -874,7 +910,7 @@
           weight: 1,
           opacity: 0.85,
           fillColor: heatColor(stat),
-          fillOpacity: 0.88
+          fillOpacity: this.tileLayerVisible ? 0.76 : 0.88
         };
       }
       return this.answeredIds.has(id) ? this.answeredStyle(id) : this.baseStyle();
@@ -892,7 +928,7 @@
           weight: 1.2,
           opacity: 0.95,
           fillColor: answerColor(0),
-          fillOpacity: 0.86
+          fillOpacity: this.tileLayerVisible ? 0.74 : 0.86
         };
       }
       if (this.areaCodeHeatmapStats && this.areaCodeHeatmapStats.has(areaCode)) {
@@ -902,7 +938,7 @@
           weight: 1.8,
           opacity: 0.98,
           fillColor: heatColor(stat),
-          fillOpacity: 0.9
+          fillOpacity: this.tileLayerVisible ? 0.78 : 0.9
         };
       }
       if (this.answeredAreaCodes.has(areaCode)) {
@@ -911,15 +947,15 @@
           weight: 1.2,
           opacity: 0.95,
           fillColor: answerColor(this.areaCodeMistakesByCode.get(areaCode) || 0),
-          fillOpacity: 0.86
+          fillOpacity: this.tileLayerVisible ? 0.74 : 0.86
         };
       }
       return {
         color: "#78b7c6",
         weight: 1.5,
-        opacity: 0.5,
+        opacity: this.tileLayerVisible ? 0.58 : 0.5,
         fillColor: COLORS.pending,
-        fillOpacity: 0.84
+        fillOpacity: this.tileLayerVisible ? 0.68 : 0.84
       };
     }
 
@@ -1062,20 +1098,89 @@
 
   function buildLabelPlacement(feature, options = {}) {
     const box = geometryBounds(feature.geometry);
-    const point = labelPointFromGeometry(feature, options);
+    const anchor = labelAnchorFromGeometry(feature, options);
+    const point = anchor.point;
     const ratio = box.width / Math.max(box.height, 0.000001);
     const text = options.text || feature.properties.name;
     return {
       point,
-      size: labelSize(text, box, options),
+      size: labelSize(text, box, { ...options, anchorScore: anchor.score }),
       angle: typeof options.forceAngle === "number" ? options.forceAngle : labelAngle(feature, ratio, options)
     };
   }
 
+  function labelAnchorFromGeometry(feature, options = {}) {
+    const candidates = [];
+    const seen = new Set();
+
+    function pushCandidate(point, source) {
+      if (!Array.isArray(point) || point.length !== 2) return;
+      const key = `${point[0].toFixed(6)}:${point[1].toFixed(6)}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      candidates.push({ point, source });
+    }
+
+    pushCandidate(options.preferredPoint, "preferred");
+    pushCandidate(polygonVisualCenter(feature.geometry, options), "visual");
+    pushCandidate(centroidPointFromGeometry(feature.geometry), "centroid");
+
+    if (window.turf && typeof window.turf.pointOnFeature === "function") {
+      const center = window.turf.pointOnFeature(feature);
+      const coordinates = center && center.geometry && center.geometry.coordinates;
+      if (Array.isArray(coordinates)) pushCandidate([coordinates[1], coordinates[0]], "feature");
+    }
+
+    const scored = candidates
+      .map((candidate) => ({
+        ...candidate,
+        score: scoreLabelPoint(candidate.point, feature.geometry)
+      }))
+      .filter((candidate) => Number.isFinite(candidate.score) && candidate.score > 0);
+
+    if (scored.length) {
+      scored.sort((a, b) => adjustedLabelScore(b) - adjustedLabelScore(a));
+      return { point: scored[0].point, score: scored[0].score };
+    }
+
+    if (candidates.length) return { point: candidates[0].point, score: 0 };
+    return { point: null, score: 0 };
+  }
+
+  function adjustedLabelScore(candidate) {
+    if (!candidate) return -Infinity;
+    if (candidate.source === "preferred") return candidate.score * 1.08;
+    if (candidate.source === "visual") return candidate.score * 1.03;
+    return candidate.score;
+  }
+
+  function scoreLabelPoint(point, geometry) {
+    if (!Array.isArray(point) || point.length !== 2) return null;
+    const polygons = geometryPolygons(geometry);
+    if (!polygons.length) return null;
+    const xy = [point[1], point[0]];
+    let best = -Infinity;
+    polygons.forEach((polygon) => {
+      if (!pointInPolygon(xy, polygon)) return;
+      best = Math.max(best, distanceToPolygonEdge(xy, polygon));
+    });
+    return Number.isFinite(best) && best > 0 ? best : null;
+  }
+
+  function centroidPointFromGeometry(geometry) {
+    const polygons = geometryPolygons(geometry);
+    if (!polygons.length) return null;
+    const polygon = largestPolygon(polygons);
+    const outer = polygon && polygon[0];
+    if (!outer || outer.length < 4) return null;
+    const centroid = ringCentroid(outer);
+    if (!centroid || !pointInPolygon(centroid, polygon)) return null;
+    return [centroid[1], centroid[0]];
+  }
+
   function labelPointFromGeometry(feature, options = {}) {
-    if (Array.isArray(options.preferredPoint)) return options.preferredPoint;
-    const visualCenter = polygonVisualCenter(feature.geometry, options);
-    if (visualCenter) return visualCenter;
+    const anchor = labelAnchorFromGeometry(feature, options);
+    if (anchor.point) return anchor.point;
     if (!window.turf) return null;
     const center = typeof window.turf.pointOnFeature === "function"
       ? window.turf.pointOnFeature(feature)
@@ -1086,17 +1191,30 @@
 
   function labelSize(name, box, options = {}) {
     const span = Math.max(box.width, box.height);
+    const narrowSpan = Math.max(Math.min(box.width, box.height), 0.000001);
+    const aspectRatio = span / narrowSpan;
+    const sizeSpan = options.fitByShortSide
+      ? span * 0.28 + narrowSpan * 0.72
+      : span;
     const chars = String(name || "").length;
-    const base = span > 0.25 ? 15
-      : span > 0.18 ? 13
-        : span > 0.12 ? 12
-          : span > 0.07 ? 11
-            : span > 0.04 ? 10
-              : span > 0.02 ? 9
+    const base = sizeSpan > 0.25 ? 15
+      : sizeSpan > 0.18 ? 13
+        : sizeSpan > 0.12 ? 12
+          : sizeSpan > 0.07 ? 11
+            : sizeSpan > 0.04 ? 10
+              : sizeSpan > 0.02 ? 9
                 : 8;
     const zoom = options.zoom || 9;
     const zoomScale = Math.pow(1.28, zoom - 9);
-    const raw = (base + (options.sizeBoost || 0) - Math.max(chars - 4, 0) * 0.45) * zoomScale;
+    const clearanceRatio = Number.isFinite(options.anchorScore) ? options.anchorScore / narrowSpan : 0;
+    const clearanceBoost = clamp((clearanceRatio - 0.2) * 7.2, -1.2, 1.1);
+    const aspectPenalty = options.fitByShortSide
+      ? clamp((aspectRatio - 1.55) * 1.15, 0, 3.4)
+      : 0;
+    const codeLengthPenalty = options.fitByShortSide
+      ? Math.max(chars - 3, 0) * 0.9
+      : Math.max(chars - 4, 0) * 0.45;
+    const raw = (base + (options.sizeBoost || 0) + clearanceBoost - aspectPenalty - codeLengthPenalty) * zoomScale;
     return clamp(
       raw,
       options.minSize || 7.2,

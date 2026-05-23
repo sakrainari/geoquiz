@@ -9,6 +9,8 @@
   --accent-2: #d4b46a;
   --danger: #e35d5d;
   --pending: #2b3036;
+  --font-ui: 'Zen Kaku Gothic New', system-ui, sans-serif;
+  --font-display: 'Dela Gothic One', sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -24,7 +26,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: 'Zen Kaku Gothic New', system-ui, sans-serif;
+  font-family: var(--font-ui);
 }
 
 body {
@@ -100,7 +102,7 @@ p {
 
 h1 {
   margin-bottom: 16px;
-  font-family: 'Dela Gothic One', sans-serif;
+  font-family: var(--font-display);
   font-size: clamp(36px, 5vw, 60px);
   line-height: 0.98;
   letter-spacing: 0;
@@ -108,9 +110,16 @@ h1 {
 
 h2 {
   margin-bottom: 0;
+  font-family: var(--font-ui);
   font-size: clamp(24px, 3vw, 38px);
+  font-weight: 900;
   line-height: 1.15;
   letter-spacing: 0;
+}
+
+h3 {
+  font-family: var(--font-ui);
+  font-weight: 900;
 }
 
 .brand-block p:not(.eyebrow),
@@ -131,6 +140,73 @@ h2 {
 .mode-grid {
   display: grid;
   gap: 12px;
+}
+
+.start-control-panel {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.start-setting-group {
+  display: grid;
+  gap: 8px;
+}
+
+.start-setting-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.start-option-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.start-option-row-layout .start-option-btn {
+  min-width: 54px;
+}
+
+.start-option-btn {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.start-option-btn.is-active {
+  border-color: var(--accent);
+  background: rgba(79, 183, 165, 0.18);
+  color: #dffbf5;
+}
+
+.mode-card.is-selected {
+  border-color: var(--accent);
+  background: #1b272b;
+  box-shadow: 0 0 0 1px rgba(79, 183, 165, 0.28);
+}
+
+.start-selection-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.start-quiz-button {
+  min-height: 52px;
+  width: 100%;
+  font-size: 16px;
 }
 
 .mode-card {
@@ -300,8 +376,9 @@ h2 {
 }
 
 .top-stat-value {
-  font-family: 'Dela Gothic One', sans-serif;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
   font-size: 22px;
+  font-weight: 900;
   letter-spacing: 0;
   line-height: 1;
 }
@@ -336,13 +413,19 @@ h2 {
 }
 
 /* ── レイアウト切り替え ── */
-.game-screen[data-layout="left"] { flex-direction: row; }
+.game-screen[data-layout="left"] {
+  flex-direction: row;
+  align-items: stretch;
+}
 .game-screen[data-layout="left"] .game-panel { display: flex; order: 0; }
 .game-screen[data-layout="left"] .map-slot { order: 1; }
 .game-screen[data-layout="left"] .game-topbar { display: none; }
 .game-screen[data-layout="left"] .top-overlay-bottom { display: none; }
 
-.game-screen[data-layout="right"] { flex-direction: row; }
+.game-screen[data-layout="right"] {
+  flex-direction: row;
+  align-items: stretch;
+}
 .game-screen[data-layout="right"] .game-panel { display: flex; order: 1; }
 .game-screen[data-layout="right"] .map-slot { order: 0; }
 .game-screen[data-layout="right"] .game-topbar { display: none; }
@@ -352,7 +435,21 @@ h2 {
 .game-screen[data-layout="top"] .game-panel { display: none; }
 .game-screen[data-layout="top"] .game-topbar { display: flex; }
 .game-screen[data-layout="top"] .map-slot { flex: 1; }
-.game-screen[data-layout="top"] .top-overlay-bottom { display: flex; }
+.game-screen[data-layout="top"] .top-overlay-bottom { display: none; }
+
+.game-screen[data-layout="bottom"] { flex-direction: column; }
+.game-screen[data-layout="bottom"] .game-panel { display: none; }
+.game-screen[data-layout="bottom"] .game-topbar {
+  display: flex;
+  order: 1;
+  border-bottom: 0;
+  border-top: 1px solid var(--line);
+}
+.game-screen[data-layout="bottom"] .map-slot {
+  flex: 1;
+  order: 0;
+}
+.game-screen[data-layout="bottom"] .top-overlay-bottom { display: none; }
 
 /* ── サイドパネル ── */
 .game-panel {
@@ -378,8 +475,9 @@ h2 {
 }
 .game-panel .eyebrow { margin: 0; }
 .game-panel h2 {
-  font-family: 'Dela Gothic One', sans-serif;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
   font-size: clamp(20px, 2vw, 28px);
+  font-weight: 900;
   line-height: 1.05;
   margin: 2px 0 4px;
 }
@@ -421,8 +519,9 @@ h2 {
   letter-spacing: 0.05em;
 }
 .stat-box strong {
-  font-family: 'Dela Gothic One', sans-serif;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
   font-size: 18px;
+  font-weight: 900;
   color: var(--text);
   display: block;
   line-height: 1.1;
@@ -431,25 +530,41 @@ h2 {
 
 /* ── 上バー ── */
 .game-topbar {
-  height: 52px;
+  min-height: 68px;
   flex-shrink: 0;
   background: var(--panel);
   border-bottom: 1px solid var(--line);
   display: none;
   align-items: center;
   gap: 12px;
-  padding: 0 14px;
+  padding: 8px 14px;
   z-index: 10;
 }
-.game-topbar-left { display: flex; flex-direction: column; gap: 1px; }
+.game-topbar-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 0 0 auto;
+}
 .game-topbar-left .eyebrow { margin: 0; }
 /* h2 は .game-topbar-question に移動したため、ここは空（互換維持のみ） */
 .game-topbar-stats {
   display: flex;
-  gap: 8px;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  gap: 6px;
   margin-left: auto;
 }
-.game-topbar-actions { display: flex; gap: 6px; }
+.game-topbar-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 4px;
+}
+.game-topbar-toggles {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 4px;
+}
 
 /* ── 上バー時のオーバーレイ（.map-slot 内で absolute） ── */
 .top-overlay-bottom {
@@ -467,15 +582,35 @@ h2 {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-shrink: 0;
+  flex: 1 1 460px;
+  min-width: 320px;
 }
 .game-topbar-question h2 {
-  font-family: 'Dela Gothic One', sans-serif;
-  font-size: 22px;
+  min-width: 0;
   margin: 0;
-  line-height: 1.1;
+  overflow: hidden;
+  color: var(--text);
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  font-size: clamp(20px, 2vw, 28px);
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.game-panel h2 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  font-size: clamp(24px, 2.4vw, 34px);
+  font-weight: 900;
+  line-height: 1.18;
+  letter-spacing: 0;
+  text-wrap: balance;
 }
 .game-topbar-question .game-hud-sub {
+  flex: 0 0 auto;
   font-size: 11px;
   color: var(--muted);
   white-space: nowrap;
@@ -483,9 +618,9 @@ h2 {
 
 /* ── 上バー内のポリゴンプレビュー（小型） ── */
 .reference-preview-inline {
-  flex-shrink: 0;
-  width: 64px;
-  height: 40px;
+  flex: 0 0 auto;
+  width: 120px;
+  height: 52px;
   border: 1px solid var(--line);
   border-radius: 4px;
   background: #10161a;
@@ -509,19 +644,56 @@ h2 {
 
 /* ── MAモード（数字を大きく） ── */
 .game-screen.is-ma-mode .game-panel h2 {
+  font-family: 'Dela Gothic One', sans-serif;
   font-size: clamp(36px, 4vw, 56px);
+  line-height: 1.05;
+  overflow-wrap: normal;
 }
 .game-screen.is-ma-mode .game-topbar-question h2 {
+  font-family: 'Dela Gothic One', sans-serif;
   font-size: 32px;
 }
 
 /* ── レイアウト切り替えボタン ── */
 .layout-switcher {
   display: flex;
+  flex: 0 0 auto;
   gap: 4px;
   padding-top: 6px;
   border-top: 1px solid var(--line);
   margin-top: 4px;
+}
+.game-topbar .layout-switcher {
+  padding-top: 0;
+  border-top: 0;
+  margin-top: 0;
+}
+.game-topbar .stat-pill {
+  min-width: 46px;
+  padding: 5px 8px;
+}
+
+.game-topbar .stat-pill strong {
+  font-size: 18px;
+}
+
+.game-topbar .ghost-button,
+.game-topbar .primary-button {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.game-topbar .game-toggle-row {
+  min-height: 36px;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.game-topbar .layout-btn {
+  min-height: 24px;
+  min-width: 32px;
+  font-size: 12px;
 }
 .layout-btn {
   flex: 1;
@@ -544,15 +716,203 @@ h2 {
   flex: 1;
   min-width: 0;
   min-height: 0;
+  height: 100%;
+  align-self: stretch;
   position: relative;
 }
 .map-panel {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
   border: none;
   border-radius: 0;
   background: #0b0f12;
   overflow: hidden;
+}
+
+.prep-overlay {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  z-index: 1080;
+  width: min(360px, calc(100% - 36px));
+}
+
+.prep-panel {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(23, 29, 34, 0.94);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+}
+
+.prep-panel h3 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.15;
+}
+
+.prep-copy {
+  margin: -4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.countdown-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1100;
+  display: grid;
+  place-items: center;
+  background: rgba(11, 15, 18, 0.18);
+  pointer-events: none;
+}
+
+.countdown-text {
+  min-width: 200px;
+  padding: 18px 28px;
+  border: 1px solid rgba(215, 225, 232, 0.16);
+  border-radius: 18px;
+  background: rgba(18, 23, 28, 0.88);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: clamp(48px, 8vw, 104px);
+  font-weight: 900;
+  line-height: 0.94;
+  letter-spacing: -0.05em;
+  text-align: center;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  box-shadow: 0 22px 56px rgba(0, 0, 0, 0.3);
+}
+
+.countdown-text.is-word {
+  min-width: 360px;
+  padding-inline: 34px;
+  font-size: clamp(42px, 7vw, 88px);
+  letter-spacing: -0.07em;
+}
+
+.end-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1120;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(6, 10, 14, 0.42);
+}
+
+.end-card {
+  width: min(680px, calc(100% - 24px));
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+  border: 1px solid rgba(215, 225, 232, 0.14);
+  border-radius: 18px;
+  background: rgba(22, 28, 33, 0.94);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 28px 72px rgba(0, 0, 0, 0.42);
+}
+
+.end-card .eyebrow {
+  margin: 0;
+}
+
+.end-card h3 {
+  margin: 0;
+  font-family: 'Dela Gothic One', sans-serif;
+  font-size: clamp(38px, 6vw, 64px);
+  line-height: 0.98;
+  letter-spacing: 0;
+}
+
+.end-card.is-clear h3 {
+  color: #b9fff2;
+  text-shadow: 0 0 26px rgba(79, 183, 165, 0.24);
+}
+
+.end-card.is-game-over h3 {
+  color: #ffd4d4;
+  text-shadow: 0 0 22px rgba(227, 93, 93, 0.2);
+}
+
+.end-copy {
+  margin: -2px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.end-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.end-stat-card {
+  display: grid;
+  gap: 8px;
+  min-height: 96px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(13, 18, 22, 0.72);
+}
+
+.end-stat-card-wide {
+  grid-column: span 4;
+  min-height: 88px;
+}
+
+.end-stat-card span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.end-stat-card strong {
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  font-size: clamp(24px, 3vw, 38px);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: 0;
+}
+
+.end-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.end-primary-action {
+  min-height: 56px;
+  font-size: 18px;
+}
+
+.end-secondary-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.end-secondary-actions .ghost-button {
+  min-height: 42px;
+}
+
+.game-screen.is-prep-mode .game-panel .game-toggle-row,
+.game-screen.is-prep-mode .game-panel .legend-block,
+.game-screen.is-prep-mode .game-panel .game-panel-actions,
+.game-screen.is-prep-mode .game-panel .layout-switcher,
+.game-screen.is-prep-mode .game-topbar-actions,
+.game-screen.is-prep-mode .game-topbar-toggles,
+.game-screen.is-prep-mode .game-topbar .layout-switcher,
+.game-screen.is-prep-mode .top-overlay-bottom {
+  display: none;
 }
 
 /* ── ゲーム画面 オーバーレイUI（旧スタイル・互換維持） ── */
@@ -579,8 +939,9 @@ h2 {
 }
 
 .game-hud-card #questionMain {
-  font-family: 'Dela Gothic One', sans-serif;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
   font-size: clamp(24px, 3.5vw, 42px);
+  font-weight: 900;
   line-height: 1.0;
   margin: 0 0 10px;
   color: var(--text);
@@ -594,6 +955,7 @@ h2 {
 }
 
 .game-hud-card.is-ma-mode #questionMain {
+  font-family: 'Dela Gothic One', sans-serif;
   font-size: clamp(42px, 6vw, 72px);
   color: var(--text);
 }
@@ -653,8 +1015,9 @@ h2 {
 }
 
 .stat-pill strong {
-  font-family: 'Dela Gothic One', sans-serif;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
   font-size: 20px;
+  font-weight: 900;
   color: var(--text);
   display: block;
   line-height: 1.1;
@@ -734,6 +1097,18 @@ h2 {
   accent-color: var(--danger);
 }
 
+.game-toggle-row-compact {
+  min-height: 36px;
+  padding: 6px 10px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.game-toggle-row-compact input {
+  width: 14px;
+  height: 14px;
+}
+
 .topbar {
   display: flex;
   gap: 16px;
@@ -749,6 +1124,28 @@ h2 {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.result-actions {
+  gap: 8px;
+  align-items: center;
+}
+
+.result-actions .primary-button,
+.result-actions .ghost-button {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.result-actions .primary-button {
+  background: rgba(79, 183, 165, 0.16);
+  border-color: rgba(79, 183, 165, 0.4);
+  color: var(--text);
+}
+
+.result-actions .primary-button:hover {
+  background: rgba(79, 183, 165, 0.24);
 }
 
 .primary-button,
@@ -1017,6 +1414,73 @@ h2 {
   pointer-events: visiblePainted;
 }
 
+/* Restore Leaflet core behavior after theme overrides. */
+.leaflet-container .leaflet-overlay-pane svg {
+  max-width: none !important;
+  max-height: none !important;
+}
+
+.leaflet-container .leaflet-marker-pane img,
+.leaflet-container .leaflet-shadow-pane img,
+.leaflet-container .leaflet-tile-pane img,
+.leaflet-container img.leaflet-image-layer,
+.leaflet-container .leaflet-tile {
+  max-width: none !important;
+  max-height: none !important;
+  width: auto;
+  padding: 0;
+}
+
+.leaflet-tile {
+  filter: inherit;
+  visibility: hidden;
+}
+
+.leaflet-tile-loaded {
+  visibility: inherit;
+}
+
+.leaflet-map-pane canvas {
+  z-index: 100;
+}
+
+.leaflet-map-pane svg {
+  z-index: 200;
+}
+
+.leaflet-control {
+  float: left;
+  clear: both;
+}
+
+.leaflet-right .leaflet-control {
+  float: right;
+}
+
+.leaflet-top .leaflet-control {
+  margin-top: 10px;
+}
+
+.leaflet-bottom .leaflet-control {
+  margin-bottom: 10px;
+}
+
+.leaflet-left .leaflet-control {
+  margin-left: 10px;
+}
+
+.leaflet-right .leaflet-control {
+  margin-right: 10px;
+}
+
+.leaflet-zoom-animated {
+  transform-origin: 0 0;
+}
+
+svg.leaflet-zoom-animated {
+  will-change: transform;
+}
+
 .leaflet-tooltip {
   position: absolute;
   pointer-events: none;
@@ -1040,6 +1504,21 @@ h2 {
   pointer-events: none;
 }
 
+.answered-label.municipality-label {
+  font-family: var(--font-ui);
+  font-weight: 900;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  text-shadow:
+    -1px -1px 0 rgba(2, 3, 4, 0.92),
+    1px -1px 0 rgba(2, 3, 4, 0.92),
+    -1px 1px 0 rgba(2, 3, 4, 0.92),
+    1px 1px 0 rgba(2, 3, 4, 0.92),
+    0 0 6px rgba(2, 3, 4, 0.48);
+}
+
 .answered-label.is-selected {
   color: #fff8d6;
   text-shadow:
@@ -1052,15 +1531,19 @@ h2 {
 }
 
 .answered-label.area-code-label {
-  font-family: 'Dela Gothic One', sans-serif;
-  color: #fff8d6;
+  font-family: var(--font-ui);
+  color: #fff6da;
   font-weight: 900;
+  line-height: 0.96;
+  letter-spacing: -0.04em;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
   text-shadow:
-    -2px -2px 0 #020304,
-    2px -2px 0 #020304,
-    -2px 2px 0 #020304,
-    2px 2px 0 #020304,
-    0 0 8px #020304;
+    -2px -2px 0 rgba(2, 3, 4, 0.96),
+    2px -2px 0 rgba(2, 3, 4, 0.96),
+    -2px 2px 0 rgba(2, 3, 4, 0.96),
+    2px 2px 0 rgba(2, 3, 4, 0.96),
+    0 0 8px rgba(2, 3, 4, 0.5);
 }
 
 .leaflet-tooltip.answered-tooltip {
@@ -1080,6 +1563,15 @@ h2 {
     1px -1px 0 #020304,
     -1px 1px 0 #020304,
     1px 1px 0 #020304;
+}
+
+.is-lite-mode .answered-label.municipality-label {
+  text-shadow:
+    -1px -1px 0 rgba(2, 3, 4, 0.92),
+    1px -1px 0 rgba(2, 3, 4, 0.92),
+    -1px 1px 0 rgba(2, 3, 4, 0.92),
+    1px 1px 0 rgba(2, 3, 4, 0.92),
+    0 0 4px rgba(2, 3, 4, 0.4);
 }
 
 .is-lite-mode .label-editor-panel {
@@ -1145,82 +1637,243 @@ h2 {
 }
 
 .result-screen {
+  --result-font-body: var(--font-ui);
+  --result-font-display: var(--font-ui);
   display: grid;
-  grid-template-columns: 480px minmax(0, 1fr);
-  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 18px;
   align-content: start;
   min-height: calc(100vh - 40px);
 }
 
 .result-left {
   display: grid;
-  gap: 16px;
+  gap: 12px;
   align-content: start;
-  overflow-y: auto;
-  scrollbar-width: none;
-  max-height: calc(100vh - 40px);
-  padding-right: 4px;
-}
-
-.result-left::-webkit-scrollbar {
-  display: none;
+  padding-right: 2px;
 }
 
 .result-right {
   position: sticky;
   top: 20px;
   display: grid;
-  gap: 8px;
+  gap: 10px;
   align-content: start;
-  height: calc(100vh - 40px);
+  height: fit-content;
+}
+
+.result-section {
+  display: grid;
+  gap: 10px;
+}
+
+.result-section-compact {
+  gap: 8px;
+}
+
+.result-section-side {
+  gap: 8px;
+}
+
+.result-lower-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.result-lower-panel {
+  grid-column: span 2;
+}
+
+.result-section-heading {
+  display: grid;
+  gap: 2px;
+}
+
+.result-section-heading h3,
+.ranking-heading h3 {
+  margin-bottom: 0;
+}
+
+.result-section-heading-inline {
+  margin-top: 0;
+}
+
+.ranking-copy {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.result-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.result-copy .eyebrow {
+  margin-bottom: 0;
+}
+
+.result-copy h2 {
+  margin: 2px 0 0;
+  font-size: clamp(34px, 4vw, 52px);
+  font-family: var(--result-font-body);
+  font-weight: 900;
+  line-height: 1.04;
+}
+
+.result-copy p:not(.eyebrow) {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.history-panel {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.history-panel-compact {
+  gap: 4px;
+  padding: 8px 10px;
+}
+
+.history-panel-head {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.history-panel-label,
+.history-panel-best {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.history-panel-best {
+  color: var(--accent-2);
+}
+
+.history-summary-list {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.history-summary-list-side {
+  grid-template-columns: 1fr;
+}
+
+.history-summary-chip {
+  display: grid;
+  gap: 3px;
+  padding: 7px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-soft);
+}
+
+.history-summary-chip.is-latest {
+  border-color: rgba(79, 183, 165, 0.46);
+  box-shadow: 0 0 0 1px rgba(79, 183, 165, 0.16);
+}
+
+.history-summary-chip.is-best {
+  background: linear-gradient(180deg, rgba(245, 217, 138, 0.12), rgba(17, 23, 28, 0.92));
+}
+
+.history-summary-label {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.history-summary-value {
+  font-family: var(--result-font-display);
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.history-summary-meta {
+  color: var(--muted);
+  font-size: 10px;
 }
 
 .result-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(120px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(4, minmax(108px, 1fr));
+  gap: 8px;
+}
+
+.result-grid-extended {
+  grid-template-columns: repeat(4, minmax(108px, 1fr));
 }
 
 .result-card {
   display: grid;
-  gap: 8px;
-  min-height: 112px;
-  padding: 18px;
+  gap: 6px;
+  min-height: 84px;
+  padding: 14px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
+}
+
+.result-card-accent {
+  background: linear-gradient(180deg, rgba(79, 183, 165, 0.14), rgba(22, 28, 33, 0.92));
 }
 
 .result-card span {
   color: var(--muted);
+  font-size: 12px;
 }
 
 .result-card strong {
-  font-family: 'Dela Gothic One', sans-serif;
-  font-size: 32px;
+  font-family: var(--result-font-display);
+  font-size: clamp(18px, 2vw, 26px);
+  font-weight: 900;
   letter-spacing: 0;
+  line-height: 1.18;
+  white-space: pre-line;
 }
 
 .ranking-panel {
   display: grid;
-  gap: 12px;
-  padding: 16px;
+  gap: 10px;
+  padding: 14px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
+}
+
+.ranking-panel-side {
+  gap: 8px;
+  padding: 12px;
 }
 
 .ranking-heading {
   display: flex;
   gap: 12px;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
 }
 
+.ranking-heading-sub {
+  align-items: center;
+}
+
 .ranking-heading h3 {
-  margin-bottom: 0;
-  font-size: 20px;
+  font-size: 18px;
   letter-spacing: 0;
+  font-family: var(--result-font-body);
+  font-weight: 900;
 }
 
 .ranking-tabs {
@@ -1250,10 +1903,14 @@ h2 {
 
 .ranking-list {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.ranking-list-compact {
+  gap: 5px;
 }
 
 .ranking-item {
@@ -1261,8 +1918,8 @@ h2 {
   grid-template-columns: 30px minmax(0, 1fr) auto;
   gap: 10px;
   align-items: center;
-  min-height: 48px;
-  padding: 8px 10px;
+  min-height: 42px;
+  padding: 7px 10px;
   border-radius: 6px;
   background: var(--panel-soft);
 }
@@ -1280,23 +1937,10 @@ h2 {
 
 .ranking-name {
   overflow: hidden;
+  font-family: var(--result-font-body);
   font-weight: 800;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.ranking-bar {
-  overflow: hidden;
-  height: 6px;
-  border-radius: 999px;
-  background: #11171c;
-}
-
-.ranking-bar span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--accent-2), var(--danger));
 }
 
 .ranking-meta {
@@ -1316,10 +1960,13 @@ h2 {
 }
 
 .ranking-actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
-  justify-content: flex-end;
+}
+
+.ranking-actions-side {
+  grid-template-columns: 1fr;
 }
 
 .ranking-actions .ghost-button:disabled {
@@ -1328,12 +1975,43 @@ h2 {
 }
 
 .result-map-slot {
-  height: calc(100vh - 100px);
-  min-height: 480px;
+  height: 220px;
+  min-height: 220px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--panel);
 }
 
 .result-map-slot .map-panel {
-  min-height: 480px;
+  min-height: 220px;
+}
+
+.result-side-panel {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.result-side-panel .ghost-button {
+  min-height: 38px;
+  padding: 0 12px;
+}
+
+.result-side-panel h3 {
+  font-family: var(--result-font-body);
+  font-weight: 900;
+}
+
+.result-next-panel .ranking-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.result-next-panel .ranking-actions .ghost-button:last-child {
+  grid-column: span 2;
 }
 
 .label-editor-panel {
@@ -1485,8 +2163,8 @@ h2 {
 
   .result-map-slot,
   .result-map-slot .map-panel {
-    height: 48vh;
-    min-height: 340px;
+    height: 32vh;
+    min-height: 220px;
   }
 
   .status-panel {
@@ -1495,6 +2173,26 @@ h2 {
 
   .legend-block {
     grid-column: 1 / -1;
+  }
+
+  .end-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .end-stat-card-wide {
+    grid-column: span 2;
+  }
+
+  .history-summary-list {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .result-lower-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .result-lower-panel {
+    grid-column: span 1;
   }
 }
 
@@ -1514,8 +2212,17 @@ h2 {
     grid-template-columns: 1fr;
   }
 
+  .ranking-actions {
+    grid-template-columns: 1fr;
+  }
+
   .result-left {
     padding-right: 0;
+  }
+
+  .history-panel-head {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .ranking-meta {
@@ -1527,6 +2234,29 @@ h2 {
   .ranking-actions {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .end-overlay {
+    padding: 16px;
+  }
+
+  .end-card {
+    width: 100%;
+    padding: 18px;
+  }
+
+  .end-grid,
+  .end-secondary-actions,
+  .history-summary-list {
+    grid-template-columns: 1fr;
+  }
+
+  .result-next-panel .ranking-actions .ghost-button:last-child {
+    grid-column: span 1;
+  }
+
+  .end-stat-card-wide {
+    grid-column: span 1;
   }
 
   .puzzle-controls {

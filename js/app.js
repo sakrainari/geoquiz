@@ -17,14 +17,45 @@
   let currentRankingType = "weak";
   let currentDatasetProgress = null;
   let currentRankingItems = [];
+  let currentRankingPracticeItems = [];
   let currentPracticeLabel = "";
   let puzzleState = null;
   let previousPuzzleFixed = 0;
   let audioContext = null;
+  const speechLabelOverrides = {
+    "東秩父村": "ひがしちちぶむら",
+    "滑川町": "なめがわまち",
+    "越生町": "おごせまち",
+    "嵐山町": "らんざんまち",
+    "毛呂山町": "もろやままち",
+    "神川町": "かみかわまち",
+    "行田市": "ぎょうだし",
+    "加須市": "かぞし",
+    "羽生市": "はにゅうし",
+    "幸手市": "さってし",
+    "鴻巣市": "こうのすし",
+    "小鹿野町": "おがのまち",
+    "寄居町": "よりいまち"
+  };
+  const QUIZ_START_MODES = ["municipality", "ma", "ma_broad"];
+  const DEFAULT_QUIZ_MODE = appConfig.enabledModes.includes("municipality")
+    ? "municipality"
+    : (QUIZ_START_MODES.find((mode) => appConfig.enabledModes.includes(mode)) || "municipality");
   const labelEditMode = resolveEditMode() === "labels";
   const liteMode = resolveLiteMode();
   const labelEditorDraft = labelEditMode ? loadLabelEditorDraft(appConfig.id) : null;
   const labelOverrides = labelEditorDraft ? labelEditorDraft.overrides : baseLabelOverrides;
+  let selectedQuizMode = DEFAULT_QUIZ_MODE;
+  let countdownTimerId = null;
+  let currentRunConfig = null;
+  let completedResultState = null;
+  let lastFailureHighlight = null;
+  const currentSessionSettings = {
+    suddenDeath: false,
+    audio: true,
+    tileLayerVisible: resolveInitialTileLayerVisibility(),
+    layout: resolveInitialLayout()
+  };
 
   const els = {
     startScreen: document.getElementById("startScreen"),
@@ -32,11 +63,47 @@
     resultScreen: document.getElementById("resultScreen"),
     playMapSlot: document.getElementById("playMapSlot"),
     resultMapSlot: document.getElementById("resultMapSlot"),
+    prepOverlay: document.getElementById("prepOverlay"),
+    prepModeTitle: document.getElementById("prepModeTitle"),
+    prepModeCopy: document.getElementById("prepModeCopy"),
+    countdownOverlay: document.getElementById("countdownOverlay"),
+    countdownText: document.getElementById("countdownText"),
+    endOverlay: document.getElementById("endOverlay"),
+    endCard: document.getElementById("endCard"),
+    endModeLabel: document.getElementById("endModeLabel"),
+    endTitle: document.getElementById("endTitle"),
+    endSummary: document.getElementById("endSummary"),
+    endPrimaryLabel: document.getElementById("endPrimaryLabel"),
+    endPrimaryValue: document.getElementById("endPrimaryValue"),
+    endFirstTryValue: document.getElementById("endFirstTryValue"),
+    endMistakesValue: document.getElementById("endMistakesValue"),
+    endAverageValue: document.getElementById("endAverageValue"),
+    endTimeLabel: document.getElementById("endTimeLabel"),
+    endTimeValue: document.getElementById("endTimeValue"),
+    endRestartButton: document.getElementById("endRestartButton"),
+    endAnalysisButton: document.getElementById("endAnalysisButton"),
+    endTopButton: document.getElementById("endTopButton"),
+    endShareButton: document.getElementById("endShareButton"),
     map: document.getElementById("map"),
     appSubtitle: document.getElementById("appSubtitle"),
     appTitle: document.getElementById("appTitle"),
     appDescription: document.getElementById("appDescription"),
+    quizModeButtons: [...document.querySelectorAll(".mode-grid [data-start-mode]")],
+    confirmModeButtons: [...document.querySelectorAll(".mode-grid-confirm [data-start-mode]")],
+    startQuizButton: document.getElementById("startQuizButton"),
+    startSelectionNote: document.getElementById("startSelectionNote"),
+    ruleNormalButton: document.getElementById("ruleNormalButton"),
+    ruleSuddenDeathButton: document.getElementById("ruleSuddenDeathButton"),
+    audioOnButton: document.getElementById("audioOnButton"),
+    audioOffButton: document.getElementById("audioOffButton"),
+    tileLayerOnButton: document.getElementById("tileLayerOnButton"),
+    tileLayerOffButton: document.getElementById("tileLayerOffButton"),
+    layoutLeftButton: document.getElementById("layoutLeftButton"),
+    layoutTopButton: document.getElementById("layoutTopButton"),
+    layoutBottomButton: document.getElementById("layoutBottomButton"),
+    layoutRightButton: document.getElementById("layoutRightButton"),
     referencePreview: document.getElementById("referencePreview"),
+    referencePreviewTop: document.getElementById("referencePreviewTop"),
     questionText: document.getElementById("questionText"),
     modeLabel: document.getElementById("modeLabel"),
     remainingCount: document.getElementById("remainingCount"),
@@ -49,14 +116,11 @@
     suddenDeathToggle: document.getElementById("suddenDeathToggle"),
     mistakeSpeechToggle: document.getElementById("mistakeSpeechToggle"),
     tileLayerToggle: document.getElementById("tileLayerToggle"),
+    tileLayerToggleTop: document.getElementById("tileLayerToggleTop"),
     resetButton: document.getElementById("resetButton"),
     retryButton: document.getElementById("retryButton"),
     resultBackToMenuButton: document.getElementById("resultBackToMenuButton"),
     backToMenuButton: document.getElementById("backToMenuButton"),
-    downloadJsonButton: document.getElementById("downloadJsonButton"),
-    exportProgressButton: document.getElementById("exportProgressButton"),
-    importProgressButton: document.getElementById("importProgressButton"),
-    importProgressInput: document.getElementById("importProgressInput"),
     storageNotice: document.getElementById("storageNotice"),
     storageNoticeText: document.getElementById("storageNoticeText"),
     storageNoticeClose: document.getElementById("storageNoticeClose"),
@@ -76,8 +140,18 @@
     resultSummary: document.getElementById("resultSummary"),
     resultCorrect: document.getElementById("resultCorrect"),
     resultMistakes: document.getElementById("resultMistakes"),
+    resultFirstTry: document.getElementById("resultFirstTry"),
     resultAverage: document.getElementById("resultAverage"),
+    resultTotalLabel: document.getElementById("resultTotalLabel"),
     resultTotal: document.getElementById("resultTotal"),
+    resultTimeLabel: document.getElementById("resultTimeLabel"),
+    resultTime: document.getElementById("resultTime"),
+    resultPreviousDelta: document.getElementById("resultPreviousDelta"),
+    resultBestStatus: document.getElementById("resultBestStatus"),
+    resultHistoryCopy: document.getElementById("resultHistoryCopy"),
+    resultHistoryMetricLabel: document.getElementById("resultHistoryMetricLabel"),
+    resultHistoryBestLabel: document.getElementById("resultHistoryBestLabel"),
+    resultHistoryList: document.getElementById("resultHistoryList"),
     weakRankingList: document.getElementById("weakRankingList"),
     practiceWeakButton: document.getElementById("practiceWeakButton"),
     practiceLastMistakeButton: document.getElementById("practiceLastMistakeButton"),
@@ -96,35 +170,87 @@
   applyDatasetMeta();
   updateTopStats();
   applyAvailableModes();
+  applySessionSettingsToGameControls();
+  syncStartSettingsUI();
+  setSelectedQuizMode(DEFAULT_QUIZ_MODE);
   document.body.classList.toggle("is-lite-mode", liteMode);
 
-  document.querySelectorAll("[data-start-mode]").forEach((button) => {
+  els.quizModeButtons.forEach((button) => {
+    if (!appConfig.enabledModes.includes(button.dataset.startMode)) return;
+    button.addEventListener("click", () => openPreparation(button.dataset.startMode));
+  });
+  els.confirmModeButtons.forEach((button) => {
     if (!appConfig.enabledModes.includes(button.dataset.startMode)) return;
     button.addEventListener("click", () => start(button.dataset.startMode));
+  });
+  els.startQuizButton.addEventListener("click", () => {
+    beginSelectedQuizMode();
+  });
+  els.ruleNormalButton.addEventListener("click", () => {
+    updateSessionSettings({ suddenDeath: false });
+  });
+  els.ruleSuddenDeathButton.addEventListener("click", () => {
+    updateSessionSettings({ suddenDeath: true });
+  });
+  els.audioOnButton.addEventListener("click", () => {
+    updateSessionSettings({ audio: true });
+  });
+  els.audioOffButton.addEventListener("click", () => {
+    updateSessionSettings({ audio: false });
+  });
+  els.tileLayerOnButton.addEventListener("click", () => {
+    updateSessionSettings({ tileLayerVisible: true });
+  });
+  els.tileLayerOffButton.addEventListener("click", () => {
+    updateSessionSettings({ tileLayerVisible: false });
+  });
+  els.layoutLeftButton.addEventListener("click", () => {
+    updateSessionSettings({ layout: "left" });
+  });
+  els.layoutTopButton.addEventListener("click", () => {
+    updateSessionSettings({ layout: "top" });
+  });
+  els.layoutBottomButton.addEventListener("click", () => {
+    updateSessionSettings({ layout: "bottom" });
+  });
+  els.layoutRightButton.addEventListener("click", () => {
+    updateSessionSettings({ layout: "right" });
   });
 
   els.tileLayerToggle.addEventListener("click", () => {
     if (!renderer) return;
     const active = renderer.toggleTileLayer();
-    els.tileLayerToggle.classList.toggle("is-active", active);
+    currentSessionSettings.tileLayerVisible = active;
+    syncTileLayerButtons(active);
+    syncStartSettingsUI();
   });
-  els.resetButton.addEventListener("click", () => start(currentMode));
-  els.retryButton.addEventListener("click", () => start(currentMode));
+  els.resetButton.addEventListener("click", restartCurrentGame);
+  els.retryButton.addEventListener("click", restartCurrentGame);
   els.resultBackToMenuButton.addEventListener("click", showStart);
   els.backToMenuButton.addEventListener("click", showStart);
+  els.endRestartButton.addEventListener("click", restartCurrentGame);
+  els.endAnalysisButton.addEventListener("click", showAnalysisScreen);
+  els.endTopButton.addEventListener("click", showStart);
+  els.endShareButton.addEventListener("click", shareResultToX);
   els.suddenDeathToggle.addEventListener("change", () => {
     engine.suddenDeath = els.suddenDeathToggle.checked;
+    currentSessionSettings.suddenDeath = els.suddenDeathToggle.checked;
+    syncStartSettingsUI();
+  });
+  els.mistakeSpeechToggle.addEventListener("change", () => {
+    currentSessionSettings.audio = els.mistakeSpeechToggle.checked;
+    syncStartSettingsUI();
+  });
+  document.querySelectorAll(".layout-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+      currentSessionSettings.layout = button.dataset.layout || currentSessionSettings.layout;
+      syncStartSettingsUI();
+    });
   });
   populatePuzzleOptions();
   els.puzzlePieceSelect.addEventListener("change", () => {
     if (currentMode === "puzzle") start("puzzle");
   });
-  els.downloadJsonButton.addEventListener("click", () => {
-    if (lastResultPayload) window.ResultAnalytics.downloadJson(lastResultPayload);
-  });
-  els.exportProgressButton.addEventListener("click", exportProgressJson);
-  els.importProgressButton.addEventListener("click", () => els.importProgressInput.click());
-  els.importProgressInput.addEventListener("change", importProgressJson);
   els.storageNoticeClose.addEventListener("click", () => els.storageNotice.classList.add("is-hidden"));
   els.municipalityLabelEditButton.addEventListener("click", () => setLabelEditorScope("municipality"));
   els.areaCodeLabelEditButton.addEventListener("click", () => setLabelEditorScope("areaCode"));
@@ -160,14 +286,206 @@
     startLabelEditor();
   } else {
     const requestedMode = resolveStartMode();
-    if (requestedMode) start(requestedMode);
+    if (requestedMode) {
+      if (isQuizMode(requestedMode)) {
+        openPreparation(requestedMode);
+      } else {
+        start(requestedMode);
+      }
+    }
+  }
+
+  function isQuizMode(mode) {
+    return QUIZ_START_MODES.includes(mode);
+  }
+
+  function setSelectedQuizMode(mode) {
+    const nextMode = appConfig.enabledModes.includes(mode) && isQuizMode(mode)
+      ? mode
+      : DEFAULT_QUIZ_MODE;
+    selectedQuizMode = nextMode;
+    els.quizModeButtons.forEach((button) => {
+      const active = button.dataset.startMode === nextMode;
+      button.classList.toggle("is-selected", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    if (els.startSelectionNote) {
+      els.startSelectionNote.textContent = `${modeName(nextMode)}で開始`;
+    }
+    if (els.prepModeTitle) els.prepModeTitle.textContent = modeName(nextMode);
+    if (els.prepModeCopy) {
+      els.prepModeCopy.textContent = "地図と設定を確認してから開始できます。";
+    }
+  }
+
+  function syncStartSettingsUI() {
+    els.ruleNormalButton.classList.toggle("is-active", !currentSessionSettings.suddenDeath);
+    els.ruleSuddenDeathButton.classList.toggle("is-active", currentSessionSettings.suddenDeath);
+    els.audioOnButton.classList.toggle("is-active", currentSessionSettings.audio);
+    els.audioOffButton.classList.toggle("is-active", !currentSessionSettings.audio);
+    els.tileLayerOnButton.classList.toggle("is-active", currentSessionSettings.tileLayerVisible);
+    els.tileLayerOffButton.classList.toggle("is-active", !currentSessionSettings.tileLayerVisible);
+    els.layoutLeftButton.classList.toggle("is-active", currentSessionSettings.layout === "left");
+    els.layoutTopButton.classList.toggle("is-active", currentSessionSettings.layout === "top");
+    els.layoutBottomButton.classList.toggle("is-active", currentSessionSettings.layout === "bottom");
+    els.layoutRightButton.classList.toggle("is-active", currentSessionSettings.layout === "right");
+    if (els.startSelectionNote) {
+      els.startSelectionNote.textContent = `${modeName(selectedQuizMode || DEFAULT_QUIZ_MODE)}で開始`;
+    }
+  }
+
+  function updateSessionSettings(nextSettings = {}) {
+    Object.assign(currentSessionSettings, nextSettings);
+    applySessionSettingsToGameControls();
+    syncStartSettingsUI();
+  }
+
+  function applySessionSettingsToGameControls() {
+    setCheckboxValue(els.suddenDeathToggle, currentSessionSettings.suddenDeath);
+    setCheckboxValue(els.mistakeSpeechToggle, currentSessionSettings.audio);
+    applyTileLayerSelection(currentSessionSettings.tileLayerVisible);
+    applyLayoutSelection(currentSessionSettings.layout);
+  }
+
+  function setCheckboxValue(element, checked) {
+    if (!element) return;
+    if (element.checked !== checked) element.checked = checked;
+    element.dispatchEvent(new Event("change"));
+  }
+
+  function applyLayoutSelection(layout) {
+    const nextLayout = layout || "left";
+    const target = document.querySelector(`.layout-btn[data-layout="${nextLayout}"]`);
+    if (target) target.click();
+  }
+
+  function applyTileLayerSelection(visible) {
+    if (renderer && renderer.tileLayerVisible !== visible) {
+      renderer.toggleTileLayer();
+    }
+    syncTileLayerButtons(visible);
+  }
+
+  function syncTileLayerButtons(active) {
+    els.tileLayerToggle.classList.toggle("is-active", active);
+    if (els.tileLayerToggleTop) {
+      els.tileLayerToggleTop.classList.toggle("is-active", active);
+    }
+  }
+
+  function restartCurrentGame() {
+    if (currentRunConfig && isQuizMode(currentRunConfig.mode)) {
+      if (currentRunConfig.puzzlePieceValue) {
+        els.puzzlePieceSelect.value = currentRunConfig.puzzlePieceValue;
+      }
+      start(currentRunConfig.mode, { ...currentRunConfig.options });
+      return;
+    }
+    if (isQuizMode(currentMode)) start(currentMode);
+  }
+
+  function openPreparation(mode) {
+    const nextMode = mode || selectedQuizMode || DEFAULT_QUIZ_MODE;
+    clearResultTimer();
+    clearInputUnlockTimer();
+    clearCountdown();
+    stopTimer();
+    inputLocked = true;
+    cancelSpeech();
+    hideEndOverlay();
+    completedResultState = null;
+    setSelectedQuizMode(nextMode);
+    applySessionSettingsToGameControls();
+    currentMode = nextMode;
+    currentRunConfig = null;
+    areaReferenceFeatures = null;
+    currentPracticeLabel = "";
+    puzzleState = null;
+    previousPuzzleFixed = 0;
+    showGame();
+    showPreparationOverlay();
+    ensureMap().reset();
+    applyTileLayerSelection(currentSessionSettings.tileLayerVisible);
+    renderer.setMode(nextMode);
+    renderer.fitToMain();
+    els.resetButton.classList.add("is-hidden");
+    els.puzzleControls.classList.add("is-hidden");
+    els.modeLabel.textContent = `${modeName(nextMode)} / 開始前設定`;
+    els.questionText.textContent = "地図を確認してから開始";
+    els.remainingCount.textContent = "0";
+    els.correctCount.textContent = "0";
+    els.mistakeCount.textContent = "0";
+    els.elapsedTime.textContent = "00:00";
+    if (els.referencePreview) els.referencePreview.innerHTML = "";
+    if (els.referencePreviewTop) els.referencePreviewTop.innerHTML = "";
+  }
+
+  function beginSelectedQuizMode() {
+    hidePreparationOverlay();
+    start(selectedQuizMode || DEFAULT_QUIZ_MODE);
+  }
+
+  function showPreparationOverlay() {
+    if (els.prepOverlay) els.prepOverlay.classList.remove("is-hidden");
+    if (els.gameScreen) els.gameScreen.classList.add("is-prep-mode");
+  }
+
+  function hidePreparationOverlay() {
+    if (els.prepOverlay) els.prepOverlay.classList.add("is-hidden");
+    if (els.gameScreen) els.gameScreen.classList.remove("is-prep-mode");
+  }
+
+  function showEndOverlay() {
+    if (els.endOverlay) els.endOverlay.classList.remove("is-hidden");
+  }
+
+  function hideEndOverlay() {
+    if (els.endOverlay) els.endOverlay.classList.add("is-hidden");
+    if (els.endCard) {
+      els.endCard.classList.remove("is-clear", "is-game-over");
+    }
+  }
+
+  function clearCountdown() {
+    if (countdownTimerId) window.clearTimeout(countdownTimerId);
+    countdownTimerId = null;
+    if (els.countdownOverlay) els.countdownOverlay.classList.add("is-hidden");
+    if (els.countdownText) els.countdownText.classList.remove("is-word");
+  }
+
+  function runCountdown(onComplete) {
+    clearCountdown();
+    inputLocked = true;
+    const steps = ["3", "2", "1", "Start"];
+    let stepIndex = 0;
+    const tick = () => {
+      if (els.countdownText) {
+        const value = steps[stepIndex];
+        els.countdownText.textContent = value;
+        els.countdownText.classList.toggle("is-word", value === "Start");
+      }
+      if (els.countdownOverlay) els.countdownOverlay.classList.remove("is-hidden");
+      const delay = stepIndex === steps.length - 1 ? 520 : 700;
+      countdownTimerId = window.setTimeout(() => {
+        if (stepIndex === steps.length - 1) {
+          clearCountdown();
+          onComplete();
+          return;
+        }
+        stepIndex += 1;
+        tick();
+      }, delay);
+    };
+    tick();
   }
 
   function ensureMap() {
     if (renderer) return renderer;
     renderer = new window.MapRenderer("map", dataset, ghostData, { labelOverrides, liteMode });
     window.__geoquizRenderer = renderer;
-    els.tileLayerToggle.classList.toggle("is-active", renderer.tileLayerVisible);
+    currentSessionSettings.tileLayerVisible = renderer.tileLayerVisible;
+    syncTileLayerButtons(renderer.tileLayerVisible);
+    syncStartSettingsUI();
     renderer.onClick((feature) => {
       if (currentMode === "puzzle") return;
       if (currentMode === "confirm") return;
@@ -177,7 +495,9 @@
       const result = engine.answer(feature.properties);
       if (result.ignored) return;
       if (result.correct) {
+        lastFailureHighlight = null;
         lockInput();
+        speakAnswer(feature.properties);
         if (currentMode === "ma") {
           renderer.markAreaCodeCorrect(result.question.area_code, result.mistakesBeforeCorrect);
         } else if (currentMode === "ma_broad") {
@@ -186,13 +506,16 @@
           renderer.markCorrect(feature.properties.id, result.mistakesBeforeCorrect);
         }
       } else {
+        lastFailureHighlight = currentMode === "ma" || currentMode === "ma_broad"
+          ? { kind: "areaCode", value: feature.properties.area_code }
+          : { kind: "municipality", value: feature.properties.id };
         lockInput();
         if (currentMode === "ma" || currentMode === "ma_broad") {
           renderer.flashAreaCodeWrong(feature.properties.area_code);
         } else {
           renderer.flashWrong(feature.properties.id);
         }
-        speakMistake(feature.properties);
+        speakAnswer(feature.properties);
       }
       updateHud();
       if (result.finished) {
@@ -207,8 +530,14 @@
   function startConfirmMa() {
     clearResultTimer();
     clearInputUnlockTimer();
+    clearCountdown();
     unlockInput();
     cancelSpeech();
+    stopTimer();
+    applySessionSettingsToGameControls();
+    currentRunConfig = null;
+    hideEndOverlay();
+    hidePreparationOverlay();
     currentMode = "confirm_ma";
     areaReferenceFeatures = null;
     currentPracticeLabel = "";
@@ -236,8 +565,14 @@
   function startConfirmMaBroad() {
     clearResultTimer();
     clearInputUnlockTimer();
+    clearCountdown();
     unlockInput();
     cancelSpeech();
+    stopTimer();
+    applySessionSettingsToGameControls();
+    currentRunConfig = null;
+    hideEndOverlay();
+    hidePreparationOverlay();
     currentMode = "confirm_ma_broad";
     currentPracticeLabel = "";
     puzzleState = null;
@@ -265,8 +600,14 @@
   function startConfirm() {
     clearResultTimer();
     clearInputUnlockTimer();
+    clearCountdown();
     unlockInput();
     cancelSpeech();
+    stopTimer();
+    applySessionSettingsToGameControls();
+    currentRunConfig = null;
+    hideEndOverlay();
+    hidePreparationOverlay();
     currentMode = "confirm";
     currentPracticeLabel = "";
     puzzleState = null;
@@ -294,42 +635,67 @@
     if (mode === "confirm_ma_broad") { startConfirmMaBroad(); return; }
     clearResultTimer();
     clearInputUnlockTimer();
-    unlockInput();
+    clearCountdown();
+    stopTimer();
     cancelSpeech();
+    applySessionSettingsToGameControls();
+    hideEndOverlay();
+    hidePreparationOverlay();
     currentMode = mode;
+    if (isQuizMode(mode)) setSelectedQuizMode(mode);
     areaReferenceFeatures = null;
     currentPracticeLabel = options.practiceLabel || "";
+    completedResultState = null;
+    lastFailureHighlight = null;
     puzzleState = null;
     previousPuzzleFixed = 0;
     els.resetButton.classList.remove("is-hidden");
     if (mode === "puzzle" && liteMode && els.puzzlePieceSelect.value === "all") {
       els.puzzlePieceSelect.value = "small";
     }
-    const puzzleIds = mode === "puzzle" ? puzzlePieceIds() : null;
-    if (mode === "puzzle") options = { ...options, questionIds: puzzleIds };
-    engine.reset(mode, els.suddenDeathToggle.checked, options);
+    const startOptions = { ...options };
+    let puzzleIds = null;
+    if (mode === "puzzle") {
+      puzzleIds = puzzlePieceIds();
+      startOptions.questionIds = puzzleIds;
+    }
+    currentRunConfig = {
+      mode,
+      options: { ...options },
+      puzzlePieceValue: mode === "puzzle" ? (els.puzzlePieceSelect.value || "all") : null
+    };
+    showGame();
     ensureMap().reset();
+    applyTileLayerSelection(currentSessionSettings.tileLayerVisible);
     renderer.setMode(mode);
+    lastReferenceKey = null;
+    inputLocked = true;
+    engine.reset(mode, currentSessionSettings.suddenDeath, startOptions);
     if (mode === "puzzle") {
       renderer.startPuzzle(updatePuzzleState, { pieceIds: puzzleIds });
       updatePuzzleBestTime();
     }
-    showGame();
-    lastReferenceKey = null;
     updateHud();
     if (!engine.currentQuestion()) {
       scheduleResult(120);
     }
-    startTimer();
-    window.setTimeout(() => {
-      renderer.map.invalidateSize();
-      renderer.fitToMain();
-    }, 80);
+    runCountdown(() => {
+      engine.startedAt = Date.now();
+      engine.questionStartedAt = Date.now();
+      updateHud();
+      startTimer();
+      window.setTimeout(() => {
+        renderer.map.invalidateSize();
+        renderer.fitToMain();
+      }, 80);
+      unlockInput();
+    });
   }
 
   function showStart() {
     clearResultTimer();
     clearInputUnlockTimer();
+    clearCountdown();
     unlockInput();
     cancelSpeech();
     stopTimer();
@@ -338,6 +704,9 @@
     els.gameScreen.classList.add("is-hidden");
     els.resultScreen.classList.add("is-hidden");
     els.puzzleControls.classList.add("is-hidden");
+    hideEndOverlay();
+    hidePreparationOverlay();
+    syncStartSettingsUI();
     updateTopStats();
   }
 
@@ -347,14 +716,22 @@
     moveMapTo(els.playMapSlot);
     els.startScreen.classList.add("is-hidden");
     els.gameScreen.classList.remove("is-hidden");
+    window.setTimeout(() => {
+      window.dispatchEvent(new Event("resize"));
+    }, 50);
     els.resultScreen.classList.add("is-hidden");
+    hideEndOverlay();
     els.puzzleControls.classList.toggle("is-hidden", currentMode !== "puzzle");
   }
 
   function startLabelEditor() {
     clearResultTimer();
     clearInputUnlockTimer();
+    clearCountdown();
     unlockInput();
+    stopTimer();
+    hideEndOverlay();
+    hidePreparationOverlay();
     currentMode = "municipality";
     showGame();
     ensureMap().reset();
@@ -454,31 +831,59 @@
   function showResult() {
     clearResultTimer();
     clearInputUnlockTimer();
+    clearCountdown();
     lockInput();
     cancelSpeech();
     stopTimer();
+    hidePreparationOverlay();
     const result = engine.result();
     const summary = window.ResultAnalytics.summarize(result);
+    const previousDatasetProgress = window.ProgressStore.getDatasetProgress(appConfig.id);
+    const previousModeProgress = window.ProgressStore.getModeProgress(previousDatasetProgress, result.mode);
     const savedProgress = window.ProgressStore.saveSession(appConfig.id, dataset, result);
     const datasetProgress = savedProgress.progress.datasets[appConfig.id];
+    const currentModeProgress = window.ProgressStore.getModeProgress(datasetProgress, result.mode);
     currentDatasetProgress = datasetProgress;
-    renderer.applyProgressHeatmap(currentDatasetProgress, result.mode);
     lastResultPayload = window.ResultAnalytics.buildWeakPointExport(result, dataset.prefecture);
+    completedResultState = {
+      result,
+      summary,
+      datasetProgress,
+      previousModeProgress,
+      currentModeProgress,
+      isClear: result.correct >= result.totalQuestions
+    };
+    renderEndOverlay(completedResultState);
+  }
 
+  function showAnalysisScreen() {
+    if (!completedResultState) return;
+    const { result, summary, datasetProgress, previousModeProgress, currentModeProgress, isClear } = completedResultState;
+    const previousDelta = buildPreviousDelta(summary, previousModeProgress?.lastResult, isClear);
+    const bestStatus = buildBestStatus(summary, currentModeProgress, isClear);
+    renderer.applyProgressHeatmap(currentDatasetProgress, result.mode);
     els.resultModeLabel.textContent = currentPracticeLabel
       ? `${modeName(result.mode)} / ${currentPracticeLabel}`
       : modeName(result.mode);
-    els.resultTitle.textContent = result.correct >= result.totalQuestions ? "Complete" : "Game Over";
-    els.resultSummary.textContent = result.mistakes === 0
-      ? `ノーミス。かなり仕上がっています。累積 ${datasetProgress?.sessions || 0} 回目の記録を保存しました。`
-      : `弱点 ${lastResultPayload.weakPoints.length} 件をJSONに出力できます。累積 ${datasetProgress?.sessions || 0} 回目の記録を保存しました。`;
+    els.resultTitle.textContent = isClear ? "Clear" : "Game Over";
+    els.resultSummary.textContent = isClear
+      ? `一発正解 ${summary.firstTryCount} 問。前回や自己ベストと見比べながら、次の更新ポイントを探せます。`
+      : `弱点 ${lastResultPayload.weakPoints.length} 件をJSONに出力できます。累積 ${datasetProgress?.sessions || 0} 回目の記録から、苦手傾向も確認できます。`;
     els.resultCorrect.textContent = `${summary.correct}`;
     els.resultMistakes.textContent = `${summary.mistakes}`;
-    els.resultAverage.textContent = `${(summary.averageTimeMs / 1000).toFixed(1)}s`;
-    els.resultTotal.textContent = `${summary.totalQuestions}`;
+    els.resultFirstTry.textContent = `${summary.firstTryCount}`;
+    els.resultAverage.textContent = `${formatSeconds(summary.averageTimeMs)}`;
+    els.resultTotalLabel.textContent = isClear ? "出題数" : "到達問題数";
+    els.resultTotal.textContent = `${isClear ? summary.totalQuestions : summary.reachedQuestions}`;
+    els.resultTimeLabel.textContent = isClear ? "クリアタイム" : "経過時間";
+    els.resultTime.textContent = `${formatTime(result.elapsedMs)}`;
+    els.resultPreviousDelta.textContent = previousDelta;
+    els.resultBestStatus.textContent = bestStatus;
+    renderHistoryPanel(currentModeProgress, isClear);
     updateRankingTabs();
     renderRanking(datasetProgress);
 
+    hideEndOverlay();
     els.startScreen.classList.add("is-hidden");
     els.gameScreen.classList.add("is-hidden");
     els.resultScreen.classList.remove("is-hidden");
@@ -487,6 +892,153 @@
       renderer.map.invalidateSize();
       renderer.fitToMain();
     }, 80);
+  }
+
+  function buildPreviousDelta(summary, previousResult, isClear) {
+    if (!previousResult) return "初回プレイ";
+    if (isClear && previousResult.completed) {
+      const deltaMs = summary.elapsedMs - (previousResult.elapsedMs || 0);
+      if (deltaMs === 0) return "前回と同タイム";
+      return `前回比 ${formatSignedSeconds(deltaMs)}`;
+    }
+    if (isClear && !previousResult.completed) {
+      return "前回は未クリア";
+    }
+    if (!isClear && previousResult.completed) {
+      return "前回はクリア";
+    }
+    const deltaReached = summary.reachedQuestions - (previousResult.reachedQuestions || 0);
+    if (deltaReached === 0) {
+      const deltaAvg = summary.averageTimeMs - (previousResult.averageTimeMs || 0);
+      if (deltaAvg === 0) return "前回と同記録";
+      return `平均 ${formatSignedSeconds(deltaAvg)}`;
+    }
+    return `前回比 ${deltaReached > 0 ? "+" : ""}${deltaReached}問`;
+  }
+
+  function buildBestStatus(summary, currentModeProgress, isClear) {
+    if (!currentModeProgress) return "記録なし";
+    const best = isClear ? currentModeProgress.bestClear : currentModeProgress.bestGameOver;
+    if (!best) return "記録なし";
+    const isUpdated = best.playedAt === currentModeProgress.lastResult?.playedAt;
+    if (isClear) {
+      return isUpdated ? `更新\n${formatTime(best.elapsedMs || 0)}` : formatTime(best.elapsedMs || 0);
+    }
+    const bestText = `${best.reachedQuestions || 0}問`;
+    return isUpdated ? `更新\n${bestText}` : bestText;
+  }
+
+  function renderHistoryPanel(modeProgress, isClear) {
+    const history = Array.isArray(modeProgress?.sessionHistory) ? modeProgress.sessionHistory.slice(0, 5) : [];
+    if (!history.length) {
+      els.resultHistoryMetricLabel.textContent = isClear ? "直近5回のクリアタイム" : "直近5回の到達問題数";
+      els.resultHistoryBestLabel.textContent = "ベスト 記録なし";
+      els.resultHistoryCopy.textContent = "前回比と自己ベストを軸に、直近の流れを短く確認できます。";
+      els.resultHistoryList.innerHTML = `<div class="ranking-empty">まだ戦績データがありません。</div>`;
+      return;
+    }
+
+    const bestEntry = isClear ? modeProgress?.bestClear : modeProgress?.bestGameOver;
+    els.resultHistoryMetricLabel.textContent = isClear ? "直近5回のクリアタイム" : "直近5回の到達問題数";
+    els.resultHistoryBestLabel.textContent = isClear
+      ? `ベスト ${bestEntry ? formatTime(bestEntry.elapsedMs || 0) : "--:--"}`
+      : `ベスト ${bestEntry ? `${bestEntry.reachedQuestions || 0}問` : "--"}`
+    ;
+    els.resultHistoryCopy.textContent = isClear
+      ? "右に行くほど新しい記録です。短いほど速く、更新に近づいています。"
+      : "右に行くほど新しい記録です。到達問題数が増えるほど、より奥まで進めています。";
+    els.resultHistoryList.innerHTML = history
+      .slice()
+      .reverse()
+      .map((entry, index, arr) => {
+        const value = isClear ? (entry.elapsedMs || 0) : (entry.reachedQuestions || 0);
+        const latest = index === arr.length - 1;
+        const isBest = bestEntry && entry.playedAt === bestEntry.playedAt;
+        const valueLabel = isClear ? formatTime(value) : `${value}問`;
+        const meta = isClear ? formatSeconds(entry.averageTimeMs || 0) : `平均 ${formatSeconds(entry.averageTimeMs || 0)}`;
+        return `
+          <div class="history-summary-chip${latest ? " is-latest" : ""}${isBest ? " is-best" : ""}">
+            <span class="history-summary-label">#${index + 1}${latest ? " 最新" : ""}</span>
+            <strong class="history-summary-value">${valueLabel}</strong>
+            <span class="history-summary-meta">${meta}</span>
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+  function renderEndOverlay(state) {
+    const { result, summary, datasetProgress, isClear } = state;
+    if (isClear) {
+      lastFailureHighlight = null;
+    } else {
+      highlightFailureTarget();
+    }
+    if (els.endModeLabel) {
+      els.endModeLabel.textContent = currentPracticeLabel
+        ? `${modeName(result.mode)} / ${currentPracticeLabel}`
+        : modeName(result.mode);
+    }
+    if (els.endCard) {
+      els.endCard.classList.toggle("is-clear", isClear);
+      els.endCard.classList.toggle("is-game-over", !isClear);
+    }
+    els.endTitle.textContent = isClear ? "Clear" : "Game Over";
+    els.endSummary.textContent = isClear
+      ? `問題数 ${summary.totalQuestions} を走破しました。累積 ${datasetProgress?.sessions || 0} 回目の記録を保存しています。`
+      : `到達問題数 ${summary.reachedQuestions} で終了。最後のミス地点を地図上で確認できます。`;
+    els.endPrimaryLabel.textContent = isClear ? "問題数" : "到達問題数";
+    els.endPrimaryValue.textContent = `${isClear ? summary.totalQuestions : summary.reachedQuestions}`;
+    els.endFirstTryValue.textContent = `${summary.firstTryCount}`;
+    els.endMistakesValue.textContent = `${summary.mistakes}`;
+    els.endAverageValue.textContent = formatSeconds(summary.averageTimeMs);
+    els.endTimeLabel.textContent = isClear ? "クリアタイム" : "経過時間";
+    els.endTimeValue.textContent = formatTime(result.elapsedMs);
+    showEndOverlay();
+  }
+
+  function highlightFailureTarget() {
+    if (!renderer || !lastFailureHighlight) return;
+    if (lastFailureHighlight.kind === "areaCode") {
+      renderer.highlightFailureAreaCode(lastFailureHighlight.value);
+      return;
+    }
+    renderer.highlightFailureFeature(lastFailureHighlight.value);
+  }
+
+  function shareResultToX() {
+    if (!completedResultState) return;
+    const shareText = buildShareText(completedResultState);
+    const url = `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
+  function buildShareText(state) {
+    const { result, summary, isClear } = state;
+    const totalQuestions = summary?.totalQuestions ?? result?.totalQuestions ?? 0;
+    const reachedQuestions = summary?.reachedQuestions ?? result?.reachedQuestions ?? totalQuestions;
+    const firstTryCount = summary?.firstTryCount ?? countFirstTryAnswers(result);
+    const mistakes = summary?.mistakes ?? result?.mistakes ?? 0;
+    const averageTimeMs = summary?.averageTimeMs ?? 0;
+    const lines = [
+      `GeoQuiz ${dataset.prefecture.name} ${modeName(result.mode)} ${isClear ? "Clear" : "Game Over"}`
+    ];
+    if (isClear) {
+      lines.push(
+        `問題数 ${totalQuestions} / 一発正解 ${firstTryCount} / ミス ${mistakes} / 平均回答 ${formatSeconds(averageTimeMs)} / クリアタイム ${formatTime(result.elapsedMs)}`
+      );
+    } else {
+      lines.push(
+        `到達問題数 ${reachedQuestions} / 一発正解 ${firstTryCount} / ミス ${mistakes} / 平均回答 ${formatSeconds(averageTimeMs)}`
+      );
+    }
+    lines.push(`#GeoQuiz #${dataset.prefecture.name}`);
+    return lines.join("\n");
+  }
+
+  function countFirstTryAnswers(result) {
+    if (!result || !Array.isArray(result.stats)) return 0;
+    return result.stats.filter((item) => item.correct && item.mistakes === 0).length;
   }
 
   function updateRankingTabs() {
@@ -499,24 +1051,23 @@
   }
 
   function renderRanking(datasetProgress) {
-    const ranking = window.ProgressStore.buildRanking(datasetProgress, currentRankingType, 5);
+    const practiceRanking = window.ProgressStore.buildRanking(datasetProgress, currentRankingType, 10, currentMode);
+    const ranking = practiceRanking.slice(0, 5);
+    currentRankingPracticeItems = practiceRanking;
     currentRankingItems = ranking;
+    updatePracticeButtonLabels();
     updatePracticeButtons(datasetProgress);
     if (!ranking.length) {
       els.weakRankingList.innerHTML = `<li class="ranking-empty">累積データがまだありません。</li>`;
       return;
     }
 
-    const maxValue = Math.max(...ranking.map((item) => rankingBarValue(item, currentRankingType)), 1);
     els.weakRankingList.innerHTML = ranking.map((item, index) => {
-      const value = rankingBarValue(item, currentRankingType);
-      const width = Math.max((value / maxValue) * 100, value > 0 ? 10 : 4);
       return `
         <li class="ranking-item">
           <span class="ranking-rank">${index + 1}</span>
           <span class="ranking-main">
             <span class="ranking-name">${escapeHtml(item.name)}</span>
-            <span class="ranking-bar" aria-hidden="true"><span style="width:${width.toFixed(0)}%"></span></span>
           </span>
           <span class="ranking-meta">${rankingMeta(item)}</span>
         </li>
@@ -525,12 +1076,12 @@
   }
 
   function startPracticeFromRanking() {
-    if (!currentRankingItems.length) return;
-    const questionIds = practiceQuestionIds(currentRankingItems, currentMode);
+    if (!currentRankingPracticeItems.length) return;
+    const questionIds = practiceQuestionIds(currentRankingPracticeItems, currentMode);
     if (!questionIds.length) return;
     start(currentMode, {
       questionIds,
-      practiceLabel: `${rankingTitle(currentRankingType)}から再出題`
+      practiceLabel: rankingPracticeLabel(currentRankingType)
     });
   }
 
@@ -550,7 +1101,7 @@
   }
 
   function startPracticeFromLowAccuracy() {
-    const items = window.ProgressStore.buildRanking(currentDatasetProgress, "accuracy", 5);
+    const items = window.ProgressStore.buildRanking(currentDatasetProgress, "accuracy", 5, currentMode);
     startPracticeFromItems(items, "低正答率から優先出題");
   }
 
@@ -564,11 +1115,16 @@
   }
 
   function updatePracticeButtons(datasetProgress) {
-    els.practiceWeakButton.disabled = !currentRankingItems.length;
+    els.practiceWeakButton.disabled = !currentRankingPracticeItems.length;
     els.practiceLastMistakeButton.disabled = !window.ProgressStore.buildLastMistakeItems(datasetProgress, 5).length;
     els.practiceUnansweredButton.disabled = !window.ProgressStore.buildUnansweredItems(datasetProgress, 5).length;
     els.practiceRecentMistakeButton.disabled = !window.ProgressStore.buildRecentMistakeItems(datasetProgress, 5).length;
-    els.practiceLowAccuracyButton.disabled = !window.ProgressStore.buildRanking(datasetProgress, "accuracy", 5).length;
+    els.practiceLowAccuracyButton.disabled = !window.ProgressStore.buildRanking(datasetProgress, "accuracy", 5, currentMode).length;
+  }
+
+  function updatePracticeButtonLabels() {
+    if (!els.practiceWeakButton) return;
+    els.practiceWeakButton.textContent = rankingPracticeLabel(currentRankingType);
   }
 
   function practiceQuestionIds(ranking, mode) {
@@ -590,6 +1146,12 @@
     if (type === "accuracy") return "正答率ランキング";
     if (type === "time") return "平均時間ランキング";
     return "苦手ランキング";
+  }
+
+  function rankingPracticeLabel(type) {
+    if (type === "accuracy") return "低正答率上位10件を再出題";
+    if (type === "time") return "平均時間上位10件を再出題";
+    return "苦手上位10件を再出題";
   }
 
   function rankingBarValue(item, type) {
@@ -747,9 +1309,11 @@
     if (slot && els.map.parentElement !== slot) slot.appendChild(els.map);
   }
 
-  function speakMistake(featureProperties) {
+  function speakAnswer(featureProperties) {
     if (!els.mistakeSpeechToggle.checked || !("speechSynthesis" in window)) return;
-    const label = (currentMode === "ma" || currentMode === "ma_broad") ? pronounceAreaCode(featureProperties.area_code) : featureProperties.name;
+    const label = (currentMode === "ma" || currentMode === "ma_broad")
+      ? pronounceAreaCode(featureProperties.area_code)
+      : pronouncePlaceName(featureProperties.name);
     if (!label) return;
 
     window.speechSynthesis.cancel();
@@ -775,6 +1339,11 @@
       .join(" ");
   }
 
+  function pronouncePlaceName(name) {
+    const raw = String(name || "");
+    return speechLabelOverrides[raw] || raw;
+  }
+
   function modeName(mode) {
     return window.QuizModes.getMode(mode).label;
   }
@@ -786,11 +1355,14 @@
     lastReferenceKey = key;
     if (!question) {
       els.referencePreview.innerHTML = "";
+      if (els.referencePreviewTop) els.referencePreviewTop.innerHTML = "";
       return;
     }
 
     const feature = referenceFeatureForQuestion(question);
-    els.referencePreview.innerHTML = feature ? renderReferenceSvg(feature) : "";
+    const previewHtml = feature ? renderReferenceSvg(feature) : "";
+    els.referencePreview.innerHTML = previewHtml;
+    if (els.referencePreviewTop) els.referencePreviewTop.innerHTML = previewHtml;
   }
 
   function referenceFeatureForQuestion(question) {
@@ -901,6 +1473,22 @@
     return appConfig.enabledModes.includes(mode) ? mode : "";
   }
 
+  function resolveInitialLayout() {
+    try {
+      return window.localStorage.getItem("geoquiz:layout") || "left";
+    } catch {
+      return "left";
+    }
+  }
+
+  function resolveInitialTileLayerVisibility() {
+    try {
+      return window.localStorage.getItem("geoquiz:tilelayer") === "1";
+    } catch {
+      return false;
+    }
+  }
+
   function resolveLiteMode() {
     const params = new URLSearchParams(window.location.search);
     if (params.get("lite") === "1") return true;
@@ -979,6 +1567,15 @@
     const min = String(Math.floor(total / 60)).padStart(2, "0");
     const sec = String(total % 60).padStart(2, "0");
     return `${min}:${sec}`;
+  }
+
+  function formatSeconds(ms) {
+    return `${(ms / 1000).toFixed(1)}秒`;
+  }
+
+  function formatSignedSeconds(ms) {
+    const sign = ms < 0 ? "-" : "+";
+    return `${sign}${(Math.abs(ms) / 1000).toFixed(1)}秒`;
   }
 
   function exportProgressJson() {

@@ -31,6 +31,7 @@
     const now = new Date().toISOString();
     const datasetProgress = ensureDataset(progress, datasetId, dataset, now);
     const modeProgress = ensureMode(datasetProgress, result.mode);
+    const summary = buildModeSessionSummary(result, now);
 
     datasetProgress.updatedAt = now;
     datasetProgress.sessions += 1;
@@ -39,6 +40,17 @@
     modeProgress.mistakes += result.mistakes;
     modeProgress.totalQuestions += result.totalQuestions;
     modeProgress.totalAnswerMs += totalAnswerMs(result.stats);
+    modeProgress.lastResult = summary;
+    if (!Array.isArray(modeProgress.sessionHistory)) modeProgress.sessionHistory = [];
+    modeProgress.sessionHistory.unshift(summary);
+    if (modeProgress.sessionHistory.length > 5) modeProgress.sessionHistory.length = 5;
+    if (summary.completed) {
+      if (!modeProgress.bestClear || isBetterClear(summary, modeProgress.bestClear)) {
+        modeProgress.bestClear = summary;
+      }
+    } else if (!modeProgress.bestGameOver || isBetterGameOver(summary, modeProgress.bestGameOver)) {
+      modeProgress.bestGameOver = summary;
+    }
     datasetProgress.lastSession = {
       mode: result.mode,
       playedAt: now,
@@ -86,8 +98,13 @@
     return loadProgress().datasets[datasetId] || null;
   }
 
-  function buildWeakRanking(datasetProgress, limit = 5) {
-    return buildRanking(datasetProgress, "weak", limit);
+  function getModeProgress(datasetProgress, mode) {
+    if (!datasetProgress || !datasetProgress.modes) return null;
+    return datasetProgress.modes[mode] || null;
+  }
+
+  function buildWeakRanking(datasetProgress, limit = 5, mode = "municipality") {
+    return buildRanking(datasetProgress, "weak", limit, mode);
   }
 
   function buildLastMistakeItems(datasetProgress, limit = 5) {
@@ -122,20 +139,23 @@
       .slice(0, limit);
   }
 
-  function buildRanking(datasetProgress, type = "weak", limit = 5) {
+  function buildRanking(datasetProgress, type = "weak", limit = 5, mode = "municipality") {
     if (!datasetProgress || !datasetProgress.stats) return [];
-    const items = Object.values(datasetProgress.stats)
-      .map(toRankingItem)
-      .filter((stat) => stat.plays > 0)
-      .sort((a, b) => compareRanking(a, b, type));
+    const items = (mode === "ma" || mode === "ma_broad")
+      ? buildAreaModeRanking(datasetProgress, mode)
+      : Object.values(datasetProgress.stats)
+        .map((stat) => toRankingItem(stat, mode))
+        .filter((stat) => stat.plays > 0);
+    items.sort((a, b) => compareRanking(a, b, type));
     return items.slice(0, limit);
   }
 
-  function toRankingItem(stat) {
-    const plays = stat.plays || 0;
-    const correct = stat.correct || 0;
-    const mistakes = stat.mistakes || 0;
-    const averageTimeMs = correct > 0 ? Math.round((stat.totalAnswerMs || 0) / correct) : 0;
+  function toRankingItem(stat, mode = "municipality") {
+    const modeStat = mode && stat.modes && stat.modes[mode] ? stat.modes[mode] : stat;
+    const plays = modeStat?.plays || 0;
+    const correct = modeStat?.correct || 0;
+    const mistakes = modeStat?.mistakes || 0;
+    const averageTimeMs = correct > 0 ? Math.round((modeStat?.totalAnswerMs || 0) / correct) : 0;
     const accuracy = plays > 0 ? Math.round((correct / plays) * 100) : 0;
     return {
       id: stat.id,
@@ -149,6 +169,47 @@
       averageTimeMs,
       lastMistakeAt: stat.lastMistakeAt
     };
+  }
+
+  function buildAreaModeRanking(datasetProgress, mode) {
+    const grouped = new Map();
+    Object.values(datasetProgress.stats).forEach((stat) => {
+      const modeStat = stat.modes && stat.modes[mode];
+      if (!modeStat || !modeStat.plays) return;
+      const key = mode === "ma_broad"
+        ? `broad_area_code:${window.MaUnion.broadAreaCode(stat.area_code)}`
+        : `area_code:${stat.area_code}`;
+      if (!grouped.has(key)) {
+        const broad = mode === "ma_broad" ? window.MaUnion.broadAreaCode(stat.area_code) : null;
+        grouped.set(key, {
+          id: key,
+          name: mode === "ma_broad" ? broad : stat.area_code,
+          area_code: mode === "ma" ? stat.area_code : null,
+          ma_name: stat.ma_name,
+          plays: 0,
+          correct: 0,
+          mistakes: 0,
+          accuracy: 0,
+          averageTimeMs: 0,
+          totalAnswerMs: 0,
+          lastMistakeAt: null
+        });
+      }
+      const entry = grouped.get(key);
+      entry.plays += modeStat.plays || 0;
+      entry.correct += modeStat.correct || 0;
+      entry.mistakes += modeStat.mistakes || 0;
+      entry.totalAnswerMs += modeStat.totalAnswerMs || 0;
+      if (stat.lastMistakeAt && (!entry.lastMistakeAt || String(stat.lastMistakeAt).localeCompare(String(entry.lastMistakeAt)) > 0)) {
+        entry.lastMistakeAt = stat.lastMistakeAt;
+      }
+    });
+
+    return [...grouped.values()].map((entry) => ({
+      ...entry,
+      averageTimeMs: entry.correct > 0 ? Math.round(entry.totalAnswerMs / entry.correct) : 0,
+      accuracy: entry.plays > 0 ? Math.round((entry.correct / entry.plays) * 100) : 0
+    }));
   }
 
   function toSessionItem(item) {
@@ -266,10 +327,54 @@
         completed: 0,
         mistakes: 0,
         totalQuestions: 0,
-        totalAnswerMs: 0
+        totalAnswerMs: 0,
+        sessionHistory: [],
+        lastResult: null,
+        bestClear: null,
+        bestGameOver: null
       };
     }
     return datasetProgress.modes[mode];
+  }
+
+  function buildModeSessionSummary(result, playedAt) {
+    const firstTryCount = result.stats.filter((item) => item.correct && item.mistakes === 0).length;
+    const answered = result.stats.filter((item) => item.correct && item.answerTimeMs > 0);
+    const averageTimeMs = answered.length
+      ? Math.round(answered.reduce((sum, item) => sum + item.answerTimeMs, 0) / answered.length)
+      : 0;
+    return {
+      playedAt,
+      mode: result.mode,
+      completed: result.correct >= result.totalQuestions,
+      totalQuestions: result.totalQuestions,
+      reachedQuestions: result.reachedQuestions || result.totalQuestions,
+      correct: result.correct,
+      firstTryCount,
+      mistakes: result.mistakes,
+      averageTimeMs,
+      elapsedMs: result.elapsedMs
+    };
+  }
+
+  function isBetterClear(next, current) {
+    if ((next.elapsedMs || 0) !== (current.elapsedMs || 0)) {
+      return (next.elapsedMs || 0) < (current.elapsedMs || 0);
+    }
+    if ((next.averageTimeMs || 0) !== (current.averageTimeMs || 0)) {
+      return (next.averageTimeMs || 0) < (current.averageTimeMs || 0);
+    }
+    return (next.mistakes || 0) < (current.mistakes || 0);
+  }
+
+  function isBetterGameOver(next, current) {
+    if ((next.reachedQuestions || 0) !== (current.reachedQuestions || 0)) {
+      return (next.reachedQuestions || 0) > (current.reachedQuestions || 0);
+    }
+    if ((next.averageTimeMs || 0) !== (current.averageTimeMs || 0)) {
+      return (next.averageTimeMs || 0) < (current.averageTimeMs || 0);
+    }
+    return (next.mistakes || 0) < (current.mistakes || 0);
   }
 
   function ensureStat(datasetProgress, item) {
@@ -325,6 +430,7 @@
     loadProgress,
     saveSession,
     getDatasetProgress,
+    getModeProgress,
     exportProgress,
     importProgress,
     consumeRecoveryNotice,

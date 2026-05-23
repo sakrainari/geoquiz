@@ -1,14 +1,18 @@
 (function () {
   function summarize(result) {
     const answered = result.stats.filter((item) => item.correct && item.answerTimeMs > 0);
+    const firstTryCount = result.stats.filter((item) => item.correct && item.mistakes === 0).length;
     const averageTimeMs = answered.length
       ? Math.round(answered.reduce((sum, item) => sum + item.answerTimeMs, 0) / answered.length)
       : 0;
     return {
       totalQuestions: result.totalQuestions,
+      reachedQuestions: result.reachedQuestions || result.totalQuestions,
       correct: result.correct,
+      firstTryCount,
       mistakes: result.mistakes,
-      averageTimeMs
+      averageTimeMs,
+      elapsedMs: result.elapsedMs || 0
     };
   }
 

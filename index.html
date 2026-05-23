@@ -63,7 +63,7 @@
               <span class="mode-card-arrow">›</span>
             </button>
 
-            <button class="mode-card" data-start-mode="puzzle">
+            <button class="mode-card is-hidden" data-start-mode="puzzle" aria-hidden="true">
               <div class="mode-card-icon">⊞</div>
               <div class="mode-card-body">
                 <div class="mode-card-tag">PUZZLE</div>
@@ -84,6 +84,7 @@
             </button>
 
           </div>
+
         </div>
 
         <!-- 右カラム：確認マップ + 統計パネル -->
@@ -175,7 +176,7 @@
           </label>
           <label class="game-toggle-row">
             <input id="mistakeSpeechToggle" type="checkbox">
-            <span>ミス音声</span>
+            <span>音声</span>
           </label>
           <div class="legend-block">
             <span class="legend-item"><i class="swatch pending"></i>未回答</span>
@@ -185,11 +186,12 @@
           <div class="game-panel-actions">
             <button id="tileLayerToggle" class="ghost-button" type="button">地図</button>
             <button id="backToMenuButton" class="ghost-button" type="button">モード選択</button>
-            <button id="resetButton" class="primary-button" type="button">リセット</button>
+            <button id="resetButton" class="primary-button" type="button">リスタート</button>
           </div>
           <div class="layout-switcher">
             <button class="layout-btn" data-layout="left" title="左パネル">◧</button>
             <button class="layout-btn" data-layout="top" title="上バー">⬒</button>
+            <button class="layout-btn" data-layout="bottom" title="下バー">⬓</button>
             <button class="layout-btn" data-layout="right" title="右パネル">◨</button>
           </div>
         </aside>
@@ -213,11 +215,22 @@
           <div class="game-topbar-actions">
             <button id="tileLayerToggleTop" class="ghost-button" type="button">地図</button>
             <button id="backToMenuButtonTop" class="ghost-button" type="button">モード選択</button>
-            <button id="resetButtonTop" class="primary-button" type="button">リセット</button>
+            <button id="resetButtonTop" class="primary-button" type="button">リスタート</button>
+          </div>
+          <div class="game-topbar-toggles">
+            <label class="game-toggle-row game-toggle-row-compact">
+              <input id="suddenDeathToggleBar" type="checkbox">
+              <span>サドンデス</span>
+            </label>
+            <label class="game-toggle-row game-toggle-row-compact">
+              <input id="mistakeSpeechToggleBar" type="checkbox">
+              <span>音声</span>
+            </label>
           </div>
           <div class="layout-switcher">
             <button class="layout-btn" data-layout="left" title="左パネル">◧</button>
             <button class="layout-btn" data-layout="top" title="上バー">⬒</button>
+            <button class="layout-btn" data-layout="bottom" title="下バー">⬓</button>
             <button class="layout-btn" data-layout="right" title="右パネル">◨</button>
           </div>
         </header>
@@ -225,6 +238,85 @@
         <!-- 地図 -->
         <div id="playMapSlot" class="map-slot">
           <div id="map" class="map-panel" aria-label="埼玉県クイズ地図"></div>
+          <div id="prepOverlay" class="prep-overlay is-hidden" aria-label="開始前設定">
+            <div class="prep-panel">
+              <p class="eyebrow">Ready</p>
+              <h3 id="prepModeTitle">市区町村モード</h3>
+              <p id="prepModeCopy" class="prep-copy">地図を確認してから開始できます。</p>
+              <div class="start-setting-group">
+                <span class="start-setting-label">ルール</span>
+                <div class="start-option-row" role="group" aria-label="ルール設定">
+                  <button id="ruleNormalButton" class="start-option-btn is-active" type="button">ノーマル</button>
+                  <button id="ruleSuddenDeathButton" class="start-option-btn" type="button">サドンデス</button>
+                </div>
+              </div>
+              <div class="start-setting-group">
+                <span class="start-setting-label">音声</span>
+                <div class="start-option-row" role="group" aria-label="音声設定">
+                  <button id="audioOnButton" class="start-option-btn is-active" type="button">ON</button>
+                  <button id="audioOffButton" class="start-option-btn" type="button">OFF</button>
+                </div>
+              </div>
+              <div class="start-setting-group">
+                <span class="start-setting-label">地図表示</span>
+                <div class="start-option-row" role="group" aria-label="地図表示設定">
+                  <button id="tileLayerOnButton" class="start-option-btn" type="button">あり</button>
+                  <button id="tileLayerOffButton" class="start-option-btn is-active" type="button">なし</button>
+                </div>
+              </div>
+              <div class="start-setting-group">
+                <span class="start-setting-label">バー位置</span>
+                <div class="start-option-row start-option-row-layout" role="group" aria-label="バー位置設定">
+                  <button id="layoutLeftButton" class="start-option-btn is-active" type="button">左</button>
+                  <button id="layoutTopButton" class="start-option-btn" type="button">上</button>
+                  <button id="layoutBottomButton" class="start-option-btn" type="button">下</button>
+                  <button id="layoutRightButton" class="start-option-btn" type="button">右</button>
+                </div>
+              </div>
+              <p id="startSelectionNote" class="start-selection-note">市区町村モードで開始</p>
+              <button id="startQuizButton" class="primary-button start-quiz-button" type="button">開始</button>
+            </div>
+          </div>
+          <div id="countdownOverlay" class="countdown-overlay is-hidden" aria-live="polite">
+            <div id="countdownText" class="countdown-text">3</div>
+          </div>
+          <div id="endOverlay" class="end-overlay is-hidden" aria-live="polite">
+            <div id="endCard" class="end-card">
+              <p id="endModeLabel" class="eyebrow">Result</p>
+              <h3 id="endTitle">Clear</h3>
+              <p id="endSummary" class="end-copy">結果を集計しています。</p>
+              <div class="end-grid">
+                <div class="end-stat-card">
+                  <span id="endPrimaryLabel">問題数</span>
+                  <strong id="endPrimaryValue">0</strong>
+                </div>
+                <div class="end-stat-card">
+                  <span>一発正解数</span>
+                  <strong id="endFirstTryValue">0</strong>
+                </div>
+                <div class="end-stat-card">
+                  <span>ミス</span>
+                  <strong id="endMistakesValue">0</strong>
+                </div>
+                <div class="end-stat-card">
+                  <span>平均回答時間</span>
+                  <strong id="endAverageValue">0.0秒</strong>
+                </div>
+                <div class="end-stat-card end-stat-card-wide">
+                  <span id="endTimeLabel">クリアタイム</span>
+                  <strong id="endTimeValue">00:00</strong>
+                </div>
+              </div>
+              <div class="end-actions">
+                <button id="endRestartButton" class="primary-button end-primary-action" type="button">リスタート</button>
+                <div class="end-secondary-actions">
+                  <button id="endAnalysisButton" class="ghost-button" type="button">分析</button>
+                  <button id="endTopButton" class="ghost-button" type="button">TOP画面</button>
+                  <button id="endShareButton" class="ghost-button" type="button">Xで投稿</button>
+                </div>
+              </div>
+            </div>
+          </div>
           <!-- 上バー時の追加オーバーレイ（.map-slot内でposition:absolute） -->
           <div class="top-overlay-bottom">
             <label class="game-toggle-row">
@@ -233,7 +325,7 @@
             </label>
             <label class="game-toggle-row">
               <input id="mistakeSpeechToggleTop" type="checkbox">
-              <span>ミス音声</span>
+              <span>音声</span>
             </label>
           </div>
         </div>
@@ -275,48 +367,70 @@
 
       <section id="resultScreen" class="result-screen is-hidden">
 
-        <!-- 左カラム：スコア・ランキング・アクション -->
         <div class="result-left">
           <div class="result-copy">
+            <p class="eyebrow">Analysis</p>
             <p class="eyebrow" id="resultModeLabel">Result</p>
-            <h2 id="resultTitle">リザルト</h2>
+            <h2 id="resultTitle">分析</h2>
             <p id="resultSummary">結果を集計しています。</p>
           </div>
 
-          <div class="result-grid">
-            <div class="result-card"><span>正解</span><strong id="resultCorrect">0</strong></div>
-            <div class="result-card"><span>ミス</span><strong id="resultMistakes">0</strong></div>
-            <div class="result-card"><span>平均回答</span><strong id="resultAverage">0.0s</strong></div>
-            <div class="result-card"><span>出題数</span><strong id="resultTotal">0</strong></div>
-          </div>
-
-          <section class="ranking-panel" aria-label="累積苦手ランキング">
-            <div class="ranking-heading">
-              <div>
-                <p class="eyebrow">Ranking</p>
-                <h3 id="rankingTitle">苦手ランキング</h3>
-              </div>
-              <div class="ranking-tabs" role="tablist" aria-label="ランキング切替">
-                <button class="ranking-tab is-active" type="button" data-ranking-type="weak" role="tab" aria-selected="true">ミス</button>
-                <button class="ranking-tab" type="button" data-ranking-type="accuracy" role="tab" aria-selected="false">正答率</button>
-                <button class="ranking-tab" type="button" data-ranking-type="time" role="tab" aria-selected="false">平均時間</button>
-              </div>
+          <section class="result-section">
+            <div class="result-section-heading">
+              <p class="eyebrow">This Run</p>
+              <h3>今回の結果</h3>
             </div>
-            <ol id="weakRankingList" class="ranking-list"></ol>
-            <div class="ranking-actions">
-              <button id="practiceWeakButton" class="ghost-button" type="button" disabled>このランキングだけ再出題</button>
-              <button id="practiceLastMistakeButton" class="ghost-button" type="button" disabled>前回ミスだけ再出題</button>
-              <button id="practiceUnansweredButton" class="ghost-button" type="button" disabled>未正解だけ再出題</button>
-              <button id="practiceRecentMistakeButton" class="ghost-button" type="button" disabled>最近ミスだけ再出題</button>
-              <button id="practiceLowAccuracyButton" class="ghost-button" type="button" disabled>低正答率を優先出題</button>
+            <div class="result-grid result-grid-extended">
+              <div class="result-card"><span>正解</span><strong id="resultCorrect">0</strong></div>
+              <div class="result-card"><span>ミス</span><strong id="resultMistakes">0</strong></div>
+              <div class="result-card"><span>一発正解</span><strong id="resultFirstTry">0</strong></div>
+              <div class="result-card"><span>平均回答</span><strong id="resultAverage">0.0秒</strong></div>
+              <div class="result-card"><span id="resultTotalLabel">出題数</span><strong id="resultTotal">0</strong></div>
+              <div class="result-card"><span id="resultTimeLabel">クリアタイム</span><strong id="resultTime">00:00</strong></div>
+              <div class="result-card result-card-accent"><span>前回比</span><strong id="resultPreviousDelta">初回</strong></div>
+              <div class="result-card result-card-accent"><span>自己ベスト</span><strong id="resultBestStatus">記録なし</strong></div>
             </div>
           </section>
 
+          <div class="result-lower-grid">
+            <section class="ranking-panel result-lower-panel" aria-label="累積苦手ランキング">
+              <div class="ranking-heading">
+                <div>
+                  <p class="eyebrow">Long Term</p>
+                  <h3>累積分析</h3>
+                  <p class="ranking-copy">苦手を確認して、そのまま再挑戦へつなげます。</p>
+                </div>
+              </div>
+              <div class="ranking-heading ranking-heading-sub">
+                <div>
+                  <p class="eyebrow">Ranking</p>
+                  <h3 id="rankingTitle">苦手ランキング</h3>
+                </div>
+                <div class="ranking-tabs" role="tablist" aria-label="ランキング切替">
+                  <button class="ranking-tab is-active" type="button" data-ranking-type="weak" role="tab" aria-selected="true">ミス</button>
+                  <button class="ranking-tab" type="button" data-ranking-type="accuracy" role="tab" aria-selected="false">正答率</button>
+                  <button class="ranking-tab" type="button" data-ranking-type="time" role="tab" aria-selected="false">平均時間</button>
+                </div>
+              </div>
+              <ol id="weakRankingList" class="ranking-list ranking-list-compact"></ol>
+            </section>
+
+            <section class="result-side-panel result-next-panel result-lower-panel">
+              <div class="result-section-heading result-section-heading-inline">
+                <p class="eyebrow">Next Try</p>
+                <h3>次にやる</h3>
+              </div>
+              <div class="ranking-actions">
+                <button id="practiceWeakButton" class="ghost-button" type="button" disabled>苦手上位10件を再出題</button>
+                <button id="practiceLastMistakeButton" class="ghost-button" type="button" disabled>前回ミスだけ再出題</button>
+                <button id="practiceUnansweredButton" class="ghost-button" type="button" disabled>未正解だけ再出題</button>
+                <button id="practiceRecentMistakeButton" class="ghost-button" type="button" disabled>最近ミスだけ再出題</button>
+                <button id="practiceLowAccuracyButton" class="ghost-button" type="button" disabled>低正答率を優先出題</button>
+              </div>
+            </section>
+          </div>
+
           <div class="result-actions">
-            <button id="downloadJsonButton" class="primary-button" type="button">弱点JSONをダウンロード</button>
-            <button id="exportProgressButton" class="ghost-button" type="button">累積成績を書き出し</button>
-            <button id="importProgressButton" class="ghost-button" type="button">累積成績を読み込み</button>
-            <input id="importProgressInput" class="is-hidden" type="file" accept="application/json,.json">
             <button id="retryButton" class="ghost-button" type="button">もう一度プレイ</button>
             <button id="resultBackToMenuButton" class="ghost-button" type="button">トップへ戻る</button>
           </div>
@@ -324,8 +438,22 @@
 
         <!-- 右カラム：完成地図 -->
         <div class="result-right">
-          <p class="eyebrow">Completed map</p>
+          <p class="eyebrow">Reference map</p>
           <div id="resultMapSlot" class="result-map-slot"></div>
+          <section class="result-section result-section-compact result-section-side">
+            <div class="result-section-heading">
+              <p class="eyebrow">Battle Record</p>
+              <h3>戦績</h3>
+              <p id="resultHistoryCopy" class="ranking-copy">前回比と自己ベストを軸に、直近の流れを短く確認できます。</p>
+            </div>
+            <div class="history-panel history-panel-compact">
+              <div class="history-panel-head">
+                <span id="resultHistoryMetricLabel" class="history-panel-label">直近5回のクリアタイム</span>
+                <span id="resultHistoryBestLabel" class="history-panel-best">ベスト --:--</span>
+              </div>
+              <div id="resultHistoryList" class="history-summary-list history-summary-list-side"></div>
+            </div>
+          </section>
         </div>
 
       </section>
@@ -383,18 +511,28 @@
   });
 
   /* サドンデス・ミス音声トグルの双方向同期 */
-  ['suddenDeathToggle', 'mistakeSpeechToggle'].forEach(function (id) {
-    var top = document.getElementById(id + 'Top');
-    var orig = document.getElementById(id);
-    if (top && orig) {
-      top.addEventListener('change', function () {
-        orig.checked = top.checked;
+  [
+    ['suddenDeathToggle', 'suddenDeathToggleTop', 'suddenDeathToggleBar'],
+    ['mistakeSpeechToggle', 'mistakeSpeechToggleTop', 'mistakeSpeechToggleBar']
+  ].forEach(function (ids) {
+    var orig = document.getElementById(ids[0]);
+    var mirrors = ids.slice(1)
+      .map(function (id) { return document.getElementById(id); })
+      .filter(Boolean);
+    if (!orig || !mirrors.length) return;
+
+    mirrors.forEach(function (mirror) {
+      mirror.addEventListener('change', function () {
+        orig.checked = mirror.checked;
         orig.dispatchEvent(new Event('change'));
       });
-      orig.addEventListener('change', function () {
-        top.checked = orig.checked;
+    });
+
+    orig.addEventListener('change', function () {
+      mirrors.forEach(function (mirror) {
+        mirror.checked = orig.checked;
       });
-    }
+    });
   });
 
   /* 200ms インターバルでスタット・モードラベルを上バーへ同期 */

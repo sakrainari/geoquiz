@@ -94,9 +94,13 @@
     }
 
     result() {
+      const reachedQuestions = this.gameOver && this.index < this.questions.length
+        ? Math.min(this.index + 1, this.questions.length)
+        : this.questions.length;
       return {
         mode: this.mode,
         totalQuestions: this.questions.length,
+        reachedQuestions,
         correct: this.correct,
         mistakes: this.mistakes,
         elapsedMs: this.elapsedMs(),
