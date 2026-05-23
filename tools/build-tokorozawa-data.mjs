@@ -170,6 +170,8 @@ try {
     [
       mapshaperBin,
       preDissolvePath,
+      "-snap",                                         // 近接頂点を吸着（JGD2011座標精度の問題を解消）
+      "-clean",                                        // 自己交差・重複リングを除去
       "-dissolve", "_chome",
       "-filter-islands", "min-area=500m2", "remove-empty",
       "-o", "format=geojson", dissolvedPath,
@@ -178,6 +180,57 @@ try {
   );
   const dissolved = JSON.parse(await readFile(dissolvedPath, "utf8"));
   console.log(`  dissolve 後: ${dissolved.features.length} 町字`);
+
+  // ===== Step 4b: dissolve で脱落した町字を救済 =====
+  // mapshaper の dissolve がトポロジー処理で null geometry を生成することがある。
+  // pre-dissolve に存在して post-dissolve に存在しない _chome を特定し、
+  // 元のポリゴンをそのまま（または再 dissolve して）追加する。
+  {
+    const dissolvedNames = new Set(dissolved.features.map((f) => f.properties._chome));
+    const chomeGroups = new Map();
+    for (const f of tokorozawaFeatures) {
+      const chome = f.properties._chome;
+      if (!dissolvedNames.has(chome)) {
+        if (!chomeGroups.has(chome)) chomeGroups.set(chome, []);
+        chomeGroups.get(chome).push(f);
+      }
+    }
+    if (chomeGroups.size > 0) {
+      const rescuedNames = [...chomeGroups.keys()];
+      console.log(`  ⚠️  dissolve で脱落した町字を救済 (${rescuedNames.length}件): ${rescuedNames.join(", ")}`);
+      let rescueIdx = 0;
+      for (const [chome, raws] of chomeGroups) {
+        if (raws.length === 1 && raws[0].geometry) {
+          // 単一 feature → そのままコピー
+          dissolved.features.push({ type: "Feature", properties: { _chome: chome }, geometry: raws[0].geometry });
+        } else {
+          // 複数 feature → mapshaper で再 dissolve
+          const rescueSrc  = path.join(tempDir, `rescue_${rescueIdx}_src.geojson`);
+          const rescueDst  = path.join(tempDir, `rescue_${rescueIdx}_dst.geojson`);
+          rescueIdx++;
+          await writeFile(rescueSrc, JSON.stringify({ type: "FeatureCollection", features: raws }));
+          try {
+            await execFile(
+              process.execPath,
+              [mapshaperBin, rescueSrc, "-dissolve", "_chome", "-o", "format=geojson", rescueDst],
+              { cwd: process.cwd(), maxBuffer: 1024 * 1024 * 10 },
+            );
+            const rescued = JSON.parse(await readFile(rescueDst, "utf8"));
+            if (rescued.features.length > 0 && rescued.features[0].geometry) {
+              dissolved.features.push(rescued.features[0]);
+            } else {
+              console.warn(`    ⚠️  "${chome}" の再 dissolve も失敗 → 最大面積ポリゴンを使用`);
+              const largest = raws.reduce((a, b) => (b.geometry && (!a.geometry)) ? b : a);
+              if (largest.geometry) dissolved.features.push({ type: "Feature", properties: { _chome: chome }, geometry: largest.geometry });
+            }
+          } catch (e) {
+            console.warn(`    ⚠️  "${chome}" の再 dissolve でエラー: ${e.message}`);
+          }
+        }
+      }
+      console.log(`  救済後: ${dissolved.features.length} 町字`);
+    }
+  }
 
   // ===== Step 5: GeoQuiz 用プロパティを付加 =====
   console.log("Step 5: GeoQuiz プロパティ付加...");
