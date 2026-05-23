@@ -21,6 +21,8 @@
       this.areaCodeLayersByCode = new Map();
       this.areaCodeFeaturesByCode = new Map();
       this.displayFeaturesById = new Map();
+      this.hitTargetsById = new Map();
+      this.hitTargetLayer = null;
       this.tooltipsById = new Map();
       this.areaCodeTooltipsByCode = new Map();
       this.answeredIds = new Set();
@@ -43,6 +45,8 @@
       this.puzzleDrag = null;
       this.onPuzzleChange = null;
       this.liteMode = options.liteMode || false;
+      this.initialView = options.initialView || null;
+      this.labelBehavior = options.labelBehavior || {};
       this.labelStatesById = normalizeLabelOverrides(options.labelOverrides).municipalities;
       this.areaCodeLabelStatesByCode = normalizeLabelOverrides(options.labelOverrides).areaCodes;
       this.mode = "municipality";
@@ -54,7 +58,9 @@
       });
       this.map.createPane("ghostPane").style.zIndex = 300;
       this.map.createPane("mainPane").style.zIndex = 450;
+      this.map.createPane("hitPane").style.zIndex = 520;
       this.map.createPane("labelPane").style.zIndex = 650;
+      this.map.getPane("hitPane").style.pointerEvents = "auto";
       this.map.getPane("labelPane").style.pointerEvents = "none";
       // OSM tile layer — requires internet connection; disabled by default
       this.tileLayerVisible = false;
@@ -125,6 +131,60 @@
           });
         }
       }).addTo(this.map);
+      this.renderMunicipalityHitTargets(displayFeatures);
+    }
+
+    renderMunicipalityHitTargets(displayFeatures) {
+      if (this.hitTargetLayer) {
+        this.map.removeLayer(this.hitTargetLayer);
+        this.hitTargetLayer = null;
+      }
+      this.hitTargetsById.clear();
+      const targets = displayFeatures.filter((feature) => shouldCreateHitTarget(feature));
+      if (!targets.length) return;
+      this.hitTargetLayer = L.layerGroup().addTo(this.map);
+      targets.forEach((feature) => {
+        const id = feature.properties.id;
+        const point = feature.properties.labelPoint || featureCenterOfMass(feature);
+        if (!Array.isArray(point)) return;
+        const radius = hitTargetRadius(feature);
+        const marker = L.circleMarker(point, {
+          pane: "hitPane",
+          radius,
+          stroke: false,
+          fillColor: "#ffffff",
+          fillOpacity: 0.01,
+          interactive: true,
+          bubblingMouseEvents: false
+        });
+        marker.on({
+          mouseover: () => {
+            if (this.liteMode || this.puzzleEnabled || this.labelEditEnabled) return;
+            const base = this.getFeatureStyle(id);
+            const layers = this.layersById.get(id) || [];
+            layers.forEach((layer) => layer.setStyle({
+              ...base,
+              color: COLORS.hover,
+              weight: 2.2,
+              opacity: 1,
+              fillOpacity: 0.95
+            }));
+          },
+          mouseout: () => {
+            if (this.labelEditEnabled) return;
+            this.refreshFeatureStyle(id);
+          },
+          click: () => {
+            if (this.labelEditEnabled) {
+              this.selectEditableLabel(id);
+              return;
+            }
+            this.onFeatureClick && this.onFeatureClick(feature, marker);
+          }
+        });
+        marker.addTo(this.hitTargetLayer);
+        this.hitTargetsById.set(id, marker);
+      });
     }
 
     setMode(mode) {
@@ -453,7 +513,12 @@
     }
 
     fitToMain() {
-      this.map.fitBounds(this.mainLayer.getBounds(), { padding: [24, 24] });
+      if (this.initialView && Array.isArray(this.initialView.center) && typeof this.initialView.zoom === "number") {
+        this.map.setView(this.initialView.center, this.initialView.zoom);
+        return;
+      }
+      const preferredBounds = preferredMainBounds(this.dataset);
+      this.map.fitBounds(preferredBounds || this.mainLayer.getBounds(), { padding: [24, 24] });
     }
 
     _refreshVisibleLabels() {
@@ -614,10 +679,13 @@
         angleLimit: this.mode === "ma" ? 18 : 28,
         zoom: this.map.getZoom()
       });
-      const point = label.point || featureCenterOfMass(feature);
+      const point = this.labelBehavior.forcePreferredPoint
+        ? (props.labelPoint || label.point || featureCenterOfMass(feature))
+        : (label.point || featureCenterOfMass(feature));
       if (!Array.isArray(point)) return;
+      const labelSize = Math.max(label.size, this.labelBehavior.minMunicipalitySize || 0);
       const selected = this.labelEditSelectedId === id;
-      const html = `<div class="answered-label municipality-label${selected ? " is-selected" : ""}" style="font-size:${label.size}px; transform: translate(-50%, -50%) rotate(${label.angle}deg);">${props.name}</div>`;
+      const html = `<div class="answered-label municipality-label${selected ? " is-selected" : ""}" style="font-size:${labelSize}px; transform: translate(-50%, -50%) rotate(${label.angle}deg);">${props.name}</div>`;
       const marker = L.marker(point, {
         pane: "labelPane",
         opacity: 0,
@@ -800,10 +868,13 @@
         preferredPoint: feature.properties.labelPoint,
         zoom: this.map.getZoom()
       });
-      const point = label.point || featureCenterOfMass(feature);
+      const point = this.labelBehavior.forcePreferredPoint
+        ? (feature.properties.labelPoint || label.point || featureCenterOfMass(feature))
+        : (label.point || featureCenterOfMass(feature));
       if (!Array.isArray(point)) return;
+      const labelSize = Math.max(label.size, this.labelBehavior.minAreaCodeSize || 0);
       const selected = this.labelEditSelectedId === `areaCode:${areaCode}`;
-      const html = `<div class="answered-label area-code-label${selected ? " is-selected" : ""}" style="font-size:${label.size}px; transform: translate(-50%, -50%) rotate(${label.angle}deg);">${areaCode}</div>`;
+      const html = `<div class="answered-label area-code-label${selected ? " is-selected" : ""}" style="font-size:${labelSize}px; transform: translate(-50%, -50%) rotate(${label.angle}deg);">${areaCode}</div>`;
       const marker = L.marker(point, {
         pane: "labelPane",
         opacity: 0,
@@ -1094,6 +1165,29 @@
 
       return window.MaUnion.unionFeatures(features, properties);
     });
+  }
+
+  function shouldCreateHitTarget(feature) {
+    if (!feature || !feature.properties) return false;
+    const box = geometryBounds(feature.geometry);
+    const maxSpan = Math.max(box.width, box.height);
+    const minSpan = Math.min(box.width, box.height);
+    const isIsland = feature.properties.region === "島しょ";
+    if (isIsland) return maxSpan < 0.22 || minSpan < 0.08;
+    return maxSpan < 0.035 || minSpan < 0.012;
+  }
+
+  function hitTargetRadius(feature) {
+    const box = geometryBounds(feature.geometry);
+    const maxSpan = Math.max(box.width, box.height);
+    if (feature.properties && feature.properties.region === "島しょ") {
+      if (maxSpan < 0.04) return 20;
+      if (maxSpan < 0.08) return 16;
+      return 12;
+    }
+    if (maxSpan < 0.015) return 16;
+    if (maxSpan < 0.03) return 12;
+    return 10;
   }
 
   function buildLabelPlacement(feature, options = {}) {
@@ -1514,6 +1608,37 @@
       angle: state.angle,
       size: state.size
     }]));
+  }
+
+  function preferredMainBounds(dataset) {
+    const features = Array.isArray(dataset && dataset.features) ? dataset.features : [];
+    const mainland = features.filter((feature) => feature && feature.properties && feature.properties.region !== "島しょ");
+    if (!mainland.length || mainland.length === features.length) return null;
+    return boundsFromFeatures(mainland);
+  }
+
+  function boundsFromFeatures(features) {
+    const bounds = L.latLngBounds([]);
+    features.forEach((feature) => {
+      geometryLatLngs(feature && feature.geometry).forEach((latlng) => bounds.extend(latlng));
+    });
+    return bounds.isValid() ? bounds : null;
+  }
+
+  function geometryLatLngs(geometry, out = []) {
+    if (!geometry) return out;
+    if (geometry.type === "Polygon") {
+      geometry.coordinates.flat(1).forEach(([lng, lat]) => out.push([lat, lng]));
+      return out;
+    }
+    if (geometry.type === "MultiPolygon") {
+      geometry.coordinates.flat(2).forEach(([lng, lat]) => out.push([lat, lng]));
+      return out;
+    }
+    if (geometry.type === "GeometryCollection") {
+      geometry.geometries.forEach((item) => geometryLatLngs(item, out));
+    }
+    return out;
   }
 
   function featureCenterOfMass(feature) {

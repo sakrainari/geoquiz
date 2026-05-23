@@ -3,6 +3,7 @@
   const dataset = appConfig.dataset;
   const ghostData = appConfig.ghostData;
   const baseLabelOverrides = normalizeLabelOverrideShape(appConfig.labelOverrides);
+  const speechReadings = appConfig.speechReadings || {};
   dataset.imageQuestions = appConfig.imageQuestions;
   const engine = new window.QuizEngine(dataset);
   let renderer;
@@ -22,21 +23,6 @@
   let puzzleState = null;
   let previousPuzzleFixed = 0;
   let audioContext = null;
-  const speechLabelOverrides = {
-    "東秩父村": "ひがしちちぶむら",
-    "滑川町": "なめがわまち",
-    "越生町": "おごせまち",
-    "嵐山町": "らんざんまち",
-    "毛呂山町": "もろやままち",
-    "神川町": "かみかわまち",
-    "行田市": "ぎょうだし",
-    "加須市": "かぞし",
-    "羽生市": "はにゅうし",
-    "幸手市": "さってし",
-    "鴻巣市": "こうのすし",
-    "小鹿野町": "おがのまち",
-    "寄居町": "よりいまち"
-  };
   const QUIZ_START_MODES = ["municipality", "ma", "ma_broad"];
   const DEFAULT_QUIZ_MODE = appConfig.enabledModes.includes("municipality")
     ? "municipality"
@@ -88,6 +74,8 @@
     appSubtitle: document.getElementById("appSubtitle"),
     appTitle: document.getElementById("appTitle"),
     appDescription: document.getElementById("appDescription"),
+    regionSelector: document.getElementById("regionSelector"),
+    regionMenu: document.getElementById("regionMenu"),
     quizModeButtons: [...document.querySelectorAll(".mode-grid [data-start-mode]")],
     confirmModeButtons: [...document.querySelectorAll(".mode-grid-confirm [data-start-mode]")],
     startQuizButton: document.getElementById("startQuizButton"),
@@ -168,6 +156,7 @@
   };
 
   applyDatasetMeta();
+  renderRegionMenu();
   updateTopStats();
   applyAvailableModes();
   applySessionSettingsToGameControls();
@@ -232,6 +221,29 @@
   els.endAnalysisButton.addEventListener("click", showAnalysisScreen);
   els.endTopButton.addEventListener("click", showStart);
   els.endShareButton.addEventListener("click", shareResultToX);
+  if (els.regionSelector) {
+    els.regionSelector.addEventListener("click", (event) => {
+      event.stopPropagation();
+      toggleRegionMenu();
+    });
+  }
+  if (els.regionMenu) {
+    els.regionMenu.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-dataset-id]");
+      if (!button) return;
+      event.preventDefault();
+      navigateToDataset(button.dataset.datasetId);
+    });
+  }
+  document.addEventListener("click", (event) => {
+    if (!els.regionMenu || !els.regionSelector) return;
+    if (els.regionMenu.classList.contains("is-hidden")) return;
+    if (els.regionMenu.contains(event.target) || els.regionSelector.contains(event.target)) return;
+    closeRegionMenu();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeRegionMenu();
+  });
   els.suddenDeathToggle.addEventListener("change", () => {
     engine.suddenDeath = els.suddenDeathToggle.checked;
     currentSessionSettings.suddenDeath = els.suddenDeathToggle.checked;
@@ -481,7 +493,12 @@
 
   function ensureMap() {
     if (renderer) return renderer;
-    renderer = new window.MapRenderer("map", dataset, ghostData, { labelOverrides, liteMode });
+    renderer = new window.MapRenderer("map", dataset, ghostData, {
+      labelOverrides,
+      liteMode,
+      initialView: appConfig.initialView || null,
+      labelBehavior: appConfig.labelBehavior || null
+    });
     window.__geoquizRenderer = renderer;
     currentSessionSettings.tileLayerVisible = renderer.tileLayerVisible;
     syncTileLayerButtons(renderer.tileLayerVisible);
@@ -758,7 +775,8 @@
     }
     renderLabelTargetOptions(state.targets || [], state.selectedId || "");
     const normalized = normalizeLabelOverrideShape(state.overrides);
-    els.labelOverrideOutput.value = `window.SAITAMA_LABEL_OVERRIDES = ${JSON.stringify(normalized, null, 2)};\n`;
+    const labelGlobalName = appConfig.labelOverridesGlobal || "GEOQUIZ_LABEL_OVERRIDES";
+    els.labelOverrideOutput.value = `window.${labelGlobalName} = ${JSON.stringify(normalized, null, 2)};\n`;
     updateLabelDraft(normalized);
   }
 
@@ -1341,7 +1359,7 @@
 
   function pronouncePlaceName(name) {
     const raw = String(name || "");
-    return speechLabelOverrides[raw] || raw;
+    return speechReadings[raw] || raw;
   }
 
   function modeName(mode) {
@@ -1429,6 +1447,73 @@
     els.appSubtitle.textContent = appConfig.subtitle || `${appConfig.name} dataset`;
     els.appTitle.textContent = appConfig.title || "日本市外局番マップクイズ";
     els.appDescription.textContent = appConfig.description || `${appConfig.name} の地域認識トレーニング。`;
+    if (els.regionSelector) els.regionSelector.textContent = `${appConfig.name} ▾`;
+    if (els.map) els.map.setAttribute("aria-label", `${appConfig.name}クイズ地図`);
+    applyDatasetModeDescriptions();
+  }
+
+  function renderRegionMenu() {
+    if (!els.regionMenu) return;
+    const catalog = window.GEOQUIZ_DATASETS || [];
+    els.regionMenu.innerHTML = catalog.map((item) => {
+      const active = item.id === appConfig.id;
+      const meta = [
+        item.shortName || item.name,
+        item.enabledModes?.includes("ma") ? "市区町村 + 市外局番" : "市区町村"
+      ].join(" · ");
+      return `<button class="region-menu-item${active ? " is-active" : ""}" type="button" role="menuitem" data-dataset-id="${escapeHtml(item.id)}">
+        <span class="region-menu-name">${escapeHtml(item.name)}</span>
+        <span class="region-menu-meta">${escapeHtml(meta)}</span>
+      </button>`;
+    }).join("");
+  }
+
+  function toggleRegionMenu() {
+    if (!els.regionMenu || !els.regionSelector) return;
+    const opening = els.regionMenu.classList.contains("is-hidden");
+    if (opening) {
+      els.regionMenu.classList.remove("is-hidden");
+      els.regionSelector.setAttribute("aria-expanded", "true");
+      return;
+    }
+    closeRegionMenu();
+  }
+
+  function closeRegionMenu() {
+    if (!els.regionMenu || !els.regionSelector) return;
+    els.regionMenu.classList.add("is-hidden");
+    els.regionSelector.setAttribute("aria-expanded", "false");
+  }
+
+  function navigateToDataset(datasetId) {
+    if (!datasetId || datasetId === appConfig.id) {
+      closeRegionMenu();
+      return;
+    }
+    const url = new URL(window.location.href);
+    url.searchParams.set("dataset", datasetId);
+    url.searchParams.delete("id");
+    window.location.href = url.toString();
+  }
+
+  function applyDatasetModeDescriptions() {
+    const municipalityButton = document.querySelector('[data-start-mode="municipality"] .mode-card-desc');
+    const areaCodeButton = document.querySelector('[data-start-mode="ma"] .mode-card-desc');
+    const confirmButton = document.querySelector('[data-start-mode="confirm"] .mode-card-desc');
+    const confirmAreaCodeButton = document.querySelector('[data-start-mode="confirm_ma"] .mode-card-desc');
+    const areaCodeCount = new Set(dataset.municipalities.map((item) => item.area_code).filter(Boolean)).size;
+    if (municipalityButton) {
+      municipalityButton.textContent = `市町村名から場所を当てる · ${dataset.municipalities.length}問`;
+    }
+    if (areaCodeButton) {
+      areaCodeButton.textContent = `番号からエリアを当てる · ${areaCodeCount}問`;
+    }
+    if (confirmButton) {
+      confirmButton.textContent = `全${dataset.municipalities.length}市区町村を表示して確認`;
+    }
+    if (confirmAreaCodeButton) {
+      confirmAreaCodeButton.textContent = `全${areaCodeCount}市外局番エリアを表示して確認`;
+    }
   }
 
   function applyAvailableModes() {
@@ -1453,7 +1538,8 @@
       dataset: resolvedDataset,
       ghostData: window[config.ghostGlobal] || null,
       imageQuestions: window[config.imageQuestionsGlobal] || [],
-      labelOverrides: window[config.labelOverridesGlobal] || {}
+      labelOverrides: window[config.labelOverridesGlobal] || {},
+      speechReadings: window[config.speechReadingsGlobal] || {}
     };
   }
 
