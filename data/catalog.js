@@ -581,5 +581,24 @@ window.GEOQUIZ_DATASETS = [
       zoom: 7
     },
     version: "0.1.0"
+  },
+  // ── 特集：市区町村 町字クイズ ──────────────────────────────────
+  {
+    id: "fujisawa",
+    name: "藤沢市（町字）",
+    shortName: "藤沢市",
+    title: "GeoQuiz",
+    subtitle: "町字クイズ / 藤沢市",
+    description: "藤沢市の町字を当てるクイズ。e-Stat 国勢調査2020 小地域境界データを使用。",
+    dataGlobal: "FUJISAWA_MUNICIPALITIES",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [35.34, 139.47],
+    initialView: {
+      center: [35.34, 139.47],
+      zoom: 12
+    },
+    category: "special",
+    version: "0.1.0"
   }
 ];

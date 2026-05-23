@@ -577,6 +577,8 @@
     <script src="data/hokkaido-all/speech-readings.js"></script>
     <script src="data/ghost/kanto-ghost.js"></script>
     <script src="data/image-questions/saitama.js"></script>
+    <!-- 特集：町字クイズ（ビルド後に有効） -->
+    <script src="data/prefectures/fujisawa.js" onerror="void 0"></script>
     <script src="data/catalog.js"></script>
     <script src="js/ma-union.js"></script>
     <script src="js/quiz-modes.js"></script>
@@ -740,7 +742,12 @@
       allId: 'kyushu_all',
       prefIds: ['fukuoka', 'saga', 'nagasaki', 'kumamoto', 'oita', 'miyazaki', 'kagoshima']
     },
-    { id: 'okinawa', label: '沖縄', coming: true }
+    { id: 'okinawa', label: '沖縄', coming: true },
+    {
+      id: 'special', label: '特集',
+      prefIds: ['fujisawa'],
+      sectionLabel: '市区町村（町字）'
+    }
   ];
 
   var datasets = window.GEOQUIZ_DATASETS || [];
@@ -978,7 +985,7 @@
     if (activeRegion.prefIds && activeRegion.prefIds.length) {
       var secLabel = document.createElement('p');
       secLabel.className = 'section-label';
-      secLabel.textContent = '都道府県別';
+      secLabel.textContent = activeRegion.sectionLabel || '都道府県別';
       grid.appendChild(secLabel);
 
       var prefGrid = document.createElement('div');
