@@ -438,14 +438,15 @@
 
     getMaCollections(groupBy) {
       if (!this._maUnionCache.has(groupBy)) {
-        this._maUnionCache.set(groupBy, window.MaUnion.buildMaCollections(this.dataset, groupBy));
+        const precomputed = groupBy === "area_code" ? this.dataset.maFeatures : null;
+        this._maUnionCache.set(groupBy, precomputed || window.MaUnion.buildMaCollections(this.dataset, groupBy));
       }
       return this._maUnionCache.get(groupBy);
     }
 
     getMaBroadCollections() {
       if (!this._maUnionCache.has("broad")) {
-        this._maUnionCache.set("broad", window.MaUnion.buildMaBroadCollections(this.dataset));
+        this._maUnionCache.set("broad", this.dataset.maBroadFeatures || window.MaUnion.buildMaBroadCollections(this.dataset));
       }
       return this._maUnionCache.get("broad");
     }
