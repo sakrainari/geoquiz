@@ -19,20 +19,32 @@
       </div>
       <section id="startScreen" class="start-screen">
 
-        <!-- 左カラム：ブランド + クイズモード -->
+        <!-- 左カラム：データセット picker -->
         <div class="start-left">
-          <header class="start-header">
+          <header class="start-header picker-header">
             <div class="brand-block">
-              <p class="eyebrow" id="appSubtitle">GeoGuessr training</p>
+              <p class="eyebrow" id="appSubtitle" hidden>GeoGuessr training</p>
               <h1 id="appTitle">GeoQuiz</h1>
-              <p id="appDescription">地図から、知識を叩き込むトレーニングツール。</p>
+              <p id="appDescription" hidden>地図から、知識を叩き込むトレーニングツール。</p>
             </div>
-            <div class="region-selector-wrap">
-              <button id="regionSelector" class="ghost-button region-selector" type="button" aria-haspopup="true" aria-expanded="false">地域選択 ▾</button>
-              <div id="regionMenu" class="region-menu is-hidden" role="menu" aria-label="地域選択"></div>
-            </div>
+            <span id="regionInfoBadge" class="region-info-badge" aria-live="polite">—</span>
           </header>
 
+          <!-- 地方タブ -->
+          <div id="regionTabBar" class="region-tab-bar" role="tablist" aria-label="地方選択"></div>
+
+          <!-- データセットカードグリッド -->
+          <div id="datasetPickerGrid" class="dataset-picker-grid"></div>
+
+          <!-- app.js 後方互換のため非表示で温存 -->
+          <div hidden>
+            <button id="regionSelector" class="ghost-button region-selector" type="button" aria-haspopup="true" aria-expanded="false">地域選択 ▾</button>
+            <div id="regionMenu" class="region-menu is-hidden" role="menu" aria-label="地域選択"></div>
+          </div>
+        </div>
+
+        <!-- 右カラム：クイズモード + 確認マップ + 統計 -->
+        <div class="start-right">
           <p class="section-label">クイズ</p>
           <div class="mode-grid" aria-label="モード選択">
 
@@ -88,10 +100,6 @@
 
           </div>
 
-        </div>
-
-        <!-- 右カラム：確認マップ + 統計パネル -->
-        <div class="start-right">
           <p class="section-label">確認マップ</p>
           <div class="mode-grid-confirm" aria-label="確認マップ">
 
@@ -699,6 +707,313 @@
     }
   });
   gsObs.observe(gameScreen, { attributes: true, attributeFilter: ['class'] });
+})();
+
+/* ── データセットピッカー ── */
+(function () {
+  var REGIONS = [
+    {
+      id: 'hokkaido', label: '北海道',
+      allId: 'hokkaido_all',
+      prefIds: ['hokkaido_doo', 'hokkaido_donan', 'hokkaido_dohoku', 'hokkaido_doto']
+    },
+    {
+      id: 'kanto', label: '関東',
+      allId: 'kanto_all',
+      prefIds: ['tokyo', 'tokyo_all', 'tokyo_islands', 'saitama', 'chiba', 'kanagawa', 'ibaraki', 'gunma', 'tochigi']
+    },
+    { id: 'tohoku', label: '東北', coming: true },
+    { id: 'chubu',  label: '中部', coming: true },
+    { id: 'kinki',  label: '近畿', coming: true },
+    {
+      id: 'chugoku', label: '中国',
+      allId: 'chugoku_all',
+      prefIds: ['tottori', 'shimane', 'okayama', 'hiroshima', 'yamaguchi']
+    },
+    {
+      id: 'shikoku', label: '四国',
+      allId: 'shikoku_all',
+      prefIds: ['tokushima', 'kagawa', 'ehime', 'kochi']
+    },
+    {
+      id: 'kyushu', label: '九州',
+      allId: 'kyushu_all',
+      prefIds: ['fukuoka', 'saga', 'nagasaki', 'kumamoto', 'oita', 'miyazaki', 'kagoshima']
+    },
+    { id: 'okinawa', label: '沖縄', coming: true }
+  ];
+
+  var datasets = window.GEOQUIZ_DATASETS || [];
+  var dsMap = {};
+  datasets.forEach(function (d) { dsMap[d.id] = d; });
+
+  /* ── ミニマップ SVG 生成 ── */
+  var _svgCache = {};
+
+  function buildMiniSvg(features) {
+    var VW = 100, VH = 60;
+    if (!features || !features.length) return '';
+
+    /* ① 各 feature のバウンディングボックスと重心を求める */
+    function featureBbox(geom) {
+      var x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+      function scan(ring) {
+        for (var i = 0; i < ring.length; i++) {
+          var x = ring[i][0], y = ring[i][1];
+          if (x < x0) x0 = x; if (x > x1) x1 = x;
+          if (y < y0) y0 = y; if (y > y1) y1 = y;
+        }
+      }
+      if (geom.type === 'Polygon') geom.coordinates.forEach(scan);
+      else if (geom.type === 'MultiPolygon') geom.coordinates.forEach(function(p) { p.forEach(scan); });
+      return isFinite(x0) ? { x0: x0, x1: x1, y0: y0, y1: y1,
+                              cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 } : null;
+    }
+
+    var fb = [];
+    for (var fi = 0; fi < features.length; fi++) {
+      var b = features[fi].geometry ? featureBbox(features[fi].geometry) : null;
+      if (b) fb.push(b);
+    }
+    if (!fb.length) return '';
+
+    /* ② IQR フィルタでビューポート範囲を決定（離島外れ値対策）
+       feature の重心の IQR を K=2.5 倍まで許容し、それ以遠は
+       ビューポート計算から除外する。除外されても描画はするので
+       SVG の viewBox で自動クリップされる。                    */
+    function quantile(arr, q) {
+      var s = arr.slice().sort(function(a, b) { return a - b; });
+      var idx = q * (s.length - 1);
+      var lo = Math.floor(idx);
+      return s[lo] + (s[Math.ceil(idx)] - s[lo]) * (idx - lo);
+    }
+
+    var cxs = fb.map(function(b) { return b.cx; });
+    var cys = fb.map(function(b) { return b.cy; });
+    var K = 2.5, MIN_IQR = 0.01;
+
+    var q1x = quantile(cxs, 0.25), q3x = quantile(cxs, 0.75);
+    var q1y = quantile(cys, 0.25), q3y = quantile(cys, 0.75);
+    var loX = q1x - K * Math.max(q3x - q1x, MIN_IQR);
+    var hiX = q3x + K * Math.max(q3x - q1x, MIN_IQR);
+    var loY = q1y - K * Math.max(q3y - q1y, MIN_IQR);
+    var hiY = q3y + K * Math.max(q3y - q1y, MIN_IQR);
+
+    var vpX0 = Infinity, vpX1 = -Infinity, vpY0 = Infinity, vpY1 = -Infinity;
+    for (var bi = 0; bi < fb.length; bi++) {
+      var b = fb[bi];
+      if (b.cx >= loX && b.cx <= hiX && b.cy >= loY && b.cy <= hiY) {
+        if (b.x0 < vpX0) vpX0 = b.x0; if (b.x1 > vpX1) vpX1 = b.x1;
+        if (b.y0 < vpY0) vpY0 = b.y0; if (b.y1 > vpY1) vpY1 = b.y1;
+      }
+    }
+    /* フォールバック：全 feature が外れ値になった場合 */
+    if (!isFinite(vpX0)) {
+      for (var bi = 0; bi < fb.length; bi++) {
+        if (fb[bi].x0 < vpX0) vpX0 = fb[bi].x0; if (fb[bi].x1 > vpX1) vpX1 = fb[bi].x1;
+        if (fb[bi].y0 < vpY0) vpY0 = fb[bi].y0; if (fb[bi].y1 > vpY1) vpY1 = fb[bi].y1;
+      }
+    }
+
+    /* ③ ビューポートに合わせてスケーリング */
+    var pad = 3;
+    var dX = vpX1 - vpX0 || 1, dY = vpY1 - vpY0 || 1;
+    var scale = Math.min((VW - pad * 2) / dX, (VH - pad * 2) / dY);
+    var offX = (VW - dX * scale) / 2;
+    var offY = (VH - dY * scale) / 2;
+
+    function pt(lng, lat) {
+      return (+(((lng - vpX0) * scale + offX).toFixed(1))) + ',' +
+             (+(( VH - ((lat - vpY0) * scale + offY)).toFixed(1)));
+    }
+
+    function ringPath(coords) {
+      var d = 'M' + pt(coords[0][0], coords[0][1]);
+      for (var ci = 1; ci < coords.length; ci++) d += 'L' + pt(coords[ci][0], coords[ci][1]);
+      return d + 'Z';
+    }
+
+    /* ④ 全 feature を描画（ビューポート外はクリップ） */
+    var d = '';
+    for (var fi = 0; fi < features.length; fi++) {
+      var geom = features[fi].geometry;
+      if (!geom) continue;
+      var polys = geom.type === 'Polygon' ? [geom.coordinates] :
+                  geom.type === 'MultiPolygon' ? geom.coordinates : [];
+      for (var pi = 0; pi < polys.length; pi++) {
+        for (var ri = 0; ri < polys[pi].length; ri++) {
+          d += ringPath(polys[pi][ri]);
+        }
+      }
+    }
+
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + VW + ' ' + VH + '" width="100%" height="100%">' +
+      '<path d="' + d + '" fill="#1d9e75" fill-opacity="0.45" stroke="#1d9e75" stroke-opacity="0.85" stroke-width="0.5" fill-rule="evenodd"/>' +
+      '</svg>';
+  }
+
+  function getMiniSvg(ds) {
+    if (_svgCache[ds.id] !== undefined) return _svgCache[ds.id];
+    var data = ds.dataGlobal ? window[ds.dataGlobal] : null;
+    var svg = data && data.features ? buildMiniSvg(data.features) : '';
+    _svgCache[ds.id] = svg;
+    return svg;
+  }
+
+  var params = new URLSearchParams(location.search);
+  var currentDsId = params.get('dataset') || '';
+
+  function findRegionForDataset(dsId) {
+    for (var i = 0; i < REGIONS.length; i++) {
+      var r = REGIONS[i];
+      if (r.coming) continue;
+      if (r.allId === dsId) return r;
+      if (r.prefIds && r.prefIds.indexOf(dsId) !== -1) return r;
+    }
+    return null;
+  }
+
+  var activeRegion = findRegionForDataset(currentDsId);
+  if (!activeRegion) {
+    activeRegion = REGIONS.filter(function (r) { return !r.coming; })[0];
+  }
+
+  var tabBar  = document.getElementById('regionTabBar');
+  var grid    = document.getElementById('datasetPickerGrid');
+  var badge   = document.getElementById('regionInfoBadge');
+
+  function updateBadge() {
+    var ds = dsMap[currentDsId];
+    if (ds) {
+      badge.textContent = ds.shortName || ds.name;
+    } else if (activeRegion) {
+      var cnt = (activeRegion.prefIds ? activeRegion.prefIds.length : 0) +
+                (activeRegion.allId ? 1 : 0);
+      badge.textContent = activeRegion.label + ' · ' + cnt + 'データセット';
+    } else {
+      badge.textContent = '—';
+    }
+  }
+
+  function renderTabs() {
+    tabBar.innerHTML = '';
+    REGIONS.forEach(function (region) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'region-tab' +
+        (region.coming ? ' is-coming-soon' : '') +
+        (!region.coming && region.id === activeRegion.id ? ' is-active' : '');
+      btn.textContent = region.label;
+      btn.setAttribute('role', 'tab');
+      btn.setAttribute('aria-selected', (!region.coming && region.id === activeRegion.id) ? 'true' : 'false');
+      if (region.coming) {
+        btn.disabled = true;
+        btn.title = '準備中';
+      } else {
+        btn.addEventListener('click', function () {
+          activeRegion = region;
+          renderTabs();
+          renderGrid();
+          updateBadge();
+        });
+      }
+      tabBar.appendChild(btn);
+    });
+  }
+
+  function esc(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  /* window[ds.dataGlobal] から市区町村数・MA数を取得 */
+  function getDsStats(ds) {
+    var data = ds.dataGlobal ? window[ds.dataGlobal] : null;
+    return {
+      muniCount : data && data.features  ? data.features.length  : null,
+      maCount   : data && data.maFeatures ? data.maFeatures.length : null
+    };
+  }
+
+  /* 統計をテキストに整形 */
+  function statsText(stats, long) {
+    var parts = [];
+    if (stats.muniCount != null) parts.push('市区町村 ' + stats.muniCount + '問');
+    if (stats.maCount   != null) parts.push('MA ' + stats.maCount + (long ? 'エリア' : ''));
+    return parts.join(' · ');
+  }
+
+  function renderGrid() {
+    grid.innerHTML = '';
+    if (!activeRegion || activeRegion.coming) return;
+
+    /* 全域カード */
+    if (activeRegion.allId) {
+      var allDs = dsMap[activeRegion.allId];
+      if (allDs) {
+        var allStats = getDsStats(allDs);
+        var allCard = document.createElement('button');
+        allCard.type = 'button';
+        allCard.className = 'ds-card-all' + (currentDsId === allDs.id ? ' is-active' : '');
+        allCard.dataset.datasetId = allDs.id;
+        allCard.innerHTML =
+          '<div class="ds-card-body">' +
+            '<div class="ds-card-name">' + esc(allDs.shortName || allDs.name) + '</div>' +
+            (allStats.muniCount != null
+              ? '<div class="ds-card-meta">' + esc(statsText(allStats, true)) + '</div>'
+              : '') +
+          '</div>' +
+          '<span class="ds-card-badge">全域まとめて練習</span>';
+        allCard.addEventListener('click', function () {
+          location.href = '?dataset=' + allDs.id;
+        });
+        grid.appendChild(allCard);
+      }
+    }
+
+    /* 都道府県グリッド */
+    if (activeRegion.prefIds && activeRegion.prefIds.length) {
+      var secLabel = document.createElement('p');
+      secLabel.className = 'section-label';
+      secLabel.textContent = '都道府県別';
+      grid.appendChild(secLabel);
+
+      var prefGrid = document.createElement('div');
+      prefGrid.className = 'ds-pref-grid';
+
+      activeRegion.prefIds.forEach(function (pid) {
+        var ds = dsMap[pid];
+        if (!ds) return;
+        var stats = getDsStats(ds);
+        var svg   = getMiniSvg(ds);
+        var card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'ds-card-pref' + (currentDsId === ds.id ? ' is-active' : '');
+        card.dataset.datasetId = ds.id;
+        card.innerHTML =
+          (svg ? '<div class="ds-minimap">' + svg + '</div>' : '') +
+          '<div class="ds-card-pref-info">' +
+            '<div class="ds-card-name">' + esc(ds.shortName || ds.name) + '</div>' +
+            (stats.muniCount != null
+              ? '<div class="ds-card-meta">' + esc(statsText(stats, false)) + '</div>'
+              : '') +
+          '</div>';
+        card.addEventListener('click', function () {
+          location.href = '?dataset=' + ds.id;
+        });
+        prefGrid.appendChild(card);
+      });
+
+      grid.appendChild(prefGrid);
+    }
+  }
+
+  renderTabs();
+  renderGrid();
+  updateBadge();
 })();
     </script>
   </body>
