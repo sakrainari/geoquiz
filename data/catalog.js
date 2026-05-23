@@ -584,6 +584,25 @@ window.GEOQUIZ_DATASETS = [
   },
   // ── 特集：市区町村 町字クイズ ──────────────────────────────────
   {
+    id: "tokorozawa",
+    name: "所沢市（町字）",
+    shortName: "所沢市",
+    title: "GeoQuiz",
+    subtitle: "町字クイズ / 所沢市",
+    description: "所沢市の町字を当てるクイズ。e-Stat 国勢調査2020 小地域境界データを使用。",
+    dataGlobal: "TOKOROZAWA_MUNICIPALITIES",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [35.80, 139.47],
+    initialView: {
+      center: [35.80, 139.47],
+      zoom: 12
+    },
+    mapMaxZoom: 18,
+    category: "special",
+    version: "0.1.0"
+  },
+  {
     id: "fujisawa",
     name: "藤沢市（町字）",
     shortName: "藤沢市",

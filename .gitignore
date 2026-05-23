@@ -1,1 +1,9 @@
 node_modules/
+
+# e-Stat Shapefile（大容量・ローカルのみ）
+Shapefile/
+*.shp
+*.dbf
+*.shx
+*.prj
+*.cpg
