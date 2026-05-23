@@ -1,10 +1,12 @@
 import { mkdir, writeFile } from "node:fs/promises";
+import {
+  countFeatureVertices,
+  simplifyFeatureCollectionWithMapshaper
+} from "./lib/simplify-with-mapshaper.mjs";
 
-const OUTPUT = "data/prefectures/tokyo.js";
 const SOURCE = "https://geolonia.github.io/japanese-admins";
 
-// 東京都（島しょ部を除く）の自治体リスト
-const admins = [
+const mainlandAdmins = [
   // 23区
   { id: "tokyo_chiyoda", name: "千代田区", code: "13101", area_code: "03", ma_name: "東京MA", region: "23区", tags: ["23区", "都心"] },
   { id: "tokyo_chuo", name: "中央区", code: "13102", area_code: "03", ma_name: "東京MA", region: "23区", tags: ["23区", "都心"] },
@@ -62,6 +64,49 @@ const admins = [
   { id: "tokyo_okutama", name: "奥多摩町", code: "13308", area_code: "0428", ma_name: "青梅MA", region: "多摩", tags: ["多摩"] }
 ];
 
+const islandAdmins = [
+  { id: "tokyo_oshima", name: "大島町", code: "13361", area_code: "04992", ma_name: "大島MA", region: "島しょ", tags: ["島しょ", "伊豆諸島"] },
+  { id: "tokyo_toshima_village", name: "利島村", code: "13362", area_code: "04992", ma_name: "大島MA", region: "島しょ", tags: ["島しょ", "村", "伊豆諸島"] },
+  { id: "tokyo_niijima", name: "新島村", code: "13363", area_code: "04992", ma_name: "大島MA", region: "島しょ", tags: ["島しょ", "村", "伊豆諸島"] },
+  { id: "tokyo_kozushima", name: "神津島村", code: "13364", area_code: "04992", ma_name: "大島MA", region: "島しょ", tags: ["島しょ", "村", "伊豆諸島"] },
+  { id: "tokyo_miyake", name: "三宅村", code: "13381", area_code: "04994", ma_name: "三宅MA", region: "島しょ", tags: ["島しょ", "村", "伊豆諸島"] },
+  { id: "tokyo_mikurajima", name: "御蔵島村", code: "13382", area_code: "04994", ma_name: "三宅MA", region: "島しょ", tags: ["島しょ", "村", "伊豆諸島"] },
+  { id: "tokyo_hachijo", name: "八丈町", code: "13401", area_code: "04996", ma_name: "八丈MA", region: "島しょ", tags: ["島しょ", "伊豆諸島"] },
+  { id: "tokyo_aogashima", name: "青ヶ島村", code: "13402", area_code: "04996", ma_name: "八丈MA", region: "島しょ", tags: ["島しょ", "村", "伊豆諸島"] },
+  { id: "tokyo_ogasawara", name: "小笠原村", code: "13421", area_code: "04998", ma_name: "小笠原MA", region: "島しょ", tags: ["島しょ", "村", "小笠原"] }
+];
+
+const DATASETS = [
+  {
+    output: "data/prefectures/tokyo.js",
+    globalName: "TOKYO_MUNICIPALITIES",
+    prefecture: { id: "tokyo", name: "東京都", code: "13" },
+    admins: mainlandAdmins,
+    mergeByMunicipality: false,
+    mapshaper: {
+      interval: "25m",
+      weighting: 0.75,
+      minIslandArea: "1000m2",
+      minSliverArea: "1000m2",
+      sliverControl: 0.85
+    }
+  },
+  {
+    output: "data/prefectures/tokyo-islands.js",
+    globalName: "TOKYO_ISLANDS_MUNICIPALITIES",
+    prefecture: { id: "tokyo_islands", name: "東京都島しょ部", code: "13" },
+    admins: islandAdmins,
+    mergeByMunicipality: true,
+    mapshaper: {
+      interval: "40m",
+      weighting: 0.75,
+      minIslandArea: "300m2",
+      minSliverArea: "300m2",
+      sliverControl: 0.8
+    }
+  }
+];
+
 function collectCoords(geometry, out = []) {
   if (!geometry) return out;
   if (geometry.type === "Polygon") geometry.coordinates.flat(1).forEach(([lng, lat]) => out.push([lng, lat]));
@@ -91,38 +136,178 @@ async function fetchAdmin(code) {
   return res.json();
 }
 
-const features = [];
-
-for (const admin of admins) {
-  const code = admin.code;
-  try {
-    const collection = await fetchAdmin(code);
-    for (const feature of collection.features) {
+async function buildDataset(config) {
+  const features = [];
+  for (const admin of config.admins) {
+    const collection = await fetchAdmin(admin.code);
+    if (config.mergeByMunicipality) {
+      const mergedGeometry = mergeFeaturesGeometry(collection.features);
+      const geometry = config.simplify
+        ? simplifyGeometry(mergedGeometry, config.simplify)
+        : mergedGeometry;
       const props = {
         ...admin,
-        sourceCode: code,
-        labelPoint: labelPoint(feature.geometry),
+        sourceCode: admin.code,
+        sourceFeatureCount: collection.features.length,
+        labelPoint: labelPoint(geometry),
         labelAngle: admin.name.length >= 5 ? -18 : -25,
         labelSize: labelSize(admin.name)
       };
       delete props.code;
-      features.push({ type: "Feature", properties: props, geometry: feature.geometry });
+      features.push({ type: "Feature", properties: props, geometry });
+    } else {
+      for (const feature of collection.features) {
+        const props = {
+          ...admin,
+          sourceCode: admin.code,
+          labelPoint: labelPoint(feature.geometry),
+          labelAngle: admin.name.length >= 5 ? -18 : -25,
+          labelSize: labelSize(admin.name)
+        };
+        delete props.code;
+        features.push({ type: "Feature", properties: props, geometry: feature.geometry });
+      }
     }
-    console.log(`fetched ${code} (${admin.name})`);
-  } catch (e) {
-    console.error(`failed to fetch ${code} (${admin.name}): ${e.message}`);
+    console.log(`fetched ${admin.code} (${admin.name})`);
   }
+
+  const payload = {
+    type: "FeatureCollection",
+    source: "geolonia/japanese-admins, derived from MLIT National Land Numerical Information administrative boundary data",
+    prefecture: config.prefecture,
+    generatedAt: new Date().toISOString(),
+    municipalities: config.admins.map(({ code, ...rest }) => rest),
+    features
+  };
+
+  const rawVertexCount = countFeatureVertices({ type: "FeatureCollection", features: payload.features });
+  const simplifiedFeatureCollection = await simplifyFeatureCollectionWithMapshaper(
+    { type: "FeatureCollection", features: payload.features },
+    config.mapshaper || {}
+  );
+  const simplifiedVertexCount = countFeatureVertices(simplifiedFeatureCollection);
+
+  for (const feature of simplifiedFeatureCollection.features) {
+    feature.properties.labelPoint = labelPoint(feature.geometry);
+  }
+
+  const finalPayload = {
+    ...payload,
+    features: simplifiedFeatureCollection.features
+  };
+
+  await writePayload(config.output, config.globalName, finalPayload, {
+    rawVertexCount,
+    simplifiedVertexCount
+  });
+  return finalPayload;
 }
 
-const payload = {
-  type: "FeatureCollection",
-  source: "geolonia/japanese-admins, derived from MLIT National Land Numerical Information administrative boundary data",
-  prefecture: { id: "tokyo", name: "東京都", code: "13" },
-  generatedAt: new Date().toISOString(),
-  municipalities: admins.map(({ code, ...rest }) => rest),
-  features
-};
+async function writePayload(output, globalName, payload, stats = null) {
+  await writeFile(output, `window.${globalName} = ${JSON.stringify(payload)};\n`, "utf8");
+  const vertexInfo = stats
+    ? `, vertices ${stats.rawVertexCount} -> ${stats.simplifiedVertexCount}`
+    : "";
+  console.log(`wrote ${output} (${payload.features.length} drawable features, ${payload.municipalities.length} quiz answers${vertexInfo})`);
+}
+
+function mergeFeaturesGeometry(features) {
+  const polygons = [];
+  for (const feature of features) {
+    const geometry = feature && feature.geometry;
+    if (!geometry) continue;
+    if (geometry.type === "Polygon") {
+      polygons.push(geometry.coordinates);
+      continue;
+    }
+    if (geometry.type === "MultiPolygon") {
+      polygons.push(...geometry.coordinates);
+    }
+  }
+  return {
+    type: "MultiPolygon",
+    coordinates: polygons
+  };
+}
+
+function simplifyGeometry(geometry, options = {}) {
+  if (!geometry) return geometry;
+  if (geometry.type === "Polygon") {
+    return {
+      type: "Polygon",
+      coordinates: geometry.coordinates.map((ring) => simplifyRing(ring, options))
+    };
+  }
+  if (geometry.type === "MultiPolygon") {
+    const polygons = selectLargestPolygons(geometry.coordinates, options.maxPolygonParts);
+    return {
+      type: "MultiPolygon",
+      coordinates: polygons.map((polygon) => (
+        polygon.map((ring) => simplifyRing(ring, options))
+      ))
+    };
+  }
+  return geometry;
+}
+
+function selectLargestPolygons(polygons, maxPolygonParts) {
+  if (!Array.isArray(polygons) || !Number.isFinite(maxPolygonParts) || polygons.length <= maxPolygonParts) {
+    return polygons;
+  }
+  return polygons
+    .map((polygon) => ({ polygon, area: polygonAreaEstimate(polygon) }))
+    .sort((a, b) => b.area - a.area)
+    .slice(0, maxPolygonParts)
+    .map((item) => item.polygon);
+}
+
+function polygonAreaEstimate(polygon) {
+  const outer = Array.isArray(polygon) ? polygon[0] : null;
+  if (!Array.isArray(outer) || outer.length < 4) return 0;
+  let area = 0;
+  for (let i = 0; i < outer.length - 1; i++) {
+    const [x1, y1] = outer[i];
+    const [x2, y2] = outer[i + 1];
+    area += x1 * y2 - x2 * y1;
+  }
+  return Math.abs(area) / 2;
+}
+
+function simplifyRing(ring, options = {}) {
+  if (!Array.isArray(ring) || ring.length <= (options.maxRingPoints || 120)) return ring;
+  const maxRingPoints = Math.max(options.maxRingPoints || 120, 8);
+  const minRingPoints = Math.max(options.minRingPoints || 18, 8);
+  const open = ring.slice(0, -1);
+  const stride = Math.max(1, Math.ceil(open.length / maxRingPoints));
+  const simplified = open.filter((_, index) => index === 0 || index === open.length - 1 || index % stride === 0);
+  while (simplified.length < minRingPoints && stride > 1) {
+    const nextStride = Math.max(1, Math.floor(stride / 2));
+    if (nextStride === stride) break;
+    return simplifyRing(ring, { ...options, maxRingPoints: open.length / nextStride, minRingPoints });
+  }
+  const closed = [...simplified, simplified[0]];
+  return closed.length >= 4 ? closed : ring;
+}
 
 await mkdir("data/prefectures", { recursive: true });
-await writeFile(OUTPUT, `window.TOKYO_MUNICIPALITIES = ${JSON.stringify(payload)};\n`, "utf8");
-console.log(`wrote ${OUTPUT} (${features.length} drawable features, ${admins.length} quiz answers)`);
+const builtPayloads = {};
+for (const config of DATASETS) {
+  builtPayloads[config.globalName] = await buildDataset(config);
+}
+
+const tokyoAllPayload = {
+  type: "FeatureCollection",
+  source: "geolonia/japanese-admins, derived from MLIT National Land Numerical Information administrative boundary data",
+  prefecture: { id: "tokyo_all", name: "東京都（全域）", code: "13" },
+  generatedAt: new Date().toISOString(),
+  municipalities: [
+    ...builtPayloads.TOKYO_MUNICIPALITIES.municipalities,
+    ...builtPayloads.TOKYO_ISLANDS_MUNICIPALITIES.municipalities
+  ],
+  features: [
+    ...builtPayloads.TOKYO_MUNICIPALITIES.features,
+    ...builtPayloads.TOKYO_ISLANDS_MUNICIPALITIES.features
+  ]
+};
+
+await writePayload("data/prefectures/tokyo-all.js", "TOKYO_ALL_MUNICIPALITIES", tokyoAllPayload);

@@ -27,7 +27,10 @@
               <h1 id="appTitle">GeoQuiz</h1>
               <p id="appDescription">地図から、知識を叩き込むトレーニングツール。</p>
             </div>
-            <button id="regionSelector" class="ghost-button region-selector" type="button">埼玉県 ▾</button>
+            <div class="region-selector-wrap">
+              <button id="regionSelector" class="ghost-button region-selector" type="button" aria-haspopup="true" aria-expanded="false">地域選択 ▾</button>
+              <div id="regionMenu" class="region-menu is-hidden" role="menu" aria-label="地域選択"></div>
+            </div>
           </header>
 
           <p class="section-label">クイズ</p>
@@ -461,8 +464,33 @@
 
     <script src="vendor/leaflet/leaflet.js"></script>
     <script src="vendor/turf/turf.min.js"></script>
+    <script src="data/prefectures/tokyo.js"></script>
+    <script src="data/tokyo/label-overrides.js"></script>
+    <script src="data/tokyo/speech-readings.js"></script>
+    <script src="data/prefectures/tokyo-all.js"></script>
+    <script src="data/tokyo-all/label-overrides.js"></script>
+    <script src="data/tokyo-all/speech-readings.js"></script>
+    <script src="data/prefectures/tokyo-islands.js"></script>
+    <script src="data/tokyo-islands/label-overrides.js"></script>
+    <script src="data/tokyo-islands/speech-readings.js"></script>
     <script src="data/prefectures/saitama.js"></script>
     <script src="data/saitama/label-overrides.js"></script>
+    <script src="data/saitama/speech-readings.js"></script>
+    <script src="data/prefectures/chiba.js"></script>
+    <script src="data/chiba/label-overrides.js"></script>
+    <script src="data/chiba/speech-readings.js"></script>
+    <script src="data/prefectures/kanagawa.js"></script>
+    <script src="data/kanagawa/label-overrides.js"></script>
+    <script src="data/kanagawa/speech-readings.js"></script>
+    <script src="data/prefectures/ibaraki.js"></script>
+    <script src="data/ibaraki/label-overrides.js"></script>
+    <script src="data/ibaraki/speech-readings.js"></script>
+    <script src="data/prefectures/gunma.js"></script>
+    <script src="data/gunma/label-overrides.js"></script>
+    <script src="data/gunma/speech-readings.js"></script>
+    <script src="data/prefectures/tochigi.js"></script>
+    <script src="data/tochigi/label-overrides.js"></script>
+    <script src="data/tochigi/speech-readings.js"></script>
     <script src="data/ghost/kanto-ghost.js"></script>
     <script src="data/image-questions/saitama.js"></script>
     <script src="data/catalog.js"></script>
@@ -574,7 +602,11 @@
     if (questionSubTop)  questionSubTop.textContent  = sub;
     if (referencePreview)    referencePreview.style.display    = isMa ? 'none' : '';
     if (referencePreviewTop) referencePreviewTop.style.display = isMa ? 'none' : '';
-    if (gameScreen) gameScreen.classList.toggle('is-ma-mode', isMa);
+    if (gameScreen) {
+      gameScreen.classList.toggle('is-ma-mode', isMa);
+      gameScreen.classList.toggle('is-ma-long-code', isMa && main.length >= 5);
+      gameScreen.classList.toggle('is-ma-extra-long-code', isMa && main.length >= 6);
+    }
   }
 
   if (questionText) {

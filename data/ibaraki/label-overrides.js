@@ -1,0 +1,2 @@
+window.IBARAKI_LABEL_OVERRIDES = {
+};

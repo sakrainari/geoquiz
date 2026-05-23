@@ -1,4 +1,8 @@
 import { mkdir, writeFile } from "node:fs/promises";
+import {
+  countFeatureVertices,
+  simplifyFeatureCollectionWithMapshaper
+} from "./lib/simplify-with-mapshaper.mjs";
 
 const OUTPUT = "data/prefectures/saitama.js";
 const SOURCE = "https://geolonia.github.io/japanese-admins";
@@ -120,15 +124,36 @@ for (const admin of admins) {
   }
 }
 
+const rawFeatureCollection = {
+  type: "FeatureCollection",
+  features
+};
+
+const rawVertexCount = countFeatureVertices(rawFeatureCollection);
+const simplifiedFeatureCollection = await simplifyFeatureCollectionWithMapshaper(rawFeatureCollection, {
+  interval: "40m",
+  weighting: 0.75,
+  minIslandArea: "1500m2",
+  minSliverArea: "1500m2",
+  sliverControl: 0.85
+});
+const simplifiedVertexCount = countFeatureVertices(simplifiedFeatureCollection);
+
+for (const feature of simplifiedFeatureCollection.features) {
+  feature.properties.labelPoint = labelPoint(feature.geometry);
+}
+
 const payload = {
   type: "FeatureCollection",
   source: "geolonia/japanese-admins, derived from MLIT National Land Numerical Information administrative boundary data",
   prefecture: { id: "saitama", name: "埼玉県", code: "11" },
   generatedAt: new Date().toISOString(),
   municipalities: admins.map(({ code, codes, ...rest }) => rest),
-  features
+  features: simplifiedFeatureCollection.features
 };
 
 await mkdir("data/prefectures", { recursive: true });
 await writeFile(OUTPUT, `window.SAITAMA_MUNICIPALITIES = ${JSON.stringify(payload)};\n`, "utf8");
-console.log(`wrote ${OUTPUT} (${features.length} drawable features, ${admins.length} quiz answers)`);
+console.log(
+  `wrote ${OUTPUT} (${payload.features.length} drawable features, ${admins.length} quiz answers, vertices ${rawVertexCount} -> ${simplifiedVertexCount})`
+);

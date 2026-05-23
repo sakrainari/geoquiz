@@ -1,0 +1,2 @@
+window.TOCHIGI_LABEL_OVERRIDES = {
+};
