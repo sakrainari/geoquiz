@@ -39,7 +39,7 @@
     if (result.correct >= result.totalQuestions) modeProgress.completed += 1;
     modeProgress.mistakes += result.mistakes;
     modeProgress.totalQuestions += result.totalQuestions;
-    modeProgress.totalAnswerMs += totalAnswerMs(result.stats);
+    modeProgress.totalAnswerMs += totalAnswerMs(result);
     modeProgress.lastResult = summary;
     if (!Array.isArray(modeProgress.sessionHistory)) modeProgress.sessionHistory = [];
     modeProgress.sessionHistory.unshift(summary);
@@ -338,8 +338,8 @@
   }
 
   function buildModeSessionSummary(result, playedAt) {
-    const firstTryCount = result.stats.filter((item) => item.correct && item.mistakes === 0).length;
-    const answered = result.stats.filter((item) => item.correct && item.answerTimeMs > 0);
+    const answered = answeredQuestionStats(result);
+    const firstTryCount = answered.filter((item) => item.mistakes === 0).length;
     const averageTimeMs = answered.length
       ? Math.round(answered.reduce((sum, item) => sum + item.answerTimeMs, 0) / answered.length)
       : 0;
@@ -409,8 +409,15 @@
     return stat.modes[mode];
   }
 
-  function totalAnswerMs(stats) {
-    return stats.reduce((sum, item) => sum + (item.answerTimeMs || 0), 0);
+  function answeredQuestionStats(result) {
+    if (Array.isArray(result.questionStats) && result.questionStats.length) {
+      return result.questionStats.filter((item) => item.correct && item.answerTimeMs > 0);
+    }
+    return result.stats.filter((item) => item.correct && item.answerTimeMs > 0);
+  }
+
+  function totalAnswerMs(result) {
+    return answeredQuestionStats(result).reduce((sum, item) => sum + (item.answerTimeMs || 0), 0);
   }
 
   function isTouched(item) {

@@ -37,7 +37,7 @@
   let completedResultState = null;
   let lastFailureHighlight = null;
   const currentSessionSettings = {
-    suddenDeath: false,
+    rule: "normal",
     audio: true,
     tileLayerVisible: resolveInitialTileLayerVisibility(),
     layout: resolveInitialLayout()
@@ -80,6 +80,7 @@
     confirmModeButtons: [...document.querySelectorAll(".mode-grid-confirm [data-start-mode]")],
     startQuizButton: document.getElementById("startQuizButton"),
     startSelectionNote: document.getElementById("startSelectionNote"),
+    ruleEasyButton: document.getElementById("ruleEasyButton"),
     ruleNormalButton: document.getElementById("ruleNormalButton"),
     ruleSuddenDeathButton: document.getElementById("ruleSuddenDeathButton"),
     audioOnButton: document.getElementById("audioOnButton"),
@@ -175,11 +176,14 @@
   els.startQuizButton.addEventListener("click", () => {
     beginSelectedQuizMode();
   });
+  els.ruleEasyButton.addEventListener("click", () => {
+    updateSessionSettings({ rule: "easy" });
+  });
   els.ruleNormalButton.addEventListener("click", () => {
-    updateSessionSettings({ suddenDeath: false });
+    updateSessionSettings({ rule: "normal" });
   });
   els.ruleSuddenDeathButton.addEventListener("click", () => {
-    updateSessionSettings({ suddenDeath: true });
+    updateSessionSettings({ rule: "sudden_death" });
   });
   els.audioOnButton.addEventListener("click", () => {
     updateSessionSettings({ audio: true });
@@ -243,11 +247,6 @@
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") closeRegionMenu();
-  });
-  els.suddenDeathToggle.addEventListener("change", () => {
-    engine.suddenDeath = els.suddenDeathToggle.checked;
-    currentSessionSettings.suddenDeath = els.suddenDeathToggle.checked;
-    syncStartSettingsUI();
   });
   els.mistakeSpeechToggle.addEventListener("change", () => {
     currentSessionSettings.audio = els.mistakeSpeechToggle.checked;
@@ -322,7 +321,7 @@
       button.setAttribute("aria-pressed", active ? "true" : "false");
     });
     if (els.startSelectionNote) {
-      els.startSelectionNote.textContent = `${modeName(nextMode)}で開始`;
+      els.startSelectionNote.textContent = `${modeName(nextMode)} / ${ruleName(currentSessionSettings.rule)}で開始`;
     }
     if (els.prepModeTitle) els.prepModeTitle.textContent = modeName(nextMode);
     if (els.prepModeCopy) {
@@ -331,8 +330,9 @@
   }
 
   function syncStartSettingsUI() {
-    els.ruleNormalButton.classList.toggle("is-active", !currentSessionSettings.suddenDeath);
-    els.ruleSuddenDeathButton.classList.toggle("is-active", currentSessionSettings.suddenDeath);
+    els.ruleEasyButton.classList.toggle("is-active", currentSessionSettings.rule === "easy");
+    els.ruleNormalButton.classList.toggle("is-active", currentSessionSettings.rule === "normal");
+    els.ruleSuddenDeathButton.classList.toggle("is-active", currentSessionSettings.rule === "sudden_death");
     els.audioOnButton.classList.toggle("is-active", currentSessionSettings.audio);
     els.audioOffButton.classList.toggle("is-active", !currentSessionSettings.audio);
     els.tileLayerOnButton.classList.toggle("is-active", currentSessionSettings.tileLayerVisible);
@@ -342,7 +342,7 @@
     els.layoutBottomButton.classList.toggle("is-active", currentSessionSettings.layout === "bottom");
     els.layoutRightButton.classList.toggle("is-active", currentSessionSettings.layout === "right");
     if (els.startSelectionNote) {
-      els.startSelectionNote.textContent = `${modeName(selectedQuizMode || DEFAULT_QUIZ_MODE)}で開始`;
+      els.startSelectionNote.textContent = `${modeName(selectedQuizMode || DEFAULT_QUIZ_MODE)} / ${ruleName(currentSessionSettings.rule)}で開始`;
     }
   }
 
@@ -353,10 +353,21 @@
   }
 
   function applySessionSettingsToGameControls() {
-    setCheckboxValue(els.suddenDeathToggle, currentSessionSettings.suddenDeath);
+    syncRuleLockControls(currentSessionSettings.rule);
     setCheckboxValue(els.mistakeSpeechToggle, currentSessionSettings.audio);
     applyTileLayerSelection(currentSessionSettings.tileLayerVisible);
     applyLayoutSelection(currentSessionSettings.layout);
+  }
+
+  function syncRuleLockControls(rule) {
+    const suddenDeath = rule === "sudden_death";
+    [els.suddenDeathToggle, document.getElementById("suddenDeathToggleTop"), document.getElementById("suddenDeathToggleBar")]
+      .filter(Boolean)
+      .forEach((element) => {
+        element.checked = suddenDeath;
+        element.disabled = true;
+        element.title = `ルールは開始前に固定されます: ${ruleName(rule)}`;
+      });
   }
 
   function setCheckboxValue(element, checked) {
@@ -419,6 +430,7 @@
     ensureMap().reset();
     applyTileLayerSelection(currentSessionSettings.tileLayerVisible);
     renderer.setMode(nextMode);
+    renderer.setEasyMode(currentSessionSettings.rule === "easy" && ["municipality", "ma", "ma_broad"].includes(nextMode));
     renderer.fitToMain();
     els.resetButton.classList.add("is-hidden");
     els.puzzleControls.classList.add("is-hidden");
@@ -541,6 +553,14 @@
         unlockInputAfter(result.correct ? 360 : 300);
       }
     });
+    // データセット確定後、アイドル時間にラベル配置計算をキャッシュへ積む
+    const warmup = () => renderer.warmupPlacements();
+    if (typeof requestIdleCallback !== "undefined") {
+      requestIdleCallback(warmup, { timeout: 3000 });
+    } else {
+      setTimeout(warmup, 200);
+    }
+
     return renderer;
   }
 
@@ -563,6 +583,7 @@
     showGame();
     ensureMap().reset();
     renderer.setMode("ma");
+    renderer.setEasyMode(false);
     renderer.areaCodeFeaturesByCode.forEach((feature, areaCode) => {
       renderer.markAreaCodeCorrect(areaCode, 0);
     });
@@ -598,6 +619,7 @@
     showGame();
     ensureMap().reset();
     renderer.setMode("ma_broad");
+    renderer.setEasyMode(false);
     renderer.areaCodeFeaturesByCode.forEach((feature, areaCode) => {
       renderer.markAreaCodeCorrect(areaCode, 0);
     });
@@ -632,6 +654,7 @@
     showGame();
     ensureMap().reset();
     renderer.setMode("confirm");
+    renderer.setEasyMode(false);
     dataset.municipalities.forEach((item) => renderer.markCorrect(item.id, 0));
     els.resetButton.classList.add("is-hidden");
     els.modeLabel.textContent = "確認マップ";
@@ -679,15 +702,17 @@
     currentRunConfig = {
       mode,
       options: { ...options },
+      rule: currentSessionSettings.rule,
       puzzlePieceValue: mode === "puzzle" ? (els.puzzlePieceSelect.value || "all") : null
     };
     showGame();
     ensureMap().reset();
     applyTileLayerSelection(currentSessionSettings.tileLayerVisible);
     renderer.setMode(mode);
+    renderer.setEasyMode(currentSessionSettings.rule === "easy" && ["municipality", "ma", "ma_broad"].includes(mode));
     lastReferenceKey = null;
     inputLocked = true;
-    engine.reset(mode, currentSessionSettings.suddenDeath, startOptions);
+    engine.reset(mode, currentSessionSettings.rule, startOptions);
     if (mode === "puzzle") {
       renderer.startPuzzle(updatePuzzleState, { pieceIds: puzzleIds });
       updatePuzzleBestTime();
@@ -753,6 +778,7 @@
     showGame();
     ensureMap().reset();
     renderer.setMode("municipality");
+    renderer.setEasyMode(false);
     renderer.enableLabelEditor(updateLabelEditorPanel);
     if (!renderer.tileLayerVisible) {
       renderer.toggleTileLayer();
@@ -880,9 +906,10 @@
     const previousDelta = buildPreviousDelta(summary, previousModeProgress?.lastResult, isClear);
     const bestStatus = buildBestStatus(summary, currentModeProgress, isClear);
     renderer.applyProgressHeatmap(currentDatasetProgress, result.mode);
+    const resultModeLabel = buildModeRuleLabel(result.mode, result.rule);
     els.resultModeLabel.textContent = currentPracticeLabel
-      ? `${modeName(result.mode)} / ${currentPracticeLabel}`
-      : modeName(result.mode);
+      ? `${resultModeLabel} / ${currentPracticeLabel}`
+      : resultModeLabel;
     els.resultTitle.textContent = isClear ? "Clear" : "Game Over";
     els.resultSummary.textContent = isClear
       ? `一発正解 ${summary.firstTryCount} 問。前回や自己ベストと見比べながら、次の更新ポイントを探せます。`
@@ -993,9 +1020,10 @@
       highlightFailureTarget();
     }
     if (els.endModeLabel) {
+      const resultModeLabel = buildModeRuleLabel(result.mode, result.rule);
       els.endModeLabel.textContent = currentPracticeLabel
-        ? `${modeName(result.mode)} / ${currentPracticeLabel}`
-        : modeName(result.mode);
+        ? `${resultModeLabel} / ${currentPracticeLabel}`
+        : resultModeLabel;
     }
     if (els.endCard) {
       els.endCard.classList.toggle("is-clear", isClear);
@@ -1039,7 +1067,7 @@
     const mistakes = summary?.mistakes ?? result?.mistakes ?? 0;
     const averageTimeMs = summary?.averageTimeMs ?? 0;
     const lines = [
-      `GeoQuiz ${dataset.prefecture.name} ${modeName(result.mode)} ${isClear ? "Clear" : "Game Over"}`
+      `GeoQuiz ${dataset.prefecture.name} ${buildModeRuleLabel(result.mode, result.rule)} ${isClear ? "Clear" : "Game Over"}`
     ];
     if (isClear) {
       lines.push(
@@ -1056,6 +1084,9 @@
 
   function countFirstTryAnswers(result) {
     if (!result || !Array.isArray(result.stats)) return 0;
+    if (Array.isArray(result.questionStats) && result.questionStats.length) {
+      return result.questionStats.filter((item) => item.correct && item.mistakes === 0).length;
+    }
     return result.stats.filter((item) => item.correct && item.mistakes === 0).length;
   }
 
@@ -1187,9 +1218,10 @@
     els.questionText.textContent = currentMode === "puzzle"
       ? "ポリゴンをドラッグして元の位置へ戻す"
       : engine.questionText();
+    const ruleLabel = ruleName(engine.rule || currentSessionSettings.rule);
     els.modeLabel.textContent = currentPracticeLabel
-      ? `${modeName(currentMode)} / ${currentPracticeLabel}`
-      : modeName(currentMode);
+      ? `${modeName(currentMode)} / ${ruleLabel} / ${currentPracticeLabel}`
+      : `${modeName(currentMode)} / ${ruleLabel}`;
     els.remainingCount.textContent = currentMode === "puzzle" && puzzleState
       ? `${Math.max(puzzleState.total - puzzleState.fixed, 0)}`
       : `${engine.remaining()}`;
@@ -1362,6 +1394,16 @@
     return speechReadings[raw] || raw;
   }
 
+  function ruleName(rule) {
+    if (rule === "easy") return "イージー";
+    if (rule === "sudden_death") return "サドンデス";
+    return "ノーマル";
+  }
+
+  function buildModeRuleLabel(mode, rule) {
+    return `${modeName(mode)} / ${ruleName(rule)}`;
+  }
+
   function modeName(mode) {
     return window.QuizModes.getMode(mode).label;
   }
@@ -1385,16 +1427,12 @@
 
   function referenceFeatureForQuestion(question) {
     if (currentMode === "ma") {
-      if (!areaReferenceFeatures) {
-        areaReferenceFeatures = window.MaUnion.buildMaCollections(dataset, "area_code");
-      }
-      return areaReferenceFeatures.find((feature) => feature.properties.area_code === question.area_code);
+      const features = renderer ? renderer.getMaCollections("area_code") : (areaReferenceFeatures || (areaReferenceFeatures = window.MaUnion.buildMaCollections(dataset, "area_code")));
+      return features.find((feature) => feature.properties.area_code === question.area_code);
     }
     if (currentMode === "ma_broad") {
-      if (!areaReferenceFeatures) {
-        areaReferenceFeatures = window.MaUnion.buildMaBroadCollections(dataset);
-      }
-      return areaReferenceFeatures.find((feature) => feature.properties.area_code === question.broad_area_code);
+      const features = renderer ? renderer.getMaBroadCollections() : (areaReferenceFeatures || (areaReferenceFeatures = window.MaUnion.buildMaBroadCollections(dataset)));
+      return features.find((feature) => feature.properties.area_code === question.broad_area_code);
     }
 
     const memberIds = question.memberIds || [question.answerId];

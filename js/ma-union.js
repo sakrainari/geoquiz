@@ -1,4 +1,7 @@
 (function () {
+  const MIN_DETACHED_PART_AREA = 25000;
+  const MIN_DETACHED_PART_RATIO = 0.005;
+
   function buildMaCollections(featureCollection, groupBy = "area_code") {
     const groups = new Map();
     featureCollection.features.forEach((feature) => {
@@ -33,7 +36,7 @@
     if (window.turf && typeof window.turf.union === "function") {
       try {
         const unioned = window.turf.union({ type: "FeatureCollection", features });
-        geometry = unioned && unioned.geometry;
+        geometry = filterUnionGeometry(unioned && unioned.geometry);
       } catch (error) {
         geometry = null;
       }
@@ -46,6 +49,56 @@
         geometries: features.map((feature) => feature.geometry)
       }
     };
+  }
+
+  function filterUnionGeometry(geometry) {
+    if (!geometry || geometry.type !== "MultiPolygon") return geometry;
+    const polygons = geometry.coordinates
+      .map((polygon) => ({
+        coordinates: polygon,
+        area: polygonArea(polygon)
+      }))
+      .filter((item) => item.area > 0);
+    if (polygons.length <= 1) return geometry;
+
+    const largestArea = polygons.reduce((max, item) => Math.max(max, item.area), 0);
+    const minArea = Math.max(MIN_DETACHED_PART_AREA, largestArea * MIN_DETACHED_PART_RATIO);
+    const kept = polygons.filter((item) => item.area >= minArea);
+    if (!kept.length) {
+      const largest = polygons.reduce((best, item) => (item.area > best.area ? item : best), polygons[0]);
+      return {
+        type: "Polygon",
+        coordinates: largest.coordinates
+      };
+    }
+    if (kept.length === 1) {
+      return {
+        type: "Polygon",
+        coordinates: kept[0].coordinates
+      };
+    }
+    return {
+      type: "MultiPolygon",
+      coordinates: kept.map((item) => item.coordinates)
+    };
+  }
+
+  function polygonArea(coordinates) {
+    if (!window.turf || typeof window.turf.area !== "function") {
+      return geometryScore({ type: "Polygon", coordinates });
+    }
+    try {
+      return window.turf.area({
+        type: "Feature",
+        properties: {},
+        geometry: {
+          type: "Polygon",
+          coordinates
+        }
+      });
+    } catch {
+      return geometryScore({ type: "Polygon", coordinates });
+    }
   }
 
   function preferredLabelPoint(features) {

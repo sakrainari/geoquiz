@@ -32,6 +32,9 @@
       this.heatmapStats = null;
       this.areaCodeHeatmapStats = null;
       this._topAreaIdsCache = null;
+      this._placementCache = new Map();
+      this._maUnionCache = new Map();
+      this._pendingLabelRender = null;
       this.confirmMode = false;
       this.labelEditDisplayCodes = new Set();
       this.labelEditEnabled = false;
@@ -50,6 +53,7 @@
       this.labelStatesById = normalizeLabelOverrides(options.labelOverrides).municipalities;
       this.areaCodeLabelStatesByCode = normalizeLabelOverrides(options.labelOverrides).areaCodes;
       this.mode = "municipality";
+      this.easyMode = false;
       this.map = L.map(elementId, {
         zoomControl: true,
         attributionControl: true,
@@ -432,13 +436,27 @@
       this.notifyPuzzleChange();
     }
 
+    getMaCollections(groupBy) {
+      if (!this._maUnionCache.has(groupBy)) {
+        this._maUnionCache.set(groupBy, window.MaUnion.buildMaCollections(this.dataset, groupBy));
+      }
+      return this._maUnionCache.get(groupBy);
+    }
+
+    getMaBroadCollections() {
+      if (!this._maUnionCache.has("broad")) {
+        this._maUnionCache.set("broad", window.MaUnion.buildMaBroadCollections(this.dataset));
+      }
+      return this._maUnionCache.get("broad");
+    }
+
     renderMaOverlay() {
-      const features = window.MaUnion.buildMaCollections(this.dataset, "area_code");
+      const features = this.getMaCollections("area_code");
       this._renderAreaCodeLayer(features);
     }
 
     renderMaBroadOverlay() {
-      const features = window.MaUnion.buildMaBroadCollections(this.dataset);
+      const features = this.getMaBroadCollections();
       this._renderAreaCodeLayer(features);
     }
 
@@ -521,15 +539,38 @@
       this.map.fitBounds(preferredBounds || this.mainLayer.getBounds(), { padding: [24, 24] });
     }
 
+    municipalityLabelDisplayMode() {
+      if (this.mode === "ma" || this.mode === "ma_broad") return "subtle";
+      if (!this.easyMode) return "answered";
+      if (this.mode === "municipality") return "all";
+      return "answered";
+    }
+
+    areaCodeLabelDisplayMode() {
+      if (this.mode !== "ma" && this.mode !== "ma_broad") return "answered";
+      return this.easyMode ? "all" : "answered";
+    }
+
     _refreshVisibleLabels() {
       this.tooltipsById.forEach((marker) => marker.remove());
       this.tooltipsById.clear();
       this._invalidateTopAreaCache();
-      this.answeredIds.forEach(id => this.showLabel(id));
+      if (this.municipalityLabelDisplayMode() !== "answered") {
+        (this.municipalityLabelDisplayMode() === "subtle"
+          ? this.dataset.municipalities.filter((item) => item.name.endsWith("市"))
+          : this.dataset.municipalities
+        ).forEach((item) => this.showLabel(item.id));
+      } else {
+        this.answeredIds.forEach(id => this.showLabel(id));
+      }
 
       this.areaCodeTooltipsByCode.forEach((marker) => marker.remove());
       this.areaCodeTooltipsByCode.clear();
-      this.answeredAreaCodes.forEach(code => this.showAreaCodeLabel(code));
+      if (this.areaCodeLabelDisplayMode() === "all") {
+        this.areaCodeFeaturesByCode.forEach((_feature, areaCode) => this.showAreaCodeLabel(areaCode));
+      } else {
+        this.answeredAreaCodes.forEach((code) => this.showAreaCodeLabel(code));
+      }
     }
 
     _invalidateTopAreaCache() {
@@ -671,7 +712,8 @@
       if (!feature) return;
       const props = feature.properties;
       if (this.liteMode && !this.labelEditEnabled && !this.shouldShowLiteLabel(props)) return;
-      if (!this.labelEditEnabled && !this.liteMode && !this.confirmMode && !this._shouldShowAtCurrentZoom(id, feature)) return;
+      const labelDisplayMode = this.municipalityLabelDisplayMode();
+      if (labelDisplayMode === "answered" && !this.labelEditEnabled && !this.liteMode && !this.confirmMode && !this._shouldShowAtCurrentZoom(id, feature)) return;
       const label = this.resolveLabelPlacement(id, feature, {
         sizeBoost: this.mode === "ma" ? -0.8 : 0.2,
         minSize: this.mode === "ma" ? 8.4 : 8.2,
@@ -679,26 +721,35 @@
         angleLimit: this.mode === "ma" ? 18 : 28,
         zoom: this.map.getZoom()
       });
-      const point = this.labelBehavior.forcePreferredPoint
+      const defaultPoint = this.labelBehavior.forcePreferredPoint
         ? (props.labelPoint || label.point || featureCenterOfMass(feature))
         : (label.point || featureCenterOfMass(feature));
-      if (!Array.isArray(point)) return;
+      const points = Array.isArray(label.points) && label.points.length
+        ? label.points.filter((point) => Array.isArray(point) && point.length === 2)
+        : (Array.isArray(defaultPoint) ? [defaultPoint] : []);
+      if (!points.length) return;
       const labelSize = Math.max(label.size, this.labelBehavior.minMunicipalitySize || 0);
       const selected = this.labelEditSelectedId === id;
-      const html = `<div class="answered-label municipality-label${selected ? " is-selected" : ""}" style="font-size:${labelSize}px; transform: translate(-50%, -50%) rotate(${label.angle}deg);">${props.name}</div>`;
-      const marker = L.marker(point, {
-        pane: "labelPane",
-        opacity: 0,
-        interactive: false,
-        icon: L.divIcon({ className: "", iconSize: [0, 0] })
-      }).addTo(this.map);
-      marker.bindTooltip(html, {
-        permanent: true,
-        direction: "center",
-        className: "answered-tooltip",
-        opacity: 1
-      }).openTooltip();
-      this.tooltipsById.set(id, marker);
+      const subtle = labelDisplayMode === "subtle";
+      const html = `<div class="answered-label municipality-label${subtle ? " is-subtle" : ""}${selected ? " is-selected" : ""}" style="font-size:${labelSize}px; transform: translate(-50%, -50%) rotate(${label.angle}deg);">${props.name}</div>`;
+      const markers = points.map((point) => {
+        const marker = L.marker(point, {
+          pane: "labelPane",
+          opacity: 0,
+          interactive: false,
+          icon: L.divIcon({ className: "", iconSize: [0, 0] })
+        });
+        marker.bindTooltip(html, {
+          permanent: true,
+          direction: "center",
+          className: "answered-tooltip",
+          opacity: 1
+        }).openTooltip();
+        return marker;
+      });
+      const group = L.layerGroup(markers);
+      group.addTo(this.map);
+      this.tooltipsById.set(id, group);
     }
 
     shouldShowLiteLabel(props) {
@@ -794,6 +845,9 @@
     }
 
     updateLabelState(id, values) {
+      for (const key of this._placementCache.keys()) {
+        if (key.startsWith(`m|${id}|`)) this._placementCache.delete(key);
+      }
       const existing = this.currentLabelState(id);
       this.labelStatesById.set(id, { ...existing, ...values });
       const marker = this.tooltipsById.get(id);
@@ -813,10 +867,16 @@
     }
 
     resolveLabelPlacement(id, feature, options = {}) {
-      const base = buildLabelPlacement(feature, options);
+      const cacheKey = `m|${id}|${options.sizeBoost}|${options.minSize}|${options.maxSize}`;
+      let base = this._placementCache.get(cacheKey);
+      if (!base) {
+        base = buildLabelPlacement(feature, options);
+        this._placementCache.set(cacheKey, base);
+      }
       const override = this.labelStatesById.get(id);
       if (!override) return base;
       return {
+        points: Array.isArray(override.points) ? override.points : undefined,
         point: override.point !== undefined ? override.point : base.point,
         angle: override.angle !== undefined ? override.angle : base.angle,
         size: override.size !== undefined ? override.size : base.size
@@ -891,6 +951,9 @@
     }
 
     updateAreaCodeLabelState(areaCode, values) {
+      for (const key of this._placementCache.keys()) {
+        if (key.startsWith(`ac|${areaCode}|`)) this._placementCache.delete(key);
+      }
       const existing = this.currentAreaCodeLabelState(areaCode);
       this.areaCodeLabelStatesByCode.set(areaCode, { ...existing, ...values });
       const marker = this.areaCodeTooltipsByCode.get(areaCode);
@@ -929,7 +992,12 @@
     }
 
     resolveAreaCodeLabelPlacement(areaCode, feature, options = {}) {
-      const base = buildLabelPlacement(feature, options);
+      const cacheKey = `ac|${areaCode}|${options.sizeBoost}|${options.minSize}|${options.maxSize}`;
+      let base = this._placementCache.get(cacheKey);
+      if (!base) {
+        base = buildLabelPlacement(feature, options);
+        this._placementCache.set(cacheKey, base);
+      }
       const override = this.areaCodeLabelStatesByCode.get(areaCode);
       if (!override) return base;
       return {
@@ -1045,6 +1113,61 @@
       });
       this.clearMunicipalityLabels();
       this.clearAreaCodeLabels();
+      if (this.municipalityLabelDisplayMode() !== "answered") {
+        (this.municipalityLabelDisplayMode() === "subtle"
+          ? this.dataset.municipalities.filter((item) => item.name.endsWith("市"))
+          : this.dataset.municipalities
+        ).forEach((item) => this.showLabel(item.id));
+      }
+    }
+
+    warmupPlacements() {
+      // 市ラベルの配置計算を2モード分キャッシュに積む（DOM生成なし）
+      const muniOptionSets = [
+        { sizeBoost: 0.2,  minSize: 8.2, maxSize: 13.8, angleLimit: 28 },  // municipality mode
+        { sizeBoost: -0.8, minSize: 8.4, maxSize: 11.2, angleLimit: 18 }   // ma mode (subtle)
+      ];
+      this.displayFeaturesById.forEach((feature, id) => {
+        const isCity = feature.properties.name.endsWith("市");
+        for (let i = 0; i < muniOptionSets.length; i++) {
+          // municipality mode (index 0): 全市区町村, MA subtle mode (index 1): 市のみ
+          if (i === 1 && !isCity) continue;
+          this.resolveLabelPlacement(id, feature, muniOptionSets[i]);
+        }
+      });
+
+      // 市外局番ラベルの配置計算をキャッシュに積む（マップへの描画なし）
+      const areaCodeFeatures = this.getMaCollections("area_code");
+      const acOpts = { minSize: 16, maxSize: 27, sizeBoost: 7.8, fitByShortSide: true, forceAngle: 0, precise: true, preferVisualCenter: true };
+      for (const feature of areaCodeFeatures) {
+        const areaCode = feature.properties.area_code;
+        this.resolveAreaCodeLabelPlacement(areaCode, feature, { ...acOpts, text: areaCode, preferredPoint: feature.properties.labelPoint });
+      }
+    }
+
+    setEasyMode(enabled) {
+      this.easyMode = !!enabled;
+      // ラベルを即時クリア（古いラベルをすぐ消す）
+      this.clearMunicipalityLabels();
+      this.clearAreaCodeLabels();
+      // ラベル生成は次フレームに後回しにして INP を改善
+      if (this._pendingLabelRender) clearTimeout(this._pendingLabelRender);
+      this._pendingLabelRender = setTimeout(() => {
+        this._pendingLabelRender = null;
+        if (this.municipalityLabelDisplayMode() !== "answered") {
+          (this.municipalityLabelDisplayMode() === "subtle"
+            ? this.dataset.municipalities.filter((item) => item.name.endsWith("市"))
+            : this.dataset.municipalities
+          ).forEach((item) => this.showLabel(item.id));
+        } else {
+          this.answeredIds.forEach((id) => this.showLabel(id));
+        }
+        if (this.areaCodeLabelDisplayMode() === "all") {
+          this.areaCodeFeaturesByCode.forEach((_feature, areaCode) => this.showAreaCodeLabel(areaCode));
+        } else {
+          this.answeredAreaCodes.forEach((areaCode) => this.showAreaCodeLabel(areaCode));
+        }
+      }, 0);
     }
 
     applyHeatmap(stats, mode = this.mode) {
@@ -1596,6 +1719,9 @@
     return new Map(Object.entries(overrides || {})
       .filter(([, value]) => value && typeof value === "object" && !Array.isArray(value))
       .map(([id, value]) => [id, {
+      points: Array.isArray(value.points)
+        ? value.points.filter((point) => Array.isArray(point) && point.length === 2)
+        : undefined,
       point: Array.isArray(value.point) ? value.point : undefined,
       angle: typeof value.angle === "number" ? value.angle : undefined,
       size: typeof value.size === "number" ? value.size : undefined
@@ -1604,6 +1730,7 @@
 
   function exportLabelMap(labelMap) {
     return Object.fromEntries([...labelMap.entries()].map(([id, state]) => [id, {
+      points: state.points,
       point: state.point,
       angle: state.angle,
       size: state.size

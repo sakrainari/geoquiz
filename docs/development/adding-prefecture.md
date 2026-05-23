@@ -1,7 +1,7 @@
 # 都道府県データ追加手順
 
 このメモは、GeoQuiz に都道府県データを追加する時の現行フローです。  
-2026-05-23 時点では、関東向けに以下のデータセットを整備済みです。
+2026-05-24 時点では、以下のデータセットを整備済みです。  
 
 - `tokyo`
 - `tokyo_all`
@@ -12,6 +12,51 @@
 - `ibaraki`
 - `gunma`
 - `tochigi`
+- `hokkaido_doo`
+- `hokkaido_donan`
+- `hokkaido_dohoku`
+- `hokkaido_doto`
+- `hokkaido_all`
+- `kagawa`
+- `tokushima`
+- `ehime`
+- `kochi`
+- `shikoku_all`
+- `tottori`
+- `shimane`
+- `okayama`
+- `hiroshima`
+- `yamaguchi`
+- `chugoku_all`
+- `fukuoka`
+- `saga`
+- `nagasaki`
+- `kumamoto`
+- `oita`
+- `miyazaki`
+- `kagoshima`
+- `kyushu_all`
+
+## 広域区分の方針
+
+広域データセットは、今後は次の区分で揃えていきます。
+
+- `hokkaido`: 北海道 `1道`
+- `tohoku`: 東北 `6県`
+- `kanto`: 関東 `7都県`
+- `koshinetsu`: 甲信越 `3県` (`山梨・長野・新潟`)
+- `hokuriku`: 北陸 `3県` (`富山・石川・福井`)
+- `tokai`: 東海 `4県` (`静岡・愛知・岐阜・三重`)
+- `kinki`: 近畿 `7府県`
+- `chugoku`: 中国 `5県`
+- `shikoku`: 四国 `4県`
+- `kyushu`: 九州 `7県`
+- `okinawa`: 沖縄 `1県`
+
+細分版が必要な地域だけ、広域版とは別に派生データセットを持つ方針です。
+
+- `tokyo / tokyo_all / tokyo_islands`
+- `hokkaido_doo / hokkaido_donan / hokkaido_dohoku / hokkaido_doto`
 
 ## 方針
 
@@ -171,13 +216,15 @@ window.TOCHIGI_MUNICIPALITIES = {
 現状は次の優先順位で決めています。
 
 1. 都道府県公式の市町村一覧で対象自治体を確定する
-2. NTT 東日本の市外局番資料で代表的な局番を確認する
+2. `data/area-code-master.js` と総務省の市外局番資料で代表的な局番を確認する
 3. NTT 東日本の単位料金区域一覧で MA 名を合わせる
 4. 読みづらい自治体名だけ `speech-readings.js` に追加する
 
 主な参照先:
 
 - 都道府県公式の市町村一覧
+- `data/area-code-master.js`
+- [総務省 市外局番の一覧 PDF](https://www.soumu.go.jp/main_content/001072440.pdf)
 - [NTT東日本 単位料金区域別市外局番等一覧表](https://www.ntt-east.co.jp/info-st/mutial/suburbs/numlist/)
 - [NTT東日本 単位料金区域一覧表 PDF](https://www.ntt-east.co.jp/tariff/pdf/e41.pdf)
 

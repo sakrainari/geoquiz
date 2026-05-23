@@ -1,7 +1,7 @@
 (function () {
   function summarize(result) {
-    const answered = result.stats.filter((item) => item.correct && item.answerTimeMs > 0);
-    const firstTryCount = result.stats.filter((item) => item.correct && item.mistakes === 0).length;
+    const answered = answeredQuestionStats(result);
+    const firstTryCount = answered.filter((item) => item.mistakes === 0).length;
     const averageTimeMs = answered.length
       ? Math.round(answered.reduce((sum, item) => sum + item.answerTimeMs, 0) / answered.length)
       : 0;
@@ -14,6 +14,13 @@
       averageTimeMs,
       elapsedMs: result.elapsedMs || 0
     };
+  }
+
+  function answeredQuestionStats(result) {
+    if (Array.isArray(result.questionStats) && result.questionStats.length) {
+      return result.questionStats.filter((item) => item.correct && item.answerTimeMs > 0);
+    }
+    return result.stats.filter((item) => item.correct && item.answerTimeMs > 0);
   }
 
   function buildWeakPointExport(result, prefecture) {

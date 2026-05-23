@@ -4,12 +4,13 @@
       this.dataset = dataset;
       this.answers = dataset.municipalities;
       this.dataset.imageQuestions = dataset.imageQuestions || [];
-      this.reset("municipality", false);
+      this.reset("municipality", "normal");
     }
 
-    reset(mode, suddenDeath, options = {}) {
+    reset(mode, ruleOrSuddenDeath, options = {}) {
       this.mode = mode;
-      this.suddenDeath = suddenDeath;
+      this.rule = normalizeRule(ruleOrSuddenDeath);
+      this.suddenDeath = this.rule === "sudden_death";
       this.questions = this.buildQuestions(mode, options);
       this.index = 0;
       this.correct = 0;
@@ -18,6 +19,7 @@
       this.startedAt = Date.now();
       this.questionStartedAt = Date.now();
       this.currentQuestionMistakes = 0;
+      this.questionStats = [];
       this.stats = new Map(this.answers.map((item) => [item.id, {
         id: item.id,
         name: item.name,
@@ -61,6 +63,12 @@
       if (correct) {
         const elapsed = Date.now() - this.questionStartedAt;
         const mistakesBeforeCorrect = this.currentQuestionMistakes;
+        this.questionStats.push({
+          id: questionStatId(q, this.mode, this.index),
+          mistakes: mistakesBeforeCorrect,
+          correct: true,
+          answerTimeMs: elapsed
+        });
         modeDefinition.correctMemberIds(q, featureProperties).forEach((id) => {
           const s = this.stats.get(id);
           if (s && !s.correct) {
@@ -99,11 +107,13 @@
         : this.questions.length;
       return {
         mode: this.mode,
+        rule: this.rule,
         totalQuestions: this.questions.length,
         reachedQuestions,
         correct: this.correct,
         mistakes: this.mistakes,
         elapsedMs: this.elapsedMs(),
+        questionStats: [...this.questionStats],
         stats: [...this.stats.values()]
       };
     }
@@ -123,6 +133,20 @@
       this.index = this.questions.length;
       this.gameOver = true;
     }
+  }
+
+  function normalizeRule(value) {
+    if (value === true) return "sudden_death";
+    if (value === "easy" || value === "normal" || value === "sudden_death") return value;
+    return "normal";
+  }
+
+  function questionStatId(question, mode, index) {
+    if (question?.id) return question.id;
+    if (question?.answerId) return question.answerId;
+    if (question?.area_code) return `area_code:${question.area_code}`;
+    if (question?.broad_area_code) return `broad_area_code:${question.broad_area_code}`;
+    return `${mode}:${index}`;
   }
 
   function shuffle(items) {

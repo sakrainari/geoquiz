@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 
 const DEFAULT_PATH = "data/prefectures/saitama.js";
 const DEFAULT_GLOBAL = "SAITAMA_MUNICIPALITIES";
@@ -25,12 +25,26 @@ function inferGlobalName(source, path) {
   return match[1];
 }
 
+function countVertices(features) {
+  let count = 0;
+  for (const feature of features) {
+    const geom = feature.geometry;
+    if (!geom) continue;
+    const polygons = geom.type === "MultiPolygon" ? geom.coordinates : [geom.coordinates];
+    for (const polygon of polygons) {
+      for (const ring of polygon) count += ring.length;
+    }
+  }
+  return count;
+}
+
 function parseArgs(argv) {
   const options = {
     path: DEFAULT_PATH,
     globalName: DEFAULT_GLOBAL,
     imagePath: null,
-    imageGlobalName: null
+    imageGlobalName: null,
+    all: false
   };
 
   argv.forEach((arg) => {
@@ -42,6 +56,8 @@ function parseArgs(argv) {
       options.imageGlobalName = arg.slice("--image-global=".length);
     } else if (arg === "--infer-global") {
       options.globalName = null;
+    } else if (arg === "--all") {
+      options.all = true;
     } else if (!arg.startsWith("--")) {
       options.path = arg;
     }
@@ -98,6 +114,7 @@ function validateDataset(dataset) {
     prefecture: dataset.prefecture.name,
     municipalities: dataset.municipalities.length,
     features: dataset.features.length,
+    vertices: countVertices(dataset.features),
     areaCodes: new Set(dataset.municipalities.map((item) => item.area_code)).size,
     maNames: new Set(dataset.municipalities.map((item) => item.ma_name)).size
   };
@@ -125,10 +142,52 @@ function validateImageQuestions(items) {
 }
 
 const options = parseArgs(process.argv.slice(2));
-const dataset = await loadWindowAssignment(options.path, options.globalName);
-const result = validateDataset(dataset);
-if (options.imagePath) {
-  const imageQuestions = await loadWindowAssignment(options.imagePath, options.imageGlobalName);
-  Object.assign(result, validateImageQuestions(imageQuestions));
+
+if (options.all) {
+  const files = (await readdir("data/prefectures")).filter((f) => f.endsWith(".js")).sort();
+  const rows = [];
+  for (const file of files) {
+    const path = `data/prefectures/${file}`;
+    try {
+      const dataset = await loadWindowAssignment(path, null);
+      const result = validateDataset(dataset);
+      rows.push({ file, ...result });
+    } catch (e) {
+      rows.push({ file, error: e.message });
+    }
+  }
+  const nameW = Math.max(8, ...rows.map((r) => (r.file || "").length));
+  const prefW = Math.max(10, ...rows.map((r) => (r.prefecture || "").length));
+  const header = [
+    "file".padEnd(nameW),
+    "prefecture".padEnd(prefW),
+    "munis".padStart(6),
+    "features".padStart(9),
+    "vertices".padStart(9),
+    "MAs".padStart(5)
+  ].join("  ");
+  console.log(header);
+  console.log("-".repeat(header.length));
+  for (const row of rows) {
+    if (row.error) {
+      console.log(`${row.file.padEnd(nameW)}  ERROR: ${row.error}`);
+    } else {
+      console.log([
+        row.file.padEnd(nameW),
+        row.prefecture.padEnd(prefW),
+        String(row.municipalities).padStart(6),
+        String(row.features).padStart(9),
+        String(row.vertices).padStart(9),
+        String(row.areaCodes).padStart(5)
+      ].join("  "));
+    }
+  }
+} else {
+  const dataset = await loadWindowAssignment(options.path, options.globalName);
+  const result = validateDataset(dataset);
+  if (options.imagePath) {
+    const imageQuestions = await loadWindowAssignment(options.imagePath, options.imageGlobalName);
+    Object.assign(result, validateImageQuestions(imageQuestions));
+  }
+  console.log(JSON.stringify(result, null, 2));
 }
-console.log(JSON.stringify(result, null, 2));
