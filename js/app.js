@@ -430,7 +430,7 @@
     ensureMap().reset();
     applyTileLayerSelection(currentSessionSettings.tileLayerVisible);
     renderer.setMode(nextMode);
-    renderer.setEasyMode(currentSessionSettings.rule === "easy" && ["municipality", "ma", "ma_broad"].includes(nextMode));
+    renderer.setEasyMode(false);
     renderer.fitToMain();
     els.resetButton.classList.add("is-hidden");
     els.puzzleControls.classList.add("is-hidden");
