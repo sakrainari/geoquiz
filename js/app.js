@@ -510,7 +510,8 @@
       liteMode,
       initialView: appConfig.initialView || null,
       labelBehavior: appConfig.labelBehavior || null,
-      mapMaxZoom: appConfig.mapMaxZoom || null
+      mapMaxZoom: appConfig.mapMaxZoom || null,
+      preferCanvas: appConfig.preferCanvas || false
     });
     window.__geoquizRenderer = renderer;
     currentSessionSettings.tileLayerVisible = renderer.tileLayerVisible;

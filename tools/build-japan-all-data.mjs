@@ -62,13 +62,13 @@ const rawFeatureCollection = {
 const rawVertexCount = countFeatureVertices(rawFeatureCollection);
 console.log(`\nマージ後: ${rawFeatureCollection.features.length} features, ${rawVertexCount} 頂点`);
 
-// 日本全域スケールで簡略化（大きめのintervalを使用）
-console.log("簡略化中 (interval=400m)...");
+// 日本全域スケールで簡略化（800m: 全国俯瞰ズームに最適化）
+console.log("簡略化中 (interval=800m)...");
 const simplifiedFeatureCollection = await simplifyFeatureCollectionWithMapshaper(rawFeatureCollection, {
-  interval: "400m",
+  interval: "800m",
   weighting: 0.78,
-  minIslandArea: "15000m2",
-  minSliverArea: "20000m2",
+  minIslandArea: "40000m2",
+  minSliverArea: "50000m2",
   sliverControl: 0.9,
 });
 const simplifiedVertexCount = countFeatureVertices(simplifiedFeatureCollection);

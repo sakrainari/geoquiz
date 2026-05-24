@@ -58,7 +58,8 @@
         zoomControl: true,
         attributionControl: true,
         minZoom: 8,
-        maxZoom: options.mapMaxZoom || 13
+        maxZoom: options.mapMaxZoom || 13,
+        preferCanvas: options.preferCanvas || false
       });
       this.map.createPane("ghostPane").style.zIndex = 300;
       this.map.createPane("mainPane").style.zIndex = 450;
