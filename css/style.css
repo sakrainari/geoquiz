@@ -480,6 +480,56 @@ h3 {
   height: 100%;
 }
 
+/* ── 進捗バー（Bronze / Gold / Platinum） ── */
+.ds-progress-bars {
+  padding: 5px 9px 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border-top: 1px solid var(--line);
+}
+
+.ds-pb-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ドット（6px 丸） */
+.ds-pb-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #2a3a4a;
+}
+
+/* トラック */
+.ds-pb-track {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: #1e2d38;
+  overflow: hidden;
+}
+
+/* 塗り */
+.ds-pb-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* 右端の数値 */
+.ds-pb-value {
+  font-size: 9px;
+  color: var(--muted);
+  min-width: 28px;
+  text-align: right;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
 .region-menu-name {
   display: block;
   font-size: 14px;

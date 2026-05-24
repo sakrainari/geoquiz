@@ -671,6 +671,7 @@
     <script src="js/quiz-engine.js"></script>
     <script src="js/result-analytics.js"></script>
     <script src="js/progress-store.js"></script>
+    <script src="js/progress-bar-store.js"></script>
     <script src="js/map-renderer.js"></script>
     <script src="js/app.js"></script>
     <script>
@@ -861,7 +862,7 @@
   datasets.forEach(function (d) { dsMap[d.id] = d; });
 
   /* ── ミニマップ SVG 生成 ── */
-  var _svgCache = {};
+  var _pathCache = {};  // パス文字列(d)だけキャッシュ。色は呼び出し側で指定。
 
   function buildMiniSvg(features) {
     var VW = 100, VH = 60;
@@ -960,17 +961,32 @@
       }
     }
 
-    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + VW + ' ' + VH + '" width="100%" height="100%">' +
-      '<path d="' + d + '" fill="#1d9e75" fill-opacity="0.45" stroke="#1d9e75" stroke-opacity="0.85" stroke-width="0.5" fill-rule="evenodd"/>' +
-      '</svg>';
+    return d;  // パス文字列のみ返す（色は getMiniSvg で適用）
   }
 
-  function getMiniSvg(ds) {
-    if (_svgCache[ds.id] !== undefined) return _svgCache[ds.id];
+  /** パス文字列をキャッシュして取得 */
+  function getMiniPath(ds) {
+    if (_pathCache[ds.id] !== undefined) return _pathCache[ds.id];
     var data = ds.dataGlobal ? window[ds.dataGlobal] : null;
-    var svg = data && data.features ? buildMiniSvg(data.features) : '';
-    _svgCache[ds.id] = svg;
-    return svg;
+    var d = data && data.features ? buildMiniSvg(data.features) : '';
+    _pathCache[ds.id] = d;
+    return d;
+  }
+
+  /**
+   * ランク色を反映した SVG HTML を返す。
+   * color: "#cd8500" など。省略時は緑（既存デザイン）。
+   */
+  function getMiniSvg(ds, color) {
+    var VW = 100, VH = 60;
+    var d = getMiniPath(ds);
+    if (!d) return '';
+    var c = color || '#1d9e75';
+    var fillOpacity = color ? '0.55' : '0.45';
+    var strokeOpacity = color ? '1' : '0.85';
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + VW + ' ' + VH + '" width="100%" height="100%">' +
+      '<path d="' + d + '" fill="' + c + '" fill-opacity="' + fillOpacity + '" stroke="' + c + '" stroke-opacity="' + strokeOpacity + '" stroke-width="0.5" fill-rule="evenodd"/>' +
+      '</svg>';
   }
 
   var params = new URLSearchParams(location.search);
@@ -1059,6 +1075,53 @@
     return parts.join(' · ');
   }
 
+  /**
+   * カード下部の進捗バー3本（Bronze / Gold / Platinum）を組み立てる。
+   * rd: ProgressBarStore.getRegion() の戻り値
+   * muniCount: 市区町村数（Platinum バーの分母）
+   */
+  function buildProgressBars(rd, muniCount) {
+    var pbs = window.ProgressBarStore;
+    if (!pbs) return '';
+
+    var easy = rd.easy         || {};
+    var norm = rd.normal       || {};
+    var sd   = rd.sudden_death || {};
+    var denom = muniCount || 1;
+
+    function row(color, plays, num, den, extra) {
+      var active = num > 0;
+      var dot    = active ? color : pbs.COLOR_NONE;
+      var fill   = active ? color : pbs.COLOR_NONE;
+      var width  = (plays > 0 && den > 0) ? Math.min(100, Math.round(num / den * 100)) : 0;
+      var val    = plays > 0 ? (num + '/' + den) : '--';
+      if (extra && plays > 0) val += ' ' + extra;
+      return '<div class="ds-pb-row">' +
+        '<span class="ds-pb-dot" style="background:' + dot + '"></span>' +
+        '<div class="ds-pb-track">' +
+          '<div class="ds-pb-fill" style="width:' + width + '%;background:' + fill + '"></div>' +
+        '</div>' +
+        '<span class="ds-pb-value">' + esc(val) + '</span>' +
+        '</div>';
+    }
+
+    /* Bronze: easy の 一発正解 / プレイ数 */
+    var bRow = row(pbs.RANKS.bronze.color,
+      easy.plays || 0, easy.first_try_correct || 0, easy.plays || 1);
+
+    /* Gold: normal の 一発正解 / プレイ数 */
+    var gRow = row(pbs.RANKS.gold.color,
+      norm.plays || 0, norm.first_try_correct || 0, norm.plays || 1);
+
+    /* Platinum: best_streak / 市区町村数、補助に Clear xN */
+    var clears  = sd.clears || 0;
+    var extra   = clears > 0 ? 'C\xd7' + clears : '';
+    var pRow = row(pbs.RANKS.platinum.color,
+      sd.plays || 0, sd.best_streak || 0, denom, extra);
+
+    return '<div class="ds-progress-bars">' + bRow + gRow + pRow + '</div>';
+  }
+
   function renderGrid() {
     grid.innerHTML = '';
     if (!activeRegion || activeRegion.coming) return;
@@ -1101,11 +1164,20 @@
         var ds = dsMap[pid];
         if (!ds) return;
         var stats = getDsStats(ds);
-        var svg   = getMiniSvg(ds);
+
+        /* 進捗ランクを取得してミニマップ色を決定 */
+        var pbs  = window.ProgressBarStore;
+        var rd   = pbs ? pbs.getRegion(ds.id) : {};
+        var rank = pbs ? pbs.getRank(rd) : null;
+        var mc   = pbs ? pbs.rankColor(rank) : null;
+        var svg  = getMiniSvg(ds, mc);
+
         var card = document.createElement('button');
         card.type = 'button';
         card.className = 'ds-card-pref' + (currentDsId === ds.id ? ' is-active' : '');
         card.dataset.datasetId = ds.id;
+        if (rank) card.dataset.rank = rank;
+
         card.innerHTML =
           (svg ? '<div class="ds-minimap">' + svg + '</div>' : '') +
           '<div class="ds-card-pref-info">' +
@@ -1113,7 +1185,9 @@
             (stats.muniCount != null
               ? '<div class="ds-card-meta">' + esc(statsText(stats, false)) + '</div>'
               : '') +
-          '</div>';
+          '</div>' +
+          buildProgressBars(rd, stats.muniCount);
+
         card.addEventListener('click', function () {
           location.href = '?dataset=' + ds.id;
         });
