@@ -36,6 +36,7 @@
 - `miyazaki`
 - `kagoshima`
 - `kyushu_all`
+- `okinawa`
 
 ## 広域区分の方針
 
