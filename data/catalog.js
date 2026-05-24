@@ -75,6 +75,24 @@ window.GEOQUIZ_DATASETS = [
     version: "0.1.0"
   },
   {
+    id: "usa",
+    name: "アメリカ合衆国",
+    shortName: "USA",
+    title: "GeoQuiz",
+    subtitle: "US States Quiz",
+    description: "アメリカ50州の位置を覚えるトレーニングツール。",
+    dataGlobal: "USA_MUNICIPALITIES",
+    labelOverridesGlobal: "USA_LABEL_OVERRIDES",
+    speechReadingsGlobal: "USA_SPEECH_READINGS",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [39.5, -98.35],
+    initialView: { center: [39.5, -98.35], zoom: 4 },
+    mapMinZoom: 3,
+    mapMaxZoom: 8,
+    version: "0.1.0"
+  },
+  {
     id: "saitama",
     name: "埼玉県",
     shortName: "埼玉",

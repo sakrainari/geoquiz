@@ -1,0 +1,1 @@
+window.USA_SPEECH_READINGS = {};
