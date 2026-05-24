@@ -1010,7 +1010,7 @@ window.GEOQUIZ_DATASETS = [
     labelOverridesGlobal: "JAPAN_ALL_LABEL_OVERRIDES",
     speechReadingsGlobal: "JAPAN_ALL_SPEECH_READINGS",
     defaultMode: "municipality",
-    enabledModes: ["municipality", "confirm"],
+    enabledModes: ["municipality", "ma", "confirm", "confirm_ma"],
     center: [36.5, 137.5],
     initialView: {
       center: [36.5, 137.5],
