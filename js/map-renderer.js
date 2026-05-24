@@ -714,6 +714,9 @@
       if (!feature) return;
       const props = feature.properties;
       if (this.liteMode && !this.labelEditEnabled && !this.shouldShowLiteLabel(props)) return;
+      // Easy mode: 未回答の市区町村は代表的な「市」「区」のみ表示。回答済みは常に表示。
+      if (this.easyMode && !this.answeredIds.has(id) && this.municipalityLabelDisplayMode() === "all"
+          && !props.name.endsWith("市") && !props.name.endsWith("区")) return;
       const labelDisplayMode = this.municipalityLabelDisplayMode();
       if (labelDisplayMode === "answered" && !this.labelEditEnabled && !this.liteMode && !this.confirmMode && !this._shouldShowAtCurrentZoom(id, feature)) return;
       const label = this.resolveLabelPlacement(id, feature, {
