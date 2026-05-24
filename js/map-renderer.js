@@ -57,7 +57,7 @@
       this.map = L.map(elementId, {
         zoomControl: true,
         attributionControl: true,
-        minZoom: 8,
+        minZoom: options.mapMinZoom || 8,
         maxZoom: options.mapMaxZoom || 13,
         preferCanvas: options.preferCanvas || false
       });
@@ -557,11 +557,17 @@
       this.tooltipsById.forEach((marker) => marker.remove());
       this.tooltipsById.clear();
       this._invalidateTopAreaCache();
-      if (this.municipalityLabelDisplayMode() !== "answered") {
-        (this.municipalityLabelDisplayMode() === "subtle"
-          ? this.dataset.municipalities.filter((item) => item.name.endsWith("市"))
-          : this.dataset.municipalities
-        ).forEach((item) => this.showLabel(item.id));
+      const municipalityLabelMode = this.municipalityLabelDisplayMode();
+      if (municipalityLabelMode !== "answered") {
+        this.dataset.municipalities
+          .filter((item) => {
+            const feature = this.displayFeaturesById.get(item.id)
+              || this.dataset.features.find((entry) => entry.properties.id === item.id);
+            const props = feature ? feature.properties : item;
+            if (municipalityLabelMode === "subtle") return this.shouldShowSubtleMunicipalityLabel(props);
+            return this.shouldShowPendingEasyMunicipalityLabel(props);
+          })
+          .forEach((item) => this.showLabel(item.id));
       } else {
         this.answeredIds.forEach(id => this.showLabel(id));
       }
@@ -716,7 +722,7 @@
       if (this.liteMode && !this.labelEditEnabled && !this.shouldShowLiteLabel(props)) return;
       // Easy mode: 未回答の市区町村は代表的な「市」「区」のみ表示。回答済みは常に表示。
       if (this.easyMode && !this.answeredIds.has(id) && this.municipalityLabelDisplayMode() === "all"
-          && !props.name.endsWith("市") && !props.name.endsWith("区")) return;
+          && !this.shouldShowPendingEasyMunicipalityLabel(props)) return;
       const labelDisplayMode = this.municipalityLabelDisplayMode();
       if (labelDisplayMode === "answered" && !this.labelEditEnabled && !this.liteMode && !this.confirmMode && !this._shouldShowAtCurrentZoom(id, feature)) return;
       const label = this.resolveLabelPlacement(id, feature, {
@@ -763,6 +769,35 @@
       const importantTags = ["県庁所在地", "政令指定都市", "小面積", "村"];
       return importantTags.some((tag) => (props.tags || []).includes(tag))
         || ["saitama_tokorozawa", "saitama_chichibu", "saitama_kawaguchi"].includes(props.id);
+    }
+
+    shouldShowPendingEasyMunicipalityLabel(props) {
+      return this.matchesMunicipalityLabelRule(
+        props,
+        this.labelBehavior.easyMunicipalityTags,
+        this.labelBehavior.easyMunicipalityNameSuffixes,
+        ["市", "区"]
+      );
+    }
+
+    shouldShowSubtleMunicipalityLabel(props) {
+      return this.matchesMunicipalityLabelRule(
+        props,
+        this.labelBehavior.subtleMunicipalityTags,
+        this.labelBehavior.subtleMunicipalityNameSuffixes,
+        ["市"]
+      );
+    }
+
+    matchesMunicipalityLabelRule(props, tags, suffixes, fallbackSuffixes) {
+      const name = String((props && props.name) || "");
+      const labelTags = Array.isArray(props && props.tags) ? props.tags : [];
+      const normalizedTags = Array.isArray(tags) ? tags.filter(Boolean) : [];
+      const normalizedSuffixes = Array.isArray(suffixes) ? suffixes.filter(Boolean) : [];
+      if (normalizedTags.length && normalizedTags.some((tag) => labelTags.includes(tag))) return true;
+      if (normalizedSuffixes.length && normalizedSuffixes.some((suffix) => name.endsWith(suffix))) return true;
+      if (normalizedTags.length || normalizedSuffixes.length) return false;
+      return fallbackSuffixes.some((suffix) => name.endsWith(suffix));
     }
 
     enableLabelEditor(onChange) {
@@ -1122,31 +1157,40 @@
       });
       this.clearMunicipalityLabels();
       this.clearAreaCodeLabels();
-      if (this.municipalityLabelDisplayMode() !== "answered") {
-        (this.municipalityLabelDisplayMode() === "subtle"
-          ? this.dataset.municipalities.filter((item) => item.name.endsWith("市"))
-          : this.dataset.municipalities
-        ).forEach((item) => this.showLabel(item.id));
+      const municipalityLabelMode = this.municipalityLabelDisplayMode();
+      if (municipalityLabelMode !== "answered") {
+        this.dataset.municipalities
+          .filter((item) => {
+            const feature = this.displayFeaturesById.get(item.id)
+              || this.dataset.features.find((entry) => entry.properties.id === item.id);
+            const props = feature ? feature.properties : item;
+            if (municipalityLabelMode === "subtle") return this.shouldShowSubtleMunicipalityLabel(props);
+            return this.shouldShowPendingEasyMunicipalityLabel(props);
+          })
+          .forEach((item) => this.showLabel(item.id));
       }
     }
 
     warmupPlacements() {
+      if (this.dataset && this.dataset.municipalities && this.dataset.municipalities.length > 800) return;
       // 市ラベルの配置計算を2モード分キャッシュに積む（DOM生成なし）
       const muniOptionSets = [
         { sizeBoost: 0.2,  minSize: 8.2, maxSize: 13.8, angleLimit: 28 },  // municipality mode
         { sizeBoost: -0.8, minSize: 8.4, maxSize: 11.2, angleLimit: 18 }   // ma mode (subtle)
       ];
       this.displayFeaturesById.forEach((feature, id) => {
-        const isCity = feature.properties.name.endsWith("市");
+        const props = feature.properties || {};
         for (let i = 0; i < muniOptionSets.length; i++) {
-          // municipality mode (index 0): 全市区町村, MA subtle mode (index 1): 市のみ
-          if (i === 1 && !isCity) continue;
+          if (i === 1 && !this.shouldShowSubtleMunicipalityLabel(props)) continue;
+          if (i === 0 && !this.shouldShowPendingEasyMunicipalityLabel(props)) continue;
           this.resolveLabelPlacement(id, feature, muniOptionSets[i]);
         }
       });
 
       // 市外局番ラベルの配置計算をキャッシュに積む（マップへの描画なし）
-      const areaCodeFeatures = this.getMaCollections("area_code");
+      const areaCodeFeatures = (this.dataset && this.dataset.maBroadFeatures && !this.dataset.maFeatures)
+        ? this.getMaBroadCollections()
+        : this.getMaCollections("area_code");
       const acOpts = { minSize: 16, maxSize: 27, sizeBoost: 7.8, fitByShortSide: true, forceAngle: 0, precise: true, preferVisualCenter: true };
       for (const feature of areaCodeFeatures) {
         const areaCode = feature.properties.area_code;
@@ -1163,11 +1207,17 @@
       if (this._pendingLabelRender) clearTimeout(this._pendingLabelRender);
       this._pendingLabelRender = setTimeout(() => {
         this._pendingLabelRender = null;
-        if (this.municipalityLabelDisplayMode() !== "answered") {
-          (this.municipalityLabelDisplayMode() === "subtle"
-            ? this.dataset.municipalities.filter((item) => item.name.endsWith("市"))
-            : this.dataset.municipalities
-          ).forEach((item) => this.showLabel(item.id));
+        const municipalityLabelMode = this.municipalityLabelDisplayMode();
+        if (municipalityLabelMode !== "answered") {
+          this.dataset.municipalities
+            .filter((item) => {
+              const feature = this.displayFeaturesById.get(item.id)
+                || this.dataset.features.find((entry) => entry.properties.id === item.id);
+              const props = feature ? feature.properties : item;
+              if (municipalityLabelMode === "subtle") return this.shouldShowSubtleMunicipalityLabel(props);
+              return this.shouldShowPendingEasyMunicipalityLabel(props);
+            })
+            .forEach((item) => this.showLabel(item.id));
         } else {
           this.answeredIds.forEach((id) => this.showLabel(id));
         }

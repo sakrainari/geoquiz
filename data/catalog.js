@@ -998,6 +998,35 @@ window.GEOQUIZ_DATASETS = [
     },
     version: "0.1.0"
   },
+  {
+    id: "japan_all",
+    name: "日本全域",
+    shortName: "全国",
+    title: "GeoQuiz",
+    subtitle: "日本全域 市区町村クイズ",
+    description: "未回答の白地図から、日本全国の主要自治体と3桁市外局番を段階的に叩き込むトレーニングツール。",
+    dataGlobal: "JAPAN_ALL_MUNICIPALITIES",
+    labelOverridesGlobal: "JAPAN_ALL_LABEL_OVERRIDES",
+    speechReadingsGlobal: "JAPAN_ALL_SPEECH_READINGS",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "ma_broad", "confirm", "confirm_ma_broad"],
+    center: [36.2, 138.25],
+    initialView: {
+      center: [36.2, 138.25],
+      zoom: 5
+    },
+    mapMinZoom: 5,
+    mapMaxZoom: 11,
+    preferCanvas: true,
+    warmupLabels: false,
+    labelBehavior: {
+      easyMunicipalityTags: ["県庁所在地", "政令指定都市"],
+      subtleMunicipalityTags: ["県庁所在地", "政令指定都市"],
+      minMunicipalitySize: 9.5,
+      minAreaCodeSize: 15
+    },
+    version: "0.1.0"
+  },
   // ── 特集：市区町村 町字クイズ ──────────────────────────────────
   {
     id: "tokorozawa",

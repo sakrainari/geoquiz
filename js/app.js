@@ -510,6 +510,7 @@
       liteMode,
       initialView: appConfig.initialView || null,
       labelBehavior: appConfig.labelBehavior || null,
+      mapMinZoom: appConfig.mapMinZoom || null,
       mapMaxZoom: appConfig.mapMaxZoom || null,
       preferCanvas: appConfig.preferCanvas || false
     });
@@ -556,11 +557,13 @@
       }
     });
     // データセット確定後、アイドル時間にラベル配置計算をキャッシュへ積む
-    const warmup = () => renderer.warmupPlacements();
-    if (typeof requestIdleCallback !== "undefined") {
-      requestIdleCallback(warmup, { timeout: 3000 });
-    } else {
-      setTimeout(warmup, 200);
+    if (appConfig.warmupLabels !== false) {
+      const warmup = () => renderer.warmupPlacements();
+      if (typeof requestIdleCallback !== "undefined") {
+        requestIdleCallback(warmup, { timeout: 3000 });
+      } else {
+        setTimeout(warmup, 200);
+      }
     }
 
     return renderer;
