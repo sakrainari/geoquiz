@@ -28,7 +28,7 @@
     ? "municipality"
     : (QUIZ_START_MODES.find((mode) => appConfig.enabledModes.includes(mode)) || "municipality");
   const labelEditMode = resolveEditMode() === "labels";
-  const liteMode = resolveLiteMode();
+  const liteMode = resolveLiteMode() || !!(appConfig && appConfig.forceLiteMode);
   const labelEditorDraft = labelEditMode ? loadLabelEditorDraft(appConfig.id) : null;
   const labelOverrides = labelEditorDraft ? labelEditorDraft.overrides : baseLabelOverrides;
   let selectedQuizMode = DEFAULT_QUIZ_MODE;

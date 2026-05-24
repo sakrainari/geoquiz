@@ -1017,6 +1017,7 @@ window.GEOQUIZ_DATASETS = [
       zoom: 5
     },
     preferCanvas: true,
+    forceLiteMode: true,
     version: "0.1.0"
   },
   // ── 特集：市区町村 町字クイズ ──────────────────────────────────
