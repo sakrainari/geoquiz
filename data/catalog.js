@@ -998,6 +998,26 @@ window.GEOQUIZ_DATASETS = [
     },
     version: "0.1.0"
   },
+  // ── 全国 ────────────────────────────────────────────────────────
+  {
+    id: "japan_all",
+    name: "日本全域",
+    shortName: "日本全域",
+    title: "GeoQuiz",
+    subtitle: "日本全域 市区町村クイズ",
+    description: "未回答の白地図から、日本全国の市区町村を叩き込むトレーニングツール。",
+    dataGlobal: "JAPAN_ALL_MUNICIPALITIES",
+    labelOverridesGlobal: "JAPAN_ALL_LABEL_OVERRIDES",
+    speechReadingsGlobal: "JAPAN_ALL_SPEECH_READINGS",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [36.5, 137.5],
+    initialView: {
+      center: [36.5, 137.5],
+      zoom: 5
+    },
+    version: "0.1.0"
+  },
   // ── 特集：市区町村 町字クイズ ──────────────────────────────────
   {
     id: "tokorozawa",
