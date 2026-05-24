@@ -48,6 +48,7 @@
       this.puzzleDrag = null;
       this.onPuzzleChange = null;
       this.liteMode = options.liteMode || false;
+      this.preferCanvas = options.preferCanvas || false;
       this.initialView = options.initialView || null;
       this.labelBehavior = options.labelBehavior || {};
       this.labelStatesById = normalizeLabelOverrides(options.labelOverrides).municipalities;
@@ -59,7 +60,7 @@
         attributionControl: true,
         minZoom: options.mapMinZoom || 8,
         maxZoom: options.mapMaxZoom || 13,
-        preferCanvas: options.preferCanvas || false
+        preferCanvas: this.preferCanvas
       });
       this.map.createPane("ghostPane").style.zIndex = 300;
       this.map.createPane("mainPane").style.zIndex = 450;
@@ -67,6 +68,11 @@
       this.map.createPane("labelPane").style.zIndex = 650;
       this.map.getPane("hitPane").style.pointerEvents = "auto";
       this.map.getPane("labelPane").style.pointerEvents = "none";
+      // preferCanvas 時はレイヤーごとに独立した canvas を持つ。
+      // mainLayer と maLayer を共有 canvas にすると setStyle が両方を再描画するため分離する。
+      this._canvasMain = this.preferCanvas ? L.canvas({ pane: "mainPane" }) : null;
+      this._canvasMa   = this.preferCanvas ? L.canvas({ pane: "mainPane" }) : null;
+      this._canvasGhost = this.preferCanvas ? L.canvas({ pane: "ghostPane" }) : null;
       // OSM tile layer — requires internet connection; disabled by default
       this.tileLayerVisible = false;
       this.tileLayer = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -88,6 +94,7 @@
       if (!this.ghostData) return;
       this.ghostLayer = L.geoJSON(this.ghostData, {
         pane: "ghostPane",
+        ...(this._canvasGhost ? { renderer: this._canvasGhost } : {}),
         interactive: false,
         style: {
           color: "#9ca3af",
@@ -104,6 +111,7 @@
       this.displayFeaturesById = new Map(displayFeatures.map((feature) => [feature.properties.id, feature]));
       this.mainLayer = L.geoJSON({ type: "FeatureCollection", features: displayFeatures }, {
         pane: "mainPane",
+        ...(this._canvasMain ? { renderer: this._canvasMain } : {}),
         style: () => this.baseStyle(),
         onEachFeature: (feature, layer) => {
           const id = feature.properties.id;
@@ -273,6 +281,7 @@
         .filter(Boolean);
       this.puzzleOutlineLayer = L.geoJSON({ type: "FeatureCollection", features }, {
         pane: "mainPane",
+        ...(this._canvasMain ? { renderer: this._canvasMain } : {}),
         interactive: false,
         style: {
           color: COLORS.puzzleOutline,
@@ -466,6 +475,7 @@
       this.areaCodeFeaturesByCode = new Map(features.map((feature) => [feature.properties.area_code, feature]));
       this.maLayer = L.geoJSON({ type: "FeatureCollection", features }, {
         pane: "mainPane",
+        ...(this._canvasMa ? { renderer: this._canvasMa } : {}),
         interactive: true,
         style: (feature) => this.getAreaCodeStyle(feature.properties.area_code),
         onEachFeature: (feature, layer) => {
