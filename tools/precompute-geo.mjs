@@ -27,15 +27,16 @@ function loadTurf() {
   if (!existsSync(turfPath)) {
     throw new Error(`turf.min.js が見つかりません: ${turfPath}`);
   }
-  // turf は window.turf に書き出す設計なのでグローバルを偽装して eval する
+  // turf の UMD は Node.js 環境では globalThis.turf に書き出す
   const code = readFileSync(turfPath, "utf-8");
   const fakeWindow = {};
   // eslint-disable-next-line no-new-func
   new Function("window", code)(fakeWindow);
-  if (!fakeWindow.turf) {
+  const turf = fakeWindow.turf || globalThis.turf;
+  if (!turf) {
     throw new Error("turf のロードに失敗しました（window.turf が undefined）");
   }
-  return fakeWindow.turf;
+  return turf;
 }
 
 // ─── データファイルをロード（window.XXXX = ... 形式を eval）──────────
