@@ -967,8 +967,6 @@
       if (this.labelEditEnabled && (!this.labelEditLabelsVisible || this.labelEditScope !== "areaCode")) return;
       if (this.areaCodeTooltipsByCode.has(areaCode)) return;
       if (this.liteMode && !this.labelEditEnabled && !["04", "048", "049", "0494"].includes(areaCode)) return;
-      // Easy mode: 未回答の局番は代表的な短いコード（3桁以下）のみ表示。回答済みは常に表示。
-      if (this.easyMode && !this.answeredAreaCodes.has(areaCode) && areaCode.length > 3) return;
       const feature = this.areaCodeFeaturesByCode.get(areaCode);
       if (!feature) return;
       const label = this.resolveAreaCodeLabelPlacement(areaCode, feature, {
