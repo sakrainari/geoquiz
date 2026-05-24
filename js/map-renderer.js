@@ -788,7 +788,7 @@
         props,
         this.labelBehavior.easyMunicipalityTags,
         this.labelBehavior.easyMunicipalityNameSuffixes,
-        ["市", "区"]
+        ["市", "区", "町", "村"]
       );
     }
 
