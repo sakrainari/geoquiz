@@ -135,9 +135,12 @@ function processDataset(turf, config) {
   const { id, dataGlobal } = config;
   console.log(`\n📍 [${id}] ${config.name || id}`);
 
-  // データファイルのパスを探す（data/prefectures/ と data/<id>/ の両方を試す）
+  // データファイルのパスを探す
+  // カタログIDはアンダースコア（kanto_all）、ファイル名はハイフン（kanto-all.js）の場合がある
+  const hyphenId = id.replace(/_/g, "-");
   const candidates = [
     resolve(ROOT, "data", "prefectures", `${id}.js`),
+    resolve(ROOT, "data", "prefectures", `${hyphenId}.js`),
     resolve(ROOT, "data", id, `${id}.js`),
     resolve(ROOT, "data", `${id}.js`)
   ];
