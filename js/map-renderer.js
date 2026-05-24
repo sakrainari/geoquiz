@@ -805,7 +805,7 @@
       const name = String((props && props.name) || "");
       const labelTags = Array.isArray(props && props.tags) ? props.tags : [];
       const normalizedTags = Array.isArray(tags) ? tags.filter(Boolean) : [];
-      const normalizedSuffixes = Array.isArray(suffixes) ? suffixes.filter(Boolean) : [];
+      const normalizedSuffixes = Array.isArray(suffixes) ? suffixes.filter(s => s !== null && s !== undefined) : [];
       if (normalizedTags.length && normalizedTags.some((tag) => labelTags.includes(tag))) return true;
       if (normalizedSuffixes.length && normalizedSuffixes.some((suffix) => name.endsWith(suffix))) return true;
       if (normalizedTags.length || normalizedSuffixes.length) return false;

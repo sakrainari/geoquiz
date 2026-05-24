@@ -1018,6 +1018,9 @@ window.GEOQUIZ_DATASETS = [
     },
     mapMaxZoom: 18,
     category: "special",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
     version: "0.1.0"
   },
   {
@@ -1039,6 +1042,9 @@ window.GEOQUIZ_DATASETS = [
     },
     mapMaxZoom: 18,
     category: "special",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
     version: "0.1.0"
   }
 ];
