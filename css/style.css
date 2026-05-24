@@ -1780,6 +1780,16 @@ svg.leaflet-zoom-animated {
     0 0 2px rgba(2, 3, 4, 0.12);
 }
 
+.answered-label.municipality-label.is-pending-easy {
+  color: rgba(255, 255, 255, 0.68);
+  text-shadow:
+    -1px -1px 0 rgba(2, 3, 4, 0.78),
+    1px -1px 0 rgba(2, 3, 4, 0.78),
+    -1px 1px 0 rgba(2, 3, 4, 0.78),
+    1px 1px 0 rgba(2, 3, 4, 0.78),
+    0 0 4px rgba(2, 3, 4, 0.34);
+}
+
 .answered-label.is-selected {
   color: #fff8d6;
   text-shadow:
@@ -1805,6 +1815,16 @@ svg.leaflet-zoom-animated {
     -2px 2px 0 rgba(2, 3, 4, 0.96),
     2px 2px 0 rgba(2, 3, 4, 0.96),
     0 0 8px rgba(2, 3, 4, 0.5);
+}
+
+.answered-label.area-code-label.is-pending-easy {
+  color: rgba(255, 246, 218, 0.72);
+  text-shadow:
+    -2px -2px 0 rgba(2, 3, 4, 0.78),
+    2px -2px 0 rgba(2, 3, 4, 0.78),
+    -2px 2px 0 rgba(2, 3, 4, 0.78),
+    2px 2px 0 rgba(2, 3, 4, 0.78),
+    0 0 6px rgba(2, 3, 4, 0.28);
 }
 
 .leaflet-tooltip.answered-tooltip {

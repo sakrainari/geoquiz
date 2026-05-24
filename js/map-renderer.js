@@ -732,7 +732,8 @@
       const labelSize = Math.max(label.size, this.labelBehavior.minMunicipalitySize || 0);
       const selected = this.labelEditSelectedId === id;
       const subtle = labelDisplayMode === "subtle";
-      const html = `<div class="answered-label municipality-label${subtle ? " is-subtle" : ""}${selected ? " is-selected" : ""}" style="font-size:${labelSize}px; transform: translate(-50%, -50%) rotate(${label.angle}deg);">${props.name}</div>`;
+      const pendingEasy = labelDisplayMode === "all" && !this.answeredIds.has(id);
+      const html = `<div class="answered-label municipality-label${subtle ? " is-subtle" : ""}${pendingEasy ? " is-pending-easy" : ""}${selected ? " is-selected" : ""}" style="font-size:${labelSize}px; transform: translate(-50%, -50%) rotate(${label.angle}deg);">${props.name}</div>`;
       const markers = points.map((point) => {
         const marker = L.marker(point, {
           pane: "labelPane",
@@ -935,7 +936,8 @@
       if (!Array.isArray(point)) return;
       const labelSize = Math.max(label.size, this.labelBehavior.minAreaCodeSize || 0);
       const selected = this.labelEditSelectedId === `areaCode:${areaCode}`;
-      const html = `<div class="answered-label area-code-label${selected ? " is-selected" : ""}" style="font-size:${labelSize}px; transform: translate(-50%, -50%) rotate(${label.angle}deg);">${areaCode}</div>`;
+      const pendingEasy = this.areaCodeLabelDisplayMode() === "all" && !this.answeredAreaCodes.has(areaCode);
+      const html = `<div class="answered-label area-code-label${pendingEasy ? " is-pending-easy" : ""}${selected ? " is-selected" : ""}" style="font-size:${labelSize}px; transform: translate(-50%, -50%) rotate(${label.angle}deg);">${areaCode}</div>`;
       const marker = L.marker(point, {
         pane: "labelPane",
         opacity: 0,

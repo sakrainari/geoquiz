@@ -548,6 +548,9 @@
     <script src="data/prefectures/kyushu-all.js"></script>
     <script src="data/kyushu-all/label-overrides.js"></script>
     <script src="data/kyushu-all/speech-readings.js"></script>
+    <script src="data/prefectures/okinawa.js"></script>
+    <script src="data/okinawa/label-overrides.js"></script>
+    <script src="data/okinawa/speech-readings.js"></script>
     <script src="data/prefectures/kanagawa.js"></script>
     <script src="data/kanagawa/label-overrides.js"></script>
     <script src="data/kanagawa/speech-readings.js"></script>
@@ -575,6 +578,81 @@
     <script src="data/prefectures/hokkaido-all.js"></script>
     <script src="data/hokkaido-all/label-overrides.js"></script>
     <script src="data/hokkaido-all/speech-readings.js"></script>
+    <script src="data/prefectures/aomori.js"></script>
+    <script src="data/aomori/label-overrides.js"></script>
+    <script src="data/aomori/speech-readings.js"></script>
+    <script src="data/prefectures/iwate.js"></script>
+    <script src="data/iwate/label-overrides.js"></script>
+    <script src="data/iwate/speech-readings.js"></script>
+    <script src="data/prefectures/miyagi.js"></script>
+    <script src="data/miyagi/label-overrides.js"></script>
+    <script src="data/miyagi/speech-readings.js"></script>
+    <script src="data/prefectures/akita.js"></script>
+    <script src="data/akita/label-overrides.js"></script>
+    <script src="data/akita/speech-readings.js"></script>
+    <script src="data/prefectures/yamagata.js"></script>
+    <script src="data/yamagata/label-overrides.js"></script>
+    <script src="data/yamagata/speech-readings.js"></script>
+    <script src="data/prefectures/fukushima.js"></script>
+    <script src="data/fukushima/label-overrides.js"></script>
+    <script src="data/fukushima/speech-readings.js"></script>
+    <script src="data/prefectures/tohoku-all.js"></script>
+    <script src="data/tohoku-all/label-overrides.js"></script>
+    <script src="data/tohoku-all/speech-readings.js"></script>
+    <script src="data/prefectures/niigata.js"></script>
+    <script src="data/niigata/label-overrides.js"></script>
+    <script src="data/niigata/speech-readings.js"></script>
+    <script src="data/prefectures/toyama.js"></script>
+    <script src="data/toyama/label-overrides.js"></script>
+    <script src="data/toyama/speech-readings.js"></script>
+    <script src="data/prefectures/ishikawa.js"></script>
+    <script src="data/ishikawa/label-overrides.js"></script>
+    <script src="data/ishikawa/speech-readings.js"></script>
+    <script src="data/prefectures/fukui.js"></script>
+    <script src="data/fukui/label-overrides.js"></script>
+    <script src="data/fukui/speech-readings.js"></script>
+    <script src="data/prefectures/yamanashi.js"></script>
+    <script src="data/yamanashi/label-overrides.js"></script>
+    <script src="data/yamanashi/speech-readings.js"></script>
+    <script src="data/prefectures/nagano.js"></script>
+    <script src="data/nagano/label-overrides.js"></script>
+    <script src="data/nagano/speech-readings.js"></script>
+    <script src="data/prefectures/gifu.js"></script>
+    <script src="data/gifu/label-overrides.js"></script>
+    <script src="data/gifu/speech-readings.js"></script>
+    <script src="data/prefectures/shizuoka.js"></script>
+    <script src="data/shizuoka/label-overrides.js"></script>
+    <script src="data/shizuoka/speech-readings.js"></script>
+    <script src="data/prefectures/aichi.js"></script>
+    <script src="data/aichi/label-overrides.js"></script>
+    <script src="data/aichi/speech-readings.js"></script>
+    <script src="data/prefectures/chubu-all.js"></script>
+    <script src="data/chubu-all/label-overrides.js"></script>
+    <script src="data/chubu-all/speech-readings.js"></script>
+    <script src="data/prefectures/mie.js"></script>
+    <script src="data/mie/label-overrides.js"></script>
+    <script src="data/mie/speech-readings.js"></script>
+    <script src="data/prefectures/shiga.js"></script>
+    <script src="data/shiga/label-overrides.js"></script>
+    <script src="data/shiga/speech-readings.js"></script>
+    <script src="data/prefectures/kyoto.js"></script>
+    <script src="data/kyoto/label-overrides.js"></script>
+    <script src="data/kyoto/speech-readings.js"></script>
+    <script src="data/prefectures/osaka.js"></script>
+    <script src="data/osaka/label-overrides.js"></script>
+    <script src="data/osaka/speech-readings.js"></script>
+    <script src="data/prefectures/hyogo.js"></script>
+    <script src="data/hyogo/label-overrides.js"></script>
+    <script src="data/hyogo/speech-readings.js"></script>
+    <script src="data/prefectures/nara.js"></script>
+    <script src="data/nara/label-overrides.js"></script>
+    <script src="data/nara/speech-readings.js"></script>
+    <script src="data/prefectures/wakayama.js"></script>
+    <script src="data/wakayama/label-overrides.js"></script>
+    <script src="data/wakayama/speech-readings.js"></script>
+    <script src="data/prefectures/kinki-all.js"></script>
+    <script src="data/kinki-all/label-overrides.js"></script>
+    <script src="data/kinki-all/speech-readings.js"></script>
     <script src="data/ghost/kanto-ghost.js"></script>
     <script src="data/image-questions/saitama.js"></script>
     <!-- 特集：町字クイズ（ビルド後に有効） -->
@@ -729,9 +807,21 @@
       allId: 'kanto_all',
       prefIds: ['tokyo', 'tokyo_all', 'tokyo_islands', 'saitama', 'chiba', 'kanagawa', 'ibaraki', 'gunma', 'tochigi']
     },
-    { id: 'tohoku', label: '東北', coming: true },
-    { id: 'chubu',  label: '中部', coming: true },
-    { id: 'kinki',  label: '近畿', coming: true },
+    {
+      id: 'tohoku', label: '東北',
+      allId: 'tohoku_all',
+      prefIds: ['aomori', 'iwate', 'miyagi', 'akita', 'yamagata', 'fukushima']
+    },
+    {
+      id: 'chubu', label: '中部',
+      allId: 'chubu_all',
+      prefIds: ['niigata', 'toyama', 'ishikawa', 'fukui', 'yamanashi', 'nagano', 'gifu', 'shizuoka', 'aichi']
+    },
+    {
+      id: 'kinki',  label: '近畿',
+      allId: 'kinki_all',
+      prefIds: ['mie', 'shiga', 'kyoto', 'osaka', 'hyogo', 'nara', 'wakayama']
+    },
     {
       id: 'chugoku', label: '中国',
       allId: 'chugoku_all',
@@ -747,7 +837,10 @@
       allId: 'kyushu_all',
       prefIds: ['fukuoka', 'saga', 'nagasaki', 'kumamoto', 'oita', 'miyazaki', 'kagoshima']
     },
-    { id: 'okinawa', label: '沖縄', coming: true },
+    {
+      id: 'okinawa', label: '沖縄',
+      prefIds: ['okinawa']
+    },
     {
       id: 'special', label: '特集',
       prefIds: ['tokorozawa', 'fujisawa'],
