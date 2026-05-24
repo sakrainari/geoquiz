@@ -1,6 +1,6 @@
 // 自動生成ファイル — tools/precompute-geo.mjs で生成
 // 手動編集しないでください。再生成するには: node tools/precompute-geo.mjs saitama
-// 生成日時: 2026-05-24T18:21:48.432Z
+// 生成日時: 2026-05-24T18:30:53.826Z
 (function () {
   var d = window.__GEOQUIZ_PRECOMPUTED = window.__GEOQUIZ_PRECOMPUTED || {};
   d["saitama"] = {
