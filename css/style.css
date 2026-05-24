@@ -530,6 +530,36 @@ h3 {
   letter-spacing: 0.02em;
 }
 
+/* 地名 / 局番 切り替えタブ */
+.ds-pb-tabs {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 2px;
+}
+
+.ds-pb-tab {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 1px 6px 2px;
+  border-radius: 3px;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.1s, color 0.1s;
+}
+
+.ds-pb-tab.is-active {
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--text);
+}
+
+/* パネル非表示 */
+.ds-pb-panel-hidden {
+  display: none;
+}
+
 .region-menu-name {
   display: block;
   font-size: 14px;

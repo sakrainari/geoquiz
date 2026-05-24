@@ -1076,25 +1076,23 @@
   }
 
   /**
-   * カード下部の進捗バー3本（Bronze / Gold / Platinum）を組み立てる。
-   * rd: ProgressBarStore.getRegion() の戻り値
-   * muniCount: 市区町村数（Platinum バーの分母）
+   * Bronze / Gold / Platinum の3行を組み立てるヘルパー。
+   * qtData: { easy, normal, sudden_death }
+   * denom : Platinum バーの分母（市区町村数 or MA数）
    */
-  function buildProgressBars(rd, muniCount) {
-    var pbs = window.ProgressBarStore;
-    if (!pbs) return '';
+  function buildPbRows(qtData, denom) {
+    var pbs   = window.ProgressBarStore;
+    var easy  = (qtData && qtData.easy)         || {};
+    var norm  = (qtData && qtData.normal)       || {};
+    var sd    = (qtData && qtData.sudden_death) || {};
+    var den   = denom || 1;
 
-    var easy = rd.easy         || {};
-    var norm = rd.normal       || {};
-    var sd   = rd.sudden_death || {};
-    var denom = muniCount || 1;
-
-    function row(color, plays, num, den, extra) {
+    function row(color, plays, num, denVal, extra) {
       var active = num > 0;
       var dot    = active ? color : pbs.COLOR_NONE;
       var fill   = active ? color : pbs.COLOR_NONE;
-      var width  = (plays > 0 && den > 0) ? Math.min(100, Math.round(num / den * 100)) : 0;
-      var val    = plays > 0 ? (num + '/' + den) : '--';
+      var width  = (plays > 0 && denVal > 0) ? Math.min(100, Math.round(num / denVal * 100)) : 0;
+      var val    = plays > 0 ? (num + '/' + denVal) : '--';
       if (extra && plays > 0) val += ' ' + extra;
       return '<div class="ds-pb-row">' +
         '<span class="ds-pb-dot" style="background:' + dot + '"></span>' +
@@ -1105,21 +1103,52 @@
         '</div>';
     }
 
-    /* Bronze: easy の 一発正解 / プレイ数 */
     var bRow = row(pbs.RANKS.bronze.color,
       easy.plays || 0, easy.first_try_correct || 0, easy.plays || 1);
-
-    /* Gold: normal の 一発正解 / プレイ数 */
     var gRow = row(pbs.RANKS.gold.color,
       norm.plays || 0, norm.first_try_correct || 0, norm.plays || 1);
-
-    /* Platinum: best_streak / 市区町村数、補助に Clear xN */
-    var clears  = sd.clears || 0;
-    var extra   = clears > 0 ? 'C\xd7' + clears : '';
+    var clears = sd.clears || 0;
+    var extra  = clears > 0 ? 'C\xd7' + clears : '';
     var pRow = row(pbs.RANKS.platinum.color,
-      sd.plays || 0, sd.best_streak || 0, denom, extra);
+      sd.plays || 0, sd.best_streak || 0, den, extra);
 
-    return '<div class="ds-progress-bars">' + bRow + gRow + pRow + '</div>';
+    return bRow + gRow + pRow;
+  }
+
+  /**
+   * カード下部の進捗バーエリアを組み立てる。
+   * rd       : ProgressBarStore.getRegion() の戻り値 { municipality, ma }
+   * muniCount: 市区町村数（Platinum バーの分母）
+   * maCount  : MA数（局番タブの Platinum 分母）
+   * hasMa    : 市外局番モードが有効か
+   */
+  function buildProgressBars(rd, muniCount, maCount, hasMa) {
+    var pbs = window.ProgressBarStore;
+    if (!pbs) return '';
+
+    var muniData = rd.municipality || {};
+    var maData   = rd.ma           || {};
+
+    if (!hasMa) {
+      /* 局番なし: タブなしで地名の3行のみ */
+      return '<div class="ds-progress-bars">' +
+        buildPbRows(muniData, muniCount) +
+        '</div>';
+    }
+
+    /* 局番あり: 地名 / 局番 タブ切り替え */
+    return '<div class="ds-progress-bars">' +
+      '<div class="ds-pb-tabs">' +
+        '<span class="ds-pb-tab is-active" data-pb-target="municipality">地名</span>' +
+        '<span class="ds-pb-tab" data-pb-target="ma">局番</span>' +
+      '</div>' +
+      '<div class="ds-pb-panel" data-pb-panel="municipality">' +
+        buildPbRows(muniData, muniCount) +
+      '</div>' +
+      '<div class="ds-pb-panel ds-pb-panel-hidden" data-pb-panel="ma">' +
+        buildPbRows(maData, maCount) +
+      '</div>' +
+    '</div>';
   }
 
   function renderGrid() {
@@ -1166,11 +1195,12 @@
         var stats = getDsStats(ds);
 
         /* 進捗ランクを取得してミニマップ色を決定 */
-        var pbs  = window.ProgressBarStore;
-        var rd   = pbs ? pbs.getRegion(ds.id) : {};
-        var rank = pbs ? pbs.getRank(rd) : null;
-        var mc   = pbs ? pbs.rankColor(rank) : null;
-        var svg  = getMiniSvg(ds, mc);
+        var pbs   = window.ProgressBarStore;
+        var rd    = pbs ? pbs.getRegion(ds.id) : { municipality: {}, ma: {} };
+        var rank  = pbs ? pbs.getRank(rd, 'municipality') : null;
+        var mc    = pbs ? pbs.rankColor(rank) : null;
+        var svg   = getMiniSvg(ds, mc);
+        var hasMa = !!(ds.enabledModes && ds.enabledModes.indexOf('ma') !== -1 && stats.maCount);
 
         var card = document.createElement('button');
         card.type = 'button';
@@ -1186,9 +1216,30 @@
               ? '<div class="ds-card-meta">' + esc(statsText(stats, false)) + '</div>'
               : '') +
           '</div>' +
-          buildProgressBars(rd, stats.muniCount);
+          buildProgressBars(rd, stats.muniCount, stats.maCount, hasMa);
 
-        card.addEventListener('click', function () {
+        card.addEventListener('click', function (e) {
+          /* タブクリック時はパネル切り替えのみ（ページ遷移しない） */
+          var t = e.target;
+          while (t && t !== card) {
+            if (t.getAttribute && t.getAttribute('data-pb-target')) {
+              e.stopPropagation();
+              var view = t.getAttribute('data-pb-target');
+              var bars = card.querySelector('.ds-progress-bars');
+              if (bars) {
+                var tabs = bars.querySelectorAll('.ds-pb-tab');
+                for (var ti = 0; ti < tabs.length; ti++) {
+                  tabs[ti].classList.toggle('is-active', tabs[ti].getAttribute('data-pb-target') === view);
+                }
+                var panels = bars.querySelectorAll('.ds-pb-panel');
+                for (var pi = 0; pi < panels.length; pi++) {
+                  panels[pi].classList.toggle('ds-pb-panel-hidden', panels[pi].getAttribute('data-pb-panel') !== view);
+                }
+              }
+              return;
+            }
+            t = t.parentElement;
+          }
           location.href = '?dataset=' + ds.id;
         });
         prefGrid.appendChild(card);

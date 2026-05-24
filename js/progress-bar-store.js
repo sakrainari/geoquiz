@@ -9,9 +9,16 @@
  * {
  *   "regions": {
  *     "<datasetId>": {
- *       "easy":         { "plays": N, "first_try_correct": N },
- *       "normal":       { "plays": N, "first_try_correct": N },
- *       "sudden_death": { "plays": N, "clears": N, "best_streak": N }
+ *       "municipality": {
+ *         "easy":         { "plays": N, "first_try_correct": N },
+ *         "normal":       { "plays": N, "first_try_correct": N },
+ *         "sudden_death": { "plays": N, "clears": N, "best_streak": N }
+ *       },
+ *       "ma": {
+ *         "easy":         { "plays": N, "first_try_correct": N },
+ *         "normal":       { "plays": N, "first_try_correct": N },
+ *         "sudden_death": { "plays": N, "clears": N, "best_streak": N }
+ *       }
  *     }
  *   }
  * }
@@ -48,31 +55,57 @@
   }
 
   /* ── データセット単位の読み書き ── */
+  /**
+   * datasetId に対応する進捗を返す。
+   * 戻り値: { municipality: { easy, normal, sudden_death }, ma: { easy, normal, sudden_death } }
+   * 旧フォーマット（flat な easy/normal/sudden_death）は自動的に municipality に移行する。
+   */
   function getRegion(datasetId) {
-    return load().regions[datasetId] || {};
+    var stored = load().regions[datasetId];
+    if (!stored) return { municipality: {}, ma: {} };
+
+    /* 旧フォーマット（v1 移行前）の互換処理 */
+    if (stored.easy !== undefined || stored.normal !== undefined || stored.sudden_death !== undefined) {
+      return {
+        municipality: {
+          easy        : stored.easy         || {},
+          normal      : stored.normal       || {},
+          sudden_death: stored.sudden_death || {}
+        },
+        ma: {}
+      };
+    }
+
+    return {
+      municipality: stored.municipality || {},
+      ma          : stored.ma           || {}
+    };
   }
 
   /**
    * ゲーム終了後に呼ぶ。
-   * mode: "easy" | "normal" | "sudden_death"
-   * stats: { firstTryCorrect, totalQuestions, cleared, streak }
+   * quizType : "municipality" | "ma"
+   * mode     : "easy" | "normal" | "sudden_death"
+   * stats    : { firstTryCorrect, cleared, streak }
    */
-  function saveSession(datasetId, mode, stats) {
+  function saveSession(datasetId, quizType, mode, stats) {
     var data = load();
     if (!data.regions[datasetId]) data.regions[datasetId] = {};
     var region = data.regions[datasetId];
+    if (!region[quizType]) region[quizType] = {};
+    var qt = region[quizType];
 
     if (mode === "easy" || mode === "normal") {
-      if (!region[mode]) region[mode] = { plays: 0, first_try_correct: 0 };
-      region[mode].plays += 1;
-      region[mode].first_try_correct += stats.firstTryCorrect || 0;
+      if (!qt[mode]) qt[mode] = { plays: 0, first_try_correct: 0 };
+      qt[mode].plays += 1;
+      qt[mode].first_try_correct += stats.firstTryCorrect || 0;
 
     } else if (mode === "sudden_death") {
-      if (!region[mode]) region[mode] = { plays: 0, clears: 0, best_streak: 0 };
-      region[mode].plays += 1;
-      if (stats.cleared) region[mode].clears += 1;
-      if ((stats.streak || 0) > region[mode].best_streak) {
-        region[mode].best_streak = stats.streak;
+      if (!qt[mode]) qt[mode] = { plays: 0, clears: 0, best_streak: 0 };
+      qt[mode].plays += 1;
+      if (stats.cleared) qt[mode].clears += 1;
+      if ((stats.streak || 0) > qt[mode].best_streak) {
+        qt[mode].best_streak = stats.streak;
       }
     }
 
@@ -81,16 +114,19 @@
 
   /* ── ランク判定 ── */
   /**
-   * regionData から最高ランクを返す。
+   * quizType（"municipality" | "ma"）のランクを返す。
+   * regionData は getRegion() の戻り値 { municipality, ma }。
    * @returns "platinum" | "gold" | "bronze" | null
    */
-  function getRank(regionData) {
-    if (!regionData) return null;
-    var sd = regionData.sudden_death;
+  function getRank(regionData, quizType) {
+    var qt = quizType || "municipality";
+    var rd = (regionData && regionData[qt]) ? regionData[qt] : (regionData || {});
+
+    var sd = rd.sudden_death;
     if (sd && (sd.clears || 0) > 0) return "platinum";
-    var n = regionData.normal;
+    var n = rd.normal;
     if (n && (n.first_try_correct || 0) > 0) return "gold";
-    var e = regionData.easy;
+    var e = rd.easy;
     if (e && (e.first_try_correct || 0) > 0) return "bronze";
     return null;
   }
