@@ -448,7 +448,8 @@
 
     getMaCollections(groupBy) {
       if (!this._maUnionCache.has(groupBy)) {
-        const precomputed = groupBy === "area_code" ? this.dataset.maFeatures : null;
+        const pre = window.__GEOQUIZ_PRECOMPUTED && window.__GEOQUIZ_PRECOMPUTED[this.dataset.id];
+        const precomputed = pre && groupBy === "area_code" ? pre.maFeatures : null;
         this._maUnionCache.set(groupBy, precomputed || window.MaUnion.buildMaCollections(this.dataset, groupBy));
       }
       return this._maUnionCache.get(groupBy);
@@ -456,7 +457,8 @@
 
     getMaBroadCollections() {
       if (!this._maUnionCache.has("broad")) {
-        this._maUnionCache.set("broad", this.dataset.maBroadFeatures || window.MaUnion.buildMaBroadCollections(this.dataset));
+        const pre = window.__GEOQUIZ_PRECOMPUTED && window.__GEOQUIZ_PRECOMPUTED[this.dataset.id];
+        this._maUnionCache.set("broad", (pre && pre.maBroadFeatures) || window.MaUnion.buildMaBroadCollections(this.dataset));
       }
       return this._maUnionCache.get("broad");
     }
@@ -1338,6 +1340,11 @@
   }
 
   function buildMunicipalityDisplayFeatures(dataset) {
+    // 事前計算済みデータがあればそれを使う（turf.union不要）
+    const precomputed = window.__GEOQUIZ_PRECOMPUTED && window.__GEOQUIZ_PRECOMPUTED[dataset.id];
+    if (precomputed && Array.isArray(precomputed.municipalityFeatures)) {
+      return precomputed.municipalityFeatures;
+    }
     const groups = new Map();
     dataset.features.forEach((feature) => {
       const id = feature.properties.id;
