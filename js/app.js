@@ -166,7 +166,8 @@
     globalRankingModal: document.getElementById("globalRankingModal"),
     globalRankingList: document.getElementById("globalRankingList"),
     globalRankingModalClose: document.getElementById("globalRankingModalClose"),
-    globalRankingTabs: [...document.querySelectorAll(".global-ranking-tab")]
+    globalRankingTabs: [...document.querySelectorAll(".global-ranking-tab")],
+    globalRankingQuizTabs: [...document.querySelectorAll(".global-ranking-quiz-tab")]
   };
 
   applyDatasetMeta();
@@ -1134,6 +1135,7 @@
     const misses      = summary.mistakes;
     const mapVisible  = !!currentSessionSettings.tileLayerVisible;
     const modeKey     = result.rule === "sudden_death" ? "sudden_death" : "normal";
+    const quizMode    = result.mode || "municipality";
 
     if (showSubmit) {
       // フィールド更新
@@ -1158,7 +1160,7 @@
           els.rankingSubmitBtn.disabled = true;
           els.rankingSubmitBtn.textContent = "送信中…";
           const res = await window.submitRankingScore(appConfig.id, {
-            name, time: timeSeconds, misses, mode: modeKey, mapVisible, datasetId: appConfig.id
+            name, time: timeSeconds, misses, mode: modeKey, quizMode, mapVisible, datasetId: appConfig.id
           });
           if (res.success) {
             els.rankingSubmitBtn.style.display = "none";
@@ -1173,28 +1175,47 @@
 
     // ランキングを見るボタン
     if (els.rankingViewBtn) {
-      let currentMapFilter = mapVisible;
+      let currentMapFilter  = mapVisible;
+      let currentQuizMode   = quizMode;
 
       els.rankingViewBtn.onclick = async () => {
         if (!els.globalRankingModal) return;
-        // タブ状態をリセット
+        // 地図タブの初期状態を現在の設定に合わせる
         if (els.globalRankingTabs) {
           els.globalRankingTabs.forEach(t => {
             t.classList.toggle("is-active", t.dataset.map === String(currentMapFilter));
           });
         }
+        // クイズモードタブの初期状態を現在のモードに合わせる
+        if (els.globalRankingQuizTabs) {
+          els.globalRankingQuizTabs.forEach(t => {
+            t.classList.toggle("is-active", t.dataset.quizMode === currentQuizMode);
+          });
+        }
         els.globalRankingModal.style.display = "";
-        await loadGlobalRankingList(modeKey, currentMapFilter);
+        await loadGlobalRankingList(modeKey, currentQuizMode, currentMapFilter);
       };
 
-      // タブ切り替え
+      // 地図タブ切り替え
       if (els.globalRankingTabs) {
         els.globalRankingTabs.forEach(tab => {
           tab.onclick = async () => {
             els.globalRankingTabs.forEach(t => t.classList.remove("is-active"));
             tab.classList.add("is-active");
             currentMapFilter = tab.dataset.map === "true";
-            await loadGlobalRankingList(modeKey, currentMapFilter);
+            await loadGlobalRankingList(modeKey, currentQuizMode, currentMapFilter);
+          };
+        });
+      }
+
+      // クイズモードタブ切り替え
+      if (els.globalRankingQuizTabs) {
+        els.globalRankingQuizTabs.forEach(tab => {
+          tab.onclick = async () => {
+            els.globalRankingQuizTabs.forEach(t => t.classList.remove("is-active"));
+            tab.classList.add("is-active");
+            currentQuizMode = tab.dataset.quizMode;
+            await loadGlobalRankingList(modeKey, currentQuizMode, currentMapFilter);
           };
         });
       }
@@ -1213,10 +1234,10 @@
     }
   }
 
-  async function loadGlobalRankingList(mode, mapVisible) {
+  async function loadGlobalRankingList(mode, quizMode, mapVisible) {
     if (!els.globalRankingList) return;
     els.globalRankingList.innerHTML = '<div class="global-ranking-loading">読み込み中…</div>';
-    const scores = await window.fetchRankingScores(appConfig.id, mode, mapVisible, 10);
+    const scores = await window.fetchRankingScores(appConfig.id, mode, quizMode, mapVisible, 10);
     const myId   = typeof window.getClientId === "function" ? window.getClientId() : null;
 
     if (!scores.length) {

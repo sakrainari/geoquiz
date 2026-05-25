@@ -494,9 +494,22 @@
     <div id="globalRankingModal" class="global-ranking-modal" style="display:none" role="dialog" aria-modal="true" aria-label="グローバルランキング">
       <div class="global-ranking-modal-inner">
         <div class="global-ranking-modal-title">🏆 グローバルランキング</div>
-        <div class="global-ranking-modal-tabs" role="tablist">
-          <button class="global-ranking-tab is-active" data-map="true" role="tab" type="button">🗺️ 地図あり</button>
-          <button class="global-ranking-tab" data-map="false" role="tab" type="button">🚫 地図なし</button>
+        <!-- クイズモードタブ -->
+        <div class="global-ranking-modal-tab-group">
+          <span class="global-ranking-tab-label">モード</span>
+          <div class="global-ranking-modal-tabs" role="tablist" aria-label="クイズモード">
+            <button class="global-ranking-quiz-tab is-active" data-quiz-mode="municipality" role="tab" type="button">市区町村</button>
+            <button class="global-ranking-quiz-tab" data-quiz-mode="ma" role="tab" type="button">市外局番</button>
+            <button class="global-ranking-quiz-tab" data-quiz-mode="ma_broad" role="tab" type="button">広域局番</button>
+          </div>
+        </div>
+        <!-- 地図タブ -->
+        <div class="global-ranking-modal-tab-group">
+          <span class="global-ranking-tab-label">地図</span>
+          <div class="global-ranking-modal-tabs" role="tablist" aria-label="地図表示">
+            <button class="global-ranking-tab is-active" data-map="true" role="tab" type="button">🗺️ あり</button>
+            <button class="global-ranking-tab" data-map="false" role="tab" type="button">🚫 なし</button>
+          </div>
         </div>
         <div id="globalRankingList" class="global-ranking-list"></div>
         <button id="globalRankingModalClose" class="ghost-button" type="button">閉じる</button>
@@ -554,11 +567,12 @@
         }
       };
 
-      window.fetchRankingScores = async function(datasetId, mode, mapVisible, limitCount = 10) {
+      window.fetchRankingScores = async function(datasetId, mode, quizMode, mapVisible, limitCount = 10) {
         try {
           const q = query(
             collection(db, "rankings", datasetId, "scores"),
             where("mode", "==", mode),
+            where("quizMode", "==", quizMode),
             where("mapVisible", "==", mapVisible),
             orderBy("time", "asc"),
             limit(limitCount)
