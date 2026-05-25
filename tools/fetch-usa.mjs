@@ -72,7 +72,7 @@ async function main() {
   usStates.sort((a, b) => a.properties.name.localeCompare(b.properties.name));
 
   // ─── 各州を変換 ───────────────────────────────────────────────
-  console.log('\n🔧 ジオメトリを簡略化中 (tolerance=0.5)...');
+  console.log('\n🔧 ジオメトリを簡略化中 (tolerance=0.1)...');
   const features = [];
   const municipalities = [];
 
@@ -83,7 +83,7 @@ async function main() {
     // turf.simplify でジオメトリを軽量化
     let simplified;
     try {
-      simplified = turf.simplify(state, { tolerance: 0.5, highQuality: false });
+      simplified = turf.simplify(state, { tolerance: 0.1, highQuality: false });
     } catch (e) {
       console.warn(`  ⚠️  simplify失敗 [${name}]: ${e.message} → 元データを使用`);
       simplified = state;

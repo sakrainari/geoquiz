@@ -90,6 +90,9 @@ window.GEOQUIZ_DATASETS = [
     initialView: { center: [39.5, -98.35], zoom: 4 },
     mapMinZoom: 3,
     mapMaxZoom: 8,
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
     version: "0.1.0"
   },
   {
