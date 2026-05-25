@@ -153,7 +153,20 @@
     topStatAccuracy: document.getElementById("topStatAccuracy"),
     topStatWeak: document.getElementById("topStatWeak"),
     topStatLastPlay: document.getElementById("topStatLastPlay"),
-    topMiniHeatmap: document.getElementById("topMiniHeatmap")
+    topMiniHeatmap: document.getElementById("topMiniHeatmap"),
+    // グローバルランキング
+    globalRankingSubmit: document.getElementById("globalRankingSubmit"),
+    rankingNameInput: document.getElementById("rankingNameInput"),
+    rankingTimeDisplay: document.getElementById("rankingTimeDisplay"),
+    rankingMissesDisplay: document.getElementById("rankingMissesDisplay"),
+    rankingMapVisibleDisplay: document.getElementById("rankingMapVisibleDisplay"),
+    rankingSubmitBtn: document.getElementById("rankingSubmitBtn"),
+    rankingSubmitMsg: document.getElementById("rankingSubmitMsg"),
+    rankingViewBtn: document.getElementById("rankingViewBtn"),
+    globalRankingModal: document.getElementById("globalRankingModal"),
+    globalRankingList: document.getElementById("globalRankingList"),
+    globalRankingModalClose: document.getElementById("globalRankingModalClose"),
+    globalRankingTabs: [...document.querySelectorAll(".global-ranking-tab")]
   };
 
   applyDatasetMeta();
@@ -932,6 +945,7 @@
     renderHistoryPanel(currentModeProgress, isClear);
     updateRankingTabs();
     renderRanking(datasetProgress);
+    setupGlobalRankingUI(result, summary, isClear);
 
     hideEndOverlay();
     els.startScreen.classList.add("is-hidden");
@@ -1103,6 +1117,138 @@
     });
     els.rankingTitle.textContent = rankingTitle(currentRankingType);
   }
+
+  // ── グローバルランキング UI ────────────────────────────────────────
+  function setupGlobalRankingUI(result, summary, isClear) {
+    const hasFirebase = typeof window.submitRankingScore === "function"
+      && typeof window.fetchRankingScores === "function";
+    const isEasy = result.rule === "easy";
+    const showSubmit = !isEasy && isClear && hasFirebase;
+
+    // 表示/非表示切り替え
+    if (els.globalRankingSubmit) els.globalRankingSubmit.style.display = showSubmit ? "" : "none";
+    if (els.rankingViewBtn)      els.rankingViewBtn.style.display      = hasFirebase ? "" : "none";
+    if (!hasFirebase) return;
+
+    const timeSeconds = Math.round(result.elapsedMs / 100) / 10;
+    const misses      = summary.mistakes;
+    const mapVisible  = !!currentSessionSettings.tileLayerVisible;
+    const modeKey     = result.rule === "sudden_death" ? "sudden_death" : "normal";
+
+    if (showSubmit) {
+      // フィールド更新
+      if (els.rankingTimeDisplay)     els.rankingTimeDisplay.textContent     = formatTime(result.elapsedMs);
+      if (els.rankingMissesDisplay)   els.rankingMissesDisplay.textContent   = misses;
+      if (els.rankingMapVisibleDisplay) els.rankingMapVisibleDisplay.textContent = mapVisible ? "あり" : "なし";
+
+      // 前回の名前を復元
+      const savedName = localStorage.getItem("geoquiz:playerName") || "";
+      if (els.rankingNameInput) els.rankingNameInput.value = savedName;
+
+      // ボタン状態リセット
+      if (els.rankingSubmitBtn) { els.rankingSubmitBtn.style.display = ""; els.rankingSubmitBtn.disabled = false; els.rankingSubmitBtn.textContent = "登録する"; }
+      if (els.rankingSubmitMsg) els.rankingSubmitMsg.style.display = "none";
+
+      // 登録ボタン
+      if (els.rankingSubmitBtn) {
+        els.rankingSubmitBtn.onclick = async () => {
+          const rawName = (els.rankingNameInput?.value || "").trim();
+          const name = rawName || "匿名";
+          localStorage.setItem("geoquiz:playerName", rawName);
+          els.rankingSubmitBtn.disabled = true;
+          els.rankingSubmitBtn.textContent = "送信中…";
+          const res = await window.submitRankingScore(appConfig.id, {
+            name, time: timeSeconds, misses, mode: modeKey, mapVisible, datasetId: appConfig.id
+          });
+          if (res.success) {
+            els.rankingSubmitBtn.style.display = "none";
+            if (els.rankingSubmitMsg) els.rankingSubmitMsg.style.display = "";
+          } else {
+            els.rankingSubmitBtn.disabled = false;
+            els.rankingSubmitBtn.textContent = "登録する";
+          }
+        };
+      }
+    }
+
+    // ランキングを見るボタン
+    if (els.rankingViewBtn) {
+      let currentMapFilter = mapVisible;
+
+      els.rankingViewBtn.onclick = async () => {
+        if (!els.globalRankingModal) return;
+        // タブ状態をリセット
+        if (els.globalRankingTabs) {
+          els.globalRankingTabs.forEach(t => {
+            t.classList.toggle("is-active", t.dataset.map === String(currentMapFilter));
+          });
+        }
+        els.globalRankingModal.style.display = "";
+        await loadGlobalRankingList(modeKey, currentMapFilter);
+      };
+
+      // タブ切り替え
+      if (els.globalRankingTabs) {
+        els.globalRankingTabs.forEach(tab => {
+          tab.onclick = async () => {
+            els.globalRankingTabs.forEach(t => t.classList.remove("is-active"));
+            tab.classList.add("is-active");
+            currentMapFilter = tab.dataset.map === "true";
+            await loadGlobalRankingList(modeKey, currentMapFilter);
+          };
+        });
+      }
+
+      // モーダルを閉じる
+      if (els.globalRankingModalClose) {
+        els.globalRankingModalClose.onclick = () => {
+          if (els.globalRankingModal) els.globalRankingModal.style.display = "none";
+        };
+      }
+      if (els.globalRankingModal) {
+        els.globalRankingModal.onclick = (e) => {
+          if (e.target === els.globalRankingModal) els.globalRankingModal.style.display = "none";
+        };
+      }
+    }
+  }
+
+  async function loadGlobalRankingList(mode, mapVisible) {
+    if (!els.globalRankingList) return;
+    els.globalRankingList.innerHTML = '<div class="global-ranking-loading">読み込み中…</div>';
+    const scores = await window.fetchRankingScores(appConfig.id, mode, mapVisible, 10);
+    const myId   = typeof window.getClientId === "function" ? window.getClientId() : null;
+
+    if (!scores.length) {
+      els.globalRankingList.innerHTML = '<div class="global-ranking-empty">まだ記録がありません</div>';
+      return;
+    }
+    els.globalRankingList.innerHTML = scores.map(s => {
+      const isMe   = myId && s.clientId === myId;
+      const tStr   = formatRankingTime(s.time);
+      const name   = escapeGRHtml(s.name || "匿名");
+      return `<div class="global-ranking-item${isMe ? " is-mine" : ""}">
+        <span class="global-ranking-rank">${s.rank}位</span>
+        <span class="global-ranking-name">${name}</span>
+        <span class="global-ranking-time">${tStr}</span>
+        <span class="global-ranking-misses">ミス${s.misses ?? 0}</span>
+      </div>`;
+    }).join("");
+  }
+
+  function formatRankingTime(seconds) {
+    const s   = typeof seconds === "number" ? seconds : 0;
+    const m   = Math.floor(s / 60);
+    const rem = (s % 60).toFixed(1).padStart(4, "0");
+    return `${m}:${rem}`;
+  }
+
+  function escapeGRHtml(str) {
+    return String(str).replace(/[&<>"']/g, c =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+    );
+  }
+  // ─────────────────────────────────────────────────────────────────
 
   function renderRanking(datasetProgress) {
     const practiceRanking = window.ProgressStore.buildRanking(datasetProgress, currentRankingType, 10, currentMode);

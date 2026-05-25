@@ -446,6 +446,25 @@
             <button id="retryButton" class="ghost-button" type="button">もう一度プレイ</button>
             <button id="resultBackToMenuButton" class="ghost-button" type="button">トップへ戻る</button>
           </div>
+
+          <!-- グローバルランキング登録 -->
+          <div id="globalRankingSubmit" class="global-ranking-panel" style="display:none">
+            <div class="global-ranking-panel-title">🏆 ランキングに登録する</div>
+            <div class="global-ranking-row">
+              <label for="rankingNameInput">名前</label>
+              <input id="rankingNameInput" type="text" maxlength="20" placeholder="匿名OK">
+            </div>
+            <div class="global-ranking-info">
+              クリアタイム: <strong id="rankingTimeDisplay">--</strong>
+              ミス: <strong id="rankingMissesDisplay">--</strong>回
+              地図: <strong id="rankingMapVisibleDisplay">--</strong>
+            </div>
+            <div class="global-ranking-panel-actions">
+              <button id="rankingSubmitBtn" class="ghost-button global-ranking-submit-btn" type="button">登録する</button>
+              <div id="rankingSubmitMsg" class="global-ranking-submitted" style="display:none">✅ 登録しました！</div>
+            </div>
+          </div>
+          <button id="rankingViewBtn" class="ghost-button global-ranking-view-btn" type="button" style="display:none">🏆 ランキングを見る</button>
         </div>
 
         <!-- 右カラム：完成地図 -->
@@ -471,6 +490,19 @@
       </section>
     </main>
 
+    <!-- グローバルランキング モーダル -->
+    <div id="globalRankingModal" class="global-ranking-modal" style="display:none" role="dialog" aria-modal="true" aria-label="グローバルランキング">
+      <div class="global-ranking-modal-inner">
+        <div class="global-ranking-modal-title">🏆 グローバルランキング</div>
+        <div class="global-ranking-modal-tabs" role="tablist">
+          <button class="global-ranking-tab is-active" data-map="true" role="tab" type="button">🗺️ 地図あり</button>
+          <button class="global-ranking-tab" data-map="false" role="tab" type="button">🚫 地図なし</button>
+        </div>
+        <div id="globalRankingList" class="global-ranking-list"></div>
+        <button id="globalRankingModalClose" class="ghost-button" type="button">閉じる</button>
+      </div>
+    </div>
+
     <script src="vendor/leaflet/leaflet.js"></script>
     <script src="vendor/turf/turf.min.js"></script>
     <script src="data/catalog.js"></script>
@@ -481,6 +513,71 @@
     <script src="js/progress-store.js"></script>
     <script src="js/progress-bar-store.js"></script>
     <script src="js/map-renderer.js"></script>
+    <!-- Firebase (CDN ESM) -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+      import { getFirestore, collection, addDoc, query, orderBy, where, limit, getDocs, serverTimestamp }
+        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyCUL_gHOcB5OMIG2yMcHWFTwhy0InUMI-8",
+        authDomain: "geoquiz-7bc09.firebaseapp.com",
+        projectId: "geoquiz-7bc09",
+        storageBucket: "geoquiz-7bc09.firebasestorage.app",
+        messagingSenderId: "379088940104",
+        appId: "1:379088940104:web:fabe7d0053a24d78dcfc7d"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      function getClientId() {
+        let id = localStorage.getItem("geoquiz:clientId");
+        if (!id) {
+          id = Math.random().toString(36).slice(2) + Date.now().toString(36);
+          localStorage.setItem("geoquiz:clientId", id);
+        }
+        return id;
+      }
+
+      window.submitRankingScore = async function(datasetId, scoreData) {
+        try {
+          await addDoc(collection(db, "rankings", datasetId, "scores"), {
+            ...scoreData,
+            clientId: getClientId(),
+            createdAt: serverTimestamp()
+          });
+          return { success: true };
+        } catch (e) {
+          console.error("スコア送信エラー:", e);
+          return { success: false, error: e };
+        }
+      };
+
+      window.fetchRankingScores = async function(datasetId, mode, mapVisible, limitCount = 10) {
+        try {
+          const q = query(
+            collection(db, "rankings", datasetId, "scores"),
+            where("mode", "==", mode),
+            where("mapVisible", "==", mapVisible),
+            orderBy("time", "asc"),
+            limit(limitCount)
+          );
+          const snapshot = await getDocs(q);
+          return snapshot.docs.map((doc, i) => ({
+            rank: i + 1,
+            id: doc.id,
+            ...doc.data()
+          }));
+        } catch (e) {
+          console.error("ランキング取得エラー:", e);
+          return [];
+        }
+      };
+
+      window.getClientId = getClientId;
+      console.log("Firebase 初期化完了");
+    </script>
     <!-- データ動的読み込み -->
     <script src="js/data-loader.js"></script>
     <script>
