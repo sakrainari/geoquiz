@@ -93,6 +93,10 @@ window.GEOQUIZ_DATASETS = [
     labelBehavior: {
       easyMunicipalityNameSuffixes: [""]
     },
+    i18n: {
+      municipality: "State",
+      areaCode: "Area Code"
+    },
     version: "0.1.0"
   },
   {

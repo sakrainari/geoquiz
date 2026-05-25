@@ -52,7 +52,7 @@
               <div class="mode-card-icon">▣</div>
               <div class="mode-card-body">
                 <div class="mode-card-tag">MUNICIPALITY</div>
-                <div class="mode-card-title">市区町村</div>
+                <div class="mode-card-title" id="modeCardMuniTitle">市区町村</div>
                 <div class="mode-card-desc">市町村名から場所を当てる · 63問</div>
               </div>
               <span class="mode-card-arrow">›</span>
@@ -62,7 +62,7 @@
               <div class="mode-card-icon">#</div>
               <div class="mode-card-body">
                 <div class="mode-card-tag">AREA CODE</div>
-                <div class="mode-card-title">市外局番</div>
+                <div class="mode-card-title" id="modeCardMaTitle">市外局番</div>
                 <div class="mode-card-desc">番号からエリアを当てる · 8問</div>
               </div>
               <span class="mode-card-arrow">›</span>
@@ -95,7 +95,7 @@
 
             <!-- 市区町村列 -->
             <div class="prep-ranking-col" id="prepRankingMuniCol">
-              <div class="prep-ranking-col-title">🏙️ 市区町村</div>
+              <div class="prep-ranking-col-title" id="prepRankingMuniColTitle">🏙️ 市区町村</div>
               <div class="prep-ranking-section">
                 <div class="prep-ranking-section-title">📵 地図なし</div>
                 <div class="prep-ranking-list" id="prepRankingMuniNomap"><span class="prep-ranking-loading">読み込み中…</span></div>
@@ -108,7 +108,7 @@
 
             <!-- 市外局番列 -->
             <div class="prep-ranking-col" id="prepRankingMaCol">
-              <div class="prep-ranking-col-title">📞 市外局番</div>
+              <div class="prep-ranking-col-title" id="prepRankingMaColTitle">📞 市外局番</div>
               <div class="prep-ranking-section">
                 <div class="prep-ranking-section-title">📵 地図なし</div>
                 <div class="prep-ranking-list" id="prepRankingMaNomap"><span class="prep-ranking-loading">読み込み中…</span></div>
@@ -490,8 +490,8 @@
         <div class="global-ranking-modal-tab-group">
           <span class="global-ranking-tab-label">モード</span>
           <div class="global-ranking-modal-tabs" role="tablist" aria-label="クイズモード">
-            <button class="global-ranking-quiz-tab is-active" data-quiz-mode="municipality" role="tab" type="button">市区町村</button>
-            <button class="global-ranking-quiz-tab" data-quiz-mode="ma" role="tab" type="button">市外局番</button>
+            <button class="global-ranking-quiz-tab is-active" data-quiz-mode="municipality" role="tab" type="button" id="rankingTabMuni">市区町村</button>
+            <button class="global-ranking-quiz-tab" data-quiz-mode="ma" role="tab" type="button" id="rankingTabMa">市外局番</button>
           </div>
         </div>
         <!-- 地図タブ -->

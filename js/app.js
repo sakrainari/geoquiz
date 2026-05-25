@@ -1318,6 +1318,10 @@
     const maCol  = document.getElementById("prepRankingMaCol");
     if (panel) panel.classList.toggle("prep-ranking-panel--single", !hasMa);
     if (maCol)  maCol.style.display = hasMa ? "" : "none";
+    const muniColTitle = document.getElementById("prepRankingMuniColTitle");
+    if (muniColTitle) muniColTitle.textContent = `🏙️ ${getI18n(appConfig, "municipality", "市区町村")}`;
+    const maColTitle = document.getElementById("prepRankingMaColTitle");
+    if (maColTitle) maColTitle.textContent = `📞 ${getI18n(appConfig, "areaCode", "市外局番")}`;
     fetchPrepSection("prepRankingMuniNomap", "municipality", false);
     fetchPrepSection("prepRankingMuniMap",   "municipality", true);
     if (hasMa) {
@@ -1627,7 +1631,13 @@
     return `${modeName(mode)} / ${ruleName(rule)}`;
   }
 
+  function getI18n(config, key, fallback) {
+    return (config && config.i18n && config.i18n[key]) || fallback;
+  }
+
   function modeName(mode) {
+    if (mode === "municipality") return getI18n(appConfig, "municipality", "市区町村") + "モード";
+    if (mode === "ma") return getI18n(appConfig, "areaCode", "市外局番") + "モード";
     return window.QuizModes.getMode(mode).label;
   }
 
@@ -1706,6 +1716,17 @@
     if (els.regionSelector) els.regionSelector.textContent = `${appConfig.name} ▾`;
     if (els.map) els.map.setAttribute("aria-label", `${appConfig.name}クイズ地図`);
     applyDatasetModeDescriptions();
+    // Apply i18n display names
+    const muniLabel = getI18n(appConfig, "municipality", "市区町村");
+    const maLabel   = getI18n(appConfig, "areaCode", "市外局番");
+    const modeCardMuniTitle = document.getElementById("modeCardMuniTitle");
+    if (modeCardMuniTitle) modeCardMuniTitle.textContent = muniLabel;
+    const modeCardMaTitle = document.getElementById("modeCardMaTitle");
+    if (modeCardMaTitle) modeCardMaTitle.textContent = maLabel;
+    const rankingTabMuni = document.getElementById("rankingTabMuni");
+    if (rankingTabMuni) rankingTabMuni.textContent = muniLabel;
+    const rankingTabMa = document.getElementById("rankingTabMa");
+    if (rankingTabMa) rankingTabMa.textContent = maLabel;
   }
 
   function renderRegionMenu() {
