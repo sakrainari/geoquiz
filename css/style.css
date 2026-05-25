@@ -2890,3 +2890,8 @@ svg.leaflet-zoom-animated {
 .ds-ranking-none {
   color: var(--muted);
 }
+
+#tileLayerToggle:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

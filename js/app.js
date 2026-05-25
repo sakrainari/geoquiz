@@ -751,6 +751,7 @@
       }, 80);
       unlockInput();
     });
+    if (els.tileLayerToggle) els.tileLayerToggle.disabled = true;
   }
 
   function showStart() {
@@ -769,6 +770,7 @@
     hidePreparationOverlay();
     syncStartSettingsUI();
     updateTopStats();
+    if (els.tileLayerToggle) els.tileLayerToggle.disabled = false;
   }
 
   function showGame() {
