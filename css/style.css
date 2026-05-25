@@ -834,6 +834,28 @@ h3 {
   display: block;
 }
 
+@media (max-width: 600px) {
+  .question-overlay-inner {
+    flex-direction: column;
+    gap: 8px;
+    padding: 6px 12px;
+  }
+
+  .reference-preview-overlay {
+    width: 56px;
+    height: 56px;
+  }
+
+  .question-overlay-inner h2 {
+    font-size: 2.2rem;
+  }
+
+  #questionOverlay {
+    top: 8px;
+    width: 90%;
+  }
+}
+
 /* ── サイドパネル ── */
 .game-panel {
   display: none; /* レイアウトルールで flex に切り替え */
