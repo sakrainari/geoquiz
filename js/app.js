@@ -23,7 +23,7 @@
   let puzzleState = null;
   let previousPuzzleFixed = 0;
   let audioContext = null;
-  const QUIZ_START_MODES = ["municipality", "ma", "ma_broad"];
+  const QUIZ_START_MODES = ["municipality", "ma"];
   const DEFAULT_QUIZ_MODE = appConfig.enabledModes.includes("municipality")
     ? "municipality"
     : (QUIZ_START_MODES.find((mode) => appConfig.enabledModes.includes(mode)) || "municipality");
@@ -536,7 +536,6 @@
       if (currentMode === "puzzle") return;
       if (currentMode === "confirm") return;
       if (currentMode === "confirm_ma") return;
-      if (currentMode === "confirm_ma_broad") return;
       if (inputLocked) return;
       const result = engine.answer(feature.properties);
       if (result.ignored) return;
@@ -546,17 +545,15 @@
         speakAnswer(feature.properties);
         if (currentMode === "ma") {
           renderer.markAreaCodeCorrect(result.question.area_code, result.mistakesBeforeCorrect);
-        } else if (currentMode === "ma_broad") {
-          renderer.markAreaCodeCorrect(result.question.broad_area_code, result.mistakesBeforeCorrect);
         } else {
           renderer.markCorrect(feature.properties.id, result.mistakesBeforeCorrect);
         }
       } else {
-        lastFailureHighlight = currentMode === "ma" || currentMode === "ma_broad"
+        lastFailureHighlight = currentMode === "ma"
           ? { kind: "areaCode", value: feature.properties.area_code }
           : { kind: "municipality", value: feature.properties.id };
         lockInput();
-        if (currentMode === "ma" || currentMode === "ma_broad") {
+        if (currentMode === "ma") {
           renderer.flashAreaCodeWrong(feature.properties.area_code);
         } else {
           renderer.flashWrong(feature.properties.id);
@@ -619,42 +616,6 @@
     }, 80);
   }
 
-  function startConfirmMaBroad() {
-    clearResultTimer();
-    clearInputUnlockTimer();
-    clearCountdown();
-    unlockInput();
-    cancelSpeech();
-    stopTimer();
-    applySessionSettingsToGameControls();
-    currentRunConfig = null;
-    hideEndOverlay();
-    hidePreparationOverlay();
-    currentMode = "confirm_ma_broad";
-    currentPracticeLabel = "";
-    puzzleState = null;
-    previousPuzzleFixed = 0;
-    areaReferenceFeatures = null;
-    showGame();
-    ensureMap().reset();
-    renderer.setMode("ma_broad");
-    renderer.setEasyMode(false);
-    renderer.areaCodeFeaturesByCode.forEach((feature, areaCode) => {
-      renderer.markAreaCodeCorrect(areaCode, 0);
-    });
-    els.resetButton.classList.add("is-hidden");
-    els.modeLabel.textContent = "広域市外局番確認マップ";
-    els.questionText.textContent = "全広域市外局番エリアを確認中";
-    els.remainingCount.textContent = "0";
-    els.correctCount.textContent = `${renderer.areaCodeFeaturesByCode.size}`;
-    els.mistakeCount.textContent = "0";
-    els.elapsedTime.textContent = "00:00";
-    window.setTimeout(() => {
-      renderer.map.invalidateSize();
-      renderer.fitToMain();
-    }, 80);
-  }
-
   function startConfirm() {
     clearResultTimer();
     clearInputUnlockTimer();
@@ -691,7 +652,6 @@
   function start(mode, options = {}) {
     if (mode === "confirm") { startConfirm(); return; }
     if (mode === "confirm_ma") { startConfirmMa(); return; }
-    if (mode === "confirm_ma_broad") { startConfirmMaBroad(); return; }
     clearResultTimer();
     clearInputUnlockTimer();
     clearCountdown();
@@ -728,7 +688,7 @@
     ensureMap().reset();
     applyTileLayerSelection(currentSessionSettings.tileLayerVisible);
     renderer.setMode(mode);
-    renderer.setEasyMode(currentSessionSettings.rule === "easy" && ["municipality", "ma", "ma_broad"].includes(mode));
+    renderer.setEasyMode(currentSessionSettings.rule === "easy" && ["municipality", "ma"].includes(mode));
     lastReferenceKey = null;
     inputLocked = true;
     engine.reset(mode, currentSessionSettings.rule, startOptions);
@@ -1357,11 +1317,6 @@
         .filter(Boolean)
         .map((areaCode) => `area_code:${areaCode}`))];
     }
-    if (mode === "ma_broad") {
-      return [...new Set(ranking
-        .map((item) => item.id)
-        .filter((id) => id && id.startsWith("broad_area_code:")))];
-    }
     return ranking.map((item) => item.id).filter(Boolean);
   }
 
@@ -1535,7 +1490,7 @@
 
   function speakAnswer(featureProperties) {
     if (!els.mistakeSpeechToggle.checked || !("speechSynthesis" in window)) return;
-    const label = (currentMode === "ma" || currentMode === "ma_broad")
+    const label = currentMode === "ma"
       ? pronounceAreaCode(featureProperties.area_code)
       : pronouncePlaceName(featureProperties.name);
     if (!label) return;
@@ -1604,11 +1559,6 @@
       const features = renderer ? renderer.getMaCollections("area_code") : (areaReferenceFeatures || (areaReferenceFeatures = window.MaUnion.buildMaCollections(dataset, "area_code")));
       return features.find((feature) => feature.properties.area_code === question.area_code);
     }
-    if (currentMode === "ma_broad") {
-      const features = renderer ? renderer.getMaBroadCollections() : (areaReferenceFeatures || (areaReferenceFeatures = window.MaUnion.buildMaBroadCollections(dataset)));
-      return features.find((feature) => feature.properties.area_code === question.broad_area_code);
-    }
-
     const memberIds = question.memberIds || [question.answerId];
     const features = dataset.features.filter((feature) => memberIds.includes(feature.properties.id));
     if (!features.length) return null;

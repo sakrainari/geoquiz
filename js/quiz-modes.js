@@ -51,36 +51,6 @@
         return question.memberIds;
       }
     },
-    ma_broad: {
-      id: "ma_broad",
-      label: "市外局番（広域）モード",
-      buildQuestions(answers) {
-        const groups = new Map();
-        answers.forEach((item) => {
-          const broad = window.MaUnion.broadAreaCode(item.area_code);
-          if (!groups.has(broad)) {
-            groups.set(broad, {
-              id: `broad_area_code:${broad}`,
-              matchType: "broad_area_code",
-              broad_area_code: broad,
-              answerLabel: broad,
-              memberIds: []
-            });
-          }
-          groups.get(broad).memberIds.push(item.id);
-        });
-        return [...groups.values()];
-      },
-      questionText(question) {
-        return `${question.answerLabel} のエリアをクリック`;
-      },
-      isCorrect(question, featureProperties) {
-        return window.MaUnion.broadAreaCode(featureProperties.area_code) === question.broad_area_code;
-      },
-      correctMemberIds(question) {
-        return question.memberIds;
-      }
-    },
     puzzle: {
       id: "puzzle",
       label: "パズルモード",

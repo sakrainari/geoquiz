@@ -143,41 +143,5 @@
     return Number(value.toFixed(6));
   }
 
-  function broadAreaCode(code) {
-    const str = String(code || "");
-    if (str.startsWith("049")) return "049"; // 049, 0493, 0494, 0495
-    if (str.startsWith("048")) return "048"; // 048, 0480
-    if (str.startsWith("04")) return "04";   // 042
-    return str;
-  }
-
-  function buildMaBroadCollections(featureCollection) {
-    const groups = new Map();
-    featureCollection.features.forEach((feature) => {
-      const key = broadAreaCode(feature.properties.area_code);
-      if (!groups.has(key)) {
-        groups.set(key, {
-          type: "FeatureCollection",
-          properties: {
-            groupBy: "broad_area_code",
-            groupValue: key,
-            id: `broad_area_code:${key}`,
-            area_code: key,
-            memberIds: []
-          },
-          features: []
-        });
-      }
-      groups.get(key).properties.memberIds.push(feature.properties.id);
-      groups.get(key).features.push(feature);
-    });
-    return [...groups.values()].map((collection) => (
-      unionFeatures(collection.features, {
-        ...collection.properties,
-        labelPoint: preferredLabelPoint(collection.features)
-      })
-    ));
-  }
-
-  window.MaUnion = { buildMaCollections, buildMaBroadCollections, unionFeatures, broadAreaCode };
+  window.MaUnion = { buildMaCollections, unionFeatures };
 })();

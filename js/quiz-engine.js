@@ -145,7 +145,6 @@
     if (question?.id) return question.id;
     if (question?.answerId) return question.answerId;
     if (question?.area_code) return `area_code:${question.area_code}`;
-    if (question?.broad_area_code) return `broad_area_code:${question.broad_area_code}`;
     return `${mode}:${index}`;
   }
 

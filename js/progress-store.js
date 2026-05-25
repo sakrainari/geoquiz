@@ -141,7 +141,7 @@
 
   function buildRanking(datasetProgress, type = "weak", limit = 5, mode = "municipality") {
     if (!datasetProgress || !datasetProgress.stats) return [];
-    const items = (mode === "ma" || mode === "ma_broad")
+    const items = mode === "ma"
       ? buildAreaModeRanking(datasetProgress, mode)
       : Object.values(datasetProgress.stats)
         .map((stat) => toRankingItem(stat, mode))
@@ -176,15 +176,12 @@
     Object.values(datasetProgress.stats).forEach((stat) => {
       const modeStat = stat.modes && stat.modes[mode];
       if (!modeStat || !modeStat.plays) return;
-      const key = mode === "ma_broad"
-        ? `broad_area_code:${window.MaUnion.broadAreaCode(stat.area_code)}`
-        : `area_code:${stat.area_code}`;
+      const key = `area_code:${stat.area_code}`;
       if (!grouped.has(key)) {
-        const broad = mode === "ma_broad" ? window.MaUnion.broadAreaCode(stat.area_code) : null;
         grouped.set(key, {
           id: key,
-          name: mode === "ma_broad" ? broad : stat.area_code,
-          area_code: mode === "ma" ? stat.area_code : null,
+          name: stat.area_code,
+          area_code: stat.area_code,
           ma_name: stat.ma_name,
           plays: 0,
           correct: 0,

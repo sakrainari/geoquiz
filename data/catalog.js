@@ -108,7 +108,7 @@ window.GEOQUIZ_DATASETS = [
     labelOverridesGlobal: "SAITAMA_LABEL_OVERRIDES",
     speechReadingsGlobal: "SAITAMA_SPEECH_READINGS",
     defaultMode: "municipality",
-    enabledModes: ["municipality", "ma", "puzzle", "confirm", "confirm_ma", "ma_broad", "confirm_ma_broad"],
+    enabledModes: ["municipality", "ma", "puzzle", "confirm", "confirm_ma"],
     center: [35.96, 139.35],
     version: "0.2.0"
   },

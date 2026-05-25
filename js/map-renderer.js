@@ -211,7 +211,6 @@
       this.areaCodeLayersByCode.clear();
       this.areaCodeFeaturesByCode.clear();
       if (mode === "ma") this.renderMaOverlay();
-      if (mode === "ma_broad") this.renderMaBroadOverlay();
     }
 
     startPuzzle(onChange, options = {}) {
@@ -455,21 +454,8 @@
       return this._maUnionCache.get(groupBy);
     }
 
-    getMaBroadCollections() {
-      if (!this._maUnionCache.has("broad")) {
-        const pre = window.__GEOQUIZ_PRECOMPUTED && window.__GEOQUIZ_PRECOMPUTED[this.dataset.id];
-        this._maUnionCache.set("broad", (pre && pre.maBroadFeatures) || window.MaUnion.buildMaBroadCollections(this.dataset));
-      }
-      return this._maUnionCache.get("broad");
-    }
-
     renderMaOverlay() {
       const features = this.getMaCollections("area_code");
-      this._renderAreaCodeLayer(features);
-    }
-
-    renderMaBroadOverlay() {
-      const features = this.getMaBroadCollections();
       this._renderAreaCodeLayer(features);
     }
 
@@ -554,14 +540,14 @@
     }
 
     municipalityLabelDisplayMode() {
-      if (this.mode === "ma" || this.mode === "ma_broad") return "subtle";
+      if (this.mode === "ma") return "subtle";
       if (!this.easyMode) return "answered";
       if (this.mode === "municipality") return "all";
       return "answered";
     }
 
     areaCodeLabelDisplayMode() {
-      if (this.mode !== "ma" && this.mode !== "ma_broad") return "answered";
+      if (this.mode !== "ma") return "answered";
       return this.easyMode ? "all" : "answered";
     }
 
@@ -622,7 +608,7 @@
     }
 
     baseStyle() {
-      const areaCodeMode = this.mode === "ma" || this.mode === "ma_broad";
+      const areaCodeMode = this.mode === "ma";
       return {
         color: COLORS.border,
         weight: 0.8,
@@ -1198,9 +1184,7 @@
       });
 
       // 市外局番ラベルの配置計算をキャッシュに積む（マップへの描画なし）
-      const areaCodeFeatures = (this.dataset && this.dataset.maBroadFeatures && !this.dataset.maFeatures)
-        ? this.getMaBroadCollections()
-        : this.getMaCollections("area_code");
+      const areaCodeFeatures = this.getMaCollections("area_code");
       const acOpts = { minSize: 16, maxSize: 27, sizeBoost: 7.8, fitByShortSide: true, forceAngle: 0, precise: true, preferVisualCenter: true };
       for (const feature of areaCodeFeatures) {
         const areaCode = feature.properties.area_code;
@@ -1240,7 +1224,7 @@
     }
 
     applyHeatmap(stats, mode = this.mode) {
-      if (mode === "ma" || mode === "ma_broad") {
+      if (mode === "ma") {
         this.applyAreaCodeHeatmap(stats);
         return;
       }
@@ -1289,9 +1273,8 @@
         const memberStats = (feature.properties.memberIds || [])
           .map((id) => statsById.get(id))
           .filter(Boolean);
-        // ma_broad では broad_area_code:xxx 形式で直接参照するフォールバック
         if (!memberStats.length) {
-          const direct = statsById.get(`broad_area_code:${areaCode}`) || statsById.get(`area_code:${areaCode}`);
+          const direct = statsById.get(`area_code:${areaCode}`);
           if (direct) memberStats.push(direct);
         }
         const mistakes = memberStats.reduce((max, item) => Math.max(max, item.mistakes || 0), 0);
