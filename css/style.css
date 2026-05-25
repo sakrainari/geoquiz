@@ -787,26 +787,24 @@ h3 {
 }
 
 .question-overlay-inner {
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(6px);
-  border-radius: 12px;
-  padding: 10px 24px;
+  background: transparent;
+  backdrop-filter: none;
+  border: none;
+  padding: 8px 24px;
   text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .question-overlay-inner h2 {
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 4rem;
+  font-weight: 800;
   color: var(--text);
   margin: 0;
-  line-height: 1.2;
+  line-height: 1.1;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
 }
 
 .question-overlay-inner .game-hud-sub {
-  font-size: 0.75rem;
-  color: var(--muted);
-  margin: 0 0 2px;
+  display: none;
 }
 
 /* ── サイドパネル ── */
