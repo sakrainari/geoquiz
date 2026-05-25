@@ -2851,3 +2851,42 @@ svg.leaflet-zoom-animated {
   color: var(--muted);
   font-size: 13px;
 }
+
+/* ── ds-ranking-row（カード下部 🥇 👤）── */
+.ds-ranking-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 9px 5px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  line-height: 1.2;
+}
+
+.ds-ranking-first {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--accent-2); /* gold */
+  flex-shrink: 0;
+}
+
+.ds-ranking-mine {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--text);
+  min-width: 0;
+}
+
+.ds-ranking-mine-miss {
+  color: var(--muted);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.ds-ranking-none {
+  color: var(--muted);
+}

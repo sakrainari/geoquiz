@@ -963,6 +963,7 @@
           renderTabs();
           renderGrid();
           updateBadge();
+          initCardRankingObserver();
         });
       }
       tabBar.appendChild(btn);
@@ -992,6 +993,38 @@
     if (stats.muniCount != null) parts.push('市区町村 ' + stats.muniCount + '問');
     if (stats.maCount   != null) parts.push('MA ' + stats.maCount + (long ? 'エリア' : ''));
     return parts.join(' · ');
+  }
+
+  /* ── カードランキング行ヘルパー ── */
+  function fmtCardTime(sec) {
+    if (sec == null || sec <= 0) return '--:--';
+    var s = Math.round(sec);
+    var m = Math.floor(s / 60); s = s % 60;
+    return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function getCardPersonalBest(dsId) {
+    var ps = window.ProgressStore;
+    if (!ps) return null;
+    var dp = ps.getDatasetProgress(dsId);
+    if (!dp || !dp.modes || !dp.modes.municipality) return null;
+    return dp.modes.municipality.bestClear || null;
+  }
+
+  function buildRankingInfoRow(dsId) {
+    var best = getCardPersonalBest(dsId);
+    var myTime = best ? fmtCardTime(Math.round((best.elapsedMs || 0) / 1000)) : '--:--';
+    return '<div class="ds-ranking-row" data-ds-id="' + esc(dsId) + '">' +
+      '<span class="ds-ranking-first">' +
+        '<span class="ds-ranking-medal">🥇</span>' +
+        '<span class="ds-ranking-first-time">--:--</span>' +
+      '</span>' +
+      '<span class="ds-ranking-mine">' +
+        '<span class="ds-ranking-mine-icon">👤</span>' +
+        '<span class="ds-ranking-mine-time' + (best ? '' : ' ds-ranking-none') + '">' + esc(myTime) + '</span>' +
+        (best ? '<span class="ds-ranking-mine-miss"> ミス' + (best.mistakes || 0) + '</span>' : '') +
+      '</span>' +
+    '</div>';
   }
 
   /**
@@ -1135,7 +1168,8 @@
               ? '<div class="ds-card-meta">' + esc(statsText(stats, false)) + '</div>'
               : '') +
           '</div>' +
-          buildProgressBars(rd, stats.muniCount, stats.maCount, hasMa);
+          buildProgressBars(rd, stats.muniCount, stats.maCount, hasMa) +
+          buildRankingInfoRow(ds.id);
 
         card.addEventListener('click', function (e) {
           /* タブクリック時はパネル切り替えのみ（ページ遷移しない） */
@@ -1168,9 +1202,84 @@
     }
   }
 
+  /* ── グローバル1位の遅延フェッチ ── */
+  var _rankObserver = null;
+  var _rankCache = {};    // dsId → 表示タイム文字列 | '' (データなし)
+  var _rankFetching = {}; // dsId → true (重複防止)
+
+  function waitForFirebase(cb, maxMs) {
+    if (typeof window.fetchRankingScores === 'function') { cb(); return; }
+    var elapsed = 0;
+    var INTERVAL = 200;
+    function poll() {
+      elapsed += INTERVAL;
+      if (typeof window.fetchRankingScores === 'function') { cb(); return; }
+      if (elapsed < maxMs) setTimeout(poll, INTERVAL);
+    }
+    setTimeout(poll, INTERVAL);
+  }
+
+  function applyRankCache(dsId, timeStr) {
+    var row = grid.querySelector('.ds-ranking-row[data-ds-id="' + dsId + '"]');
+    if (!row) return;
+    var el = row.querySelector('.ds-ranking-first-time');
+    if (el) el.textContent = timeStr || '--:--';
+  }
+
+  function fetchGlobalRank(dsId) {
+    if (_rankFetching[dsId]) return;
+    if (Object.prototype.hasOwnProperty.call(_rankCache, dsId)) {
+      applyRankCache(dsId, _rankCache[dsId]);
+      return;
+    }
+    _rankFetching[dsId] = true;
+    waitForFirebase(function () {
+      window.fetchRankingScores(dsId, 'normal', 'municipality', false, 1)
+        .then(function (scores) {
+          var t = (scores && scores.length > 0) ? fmtCardTime(scores[0].time) : '';
+          _rankCache[dsId] = t;
+          delete _rankFetching[dsId];
+          applyRankCache(dsId, t);
+        })
+        .catch(function () {
+          _rankCache[dsId] = '';
+          delete _rankFetching[dsId];
+        });
+    }, 3000);
+  }
+
+  function initCardRankingObserver() {
+    if (_rankObserver) _rankObserver.disconnect();
+    _rankObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        var row = entry.target.querySelector('.ds-ranking-row');
+        if (!row) return;
+        var dsId = row.getAttribute('data-ds-id');
+        if (dsId) fetchGlobalRank(dsId);
+        _rankObserver.unobserve(entry.target);
+      });
+    }, { threshold: 0.1 });
+
+    var cards = grid.querySelectorAll('.ds-card-pref');
+    cards.forEach(function (card) {
+      var row = card.querySelector('.ds-ranking-row');
+      if (!row) return;
+      var dsId = row.getAttribute('data-ds-id');
+      if (!dsId) return;
+      /* キャッシュ済みはすぐ適用、未取得は交差観察 */
+      if (Object.prototype.hasOwnProperty.call(_rankCache, dsId) && !_rankFetching[dsId]) {
+        applyRankCache(dsId, _rankCache[dsId]);
+      } else {
+        _rankObserver.observe(card);
+      }
+    });
+  }
+
   renderTabs();
   renderGrid();
   updateBadge();
+  initCardRankingObserver();
 })();
     </script>
   </body>
