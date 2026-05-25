@@ -196,6 +196,7 @@
             <button class="layout-btn" data-layout="top" title="上バー">⬒</button>
             <button class="layout-btn" data-layout="bottom" title="下バー">⬓</button>
             <button class="layout-btn" data-layout="right" title="右パネル">◨</button>
+            <button class="layout-btn" data-layout="overlay" title="中央上オーバーレイ">中</button>
           </div>
         </aside>
 
@@ -235,12 +236,19 @@
             <button class="layout-btn" data-layout="top" title="上バー">⬒</button>
             <button class="layout-btn" data-layout="bottom" title="下バー">⬓</button>
             <button class="layout-btn" data-layout="right" title="右パネル">◨</button>
+            <button class="layout-btn" data-layout="overlay" title="中央上オーバーレイ">中</button>
           </div>
         </header>
 
         <!-- 地図 -->
         <div id="playMapSlot" class="map-slot">
           <div id="map" class="map-panel" aria-label="埼玉県クイズ地図"></div>
+          <div id="questionOverlay" class="question-overlay">
+            <div class="question-overlay-inner">
+              <p class="game-hud-sub" id="questionSubOverlay">をクリック</p>
+              <h2 id="questionMainOverlay"></h2>
+            </div>
+          </div>
           <div id="prepOverlay" class="prep-overlay is-hidden" aria-label="開始前設定">
             <div class="prep-panel">
               <p class="eyebrow">Ready</p>
@@ -671,6 +679,8 @@
   var questionSubTop    = document.getElementById('questionSubTop');
   var referencePreview    = document.getElementById('referencePreview');
   var referencePreviewTop = document.getElementById('referencePreviewTop');
+  var questionMainOverlay = document.getElementById('questionMainOverlay');
+  var questionSubOverlay  = document.getElementById('questionSubOverlay');
 
   function syncQuestion() {
     var text = (questionText ? questionText.textContent : '').trim();
@@ -684,6 +694,8 @@
     if (questionMainTop) questionMainTop.textContent = main;
     if (questionSub)     questionSub.textContent     = sub;
     if (questionSubTop)  questionSubTop.textContent  = sub;
+    if (questionMainOverlay) questionMainOverlay.textContent = main;
+    if (questionSubOverlay)  questionSubOverlay.textContent  = sub;
     if (referencePreview)    referencePreview.style.display    = isMa ? 'none' : '';
     if (referencePreviewTop) referencePreviewTop.style.display = isMa ? 'none' : '';
     if (gameScreen) {

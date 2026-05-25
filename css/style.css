@@ -767,6 +767,48 @@ h3 {
 }
 .game-screen[data-layout="bottom"] .top-overlay-bottom { display: none; }
 
+/* ── 中央上オーバーレイ レイアウト ── */
+.game-screen[data-layout="overlay"] { flex-direction: column; }
+.game-screen[data-layout="overlay"] .game-panel   { display: none; }
+.game-screen[data-layout="overlay"] .game-topbar  { display: none; }
+.game-screen[data-layout="overlay"] .map-slot     { flex: 1; }
+.game-screen[data-layout="overlay"] .top-overlay-bottom { display: none; }
+.game-screen[data-layout="overlay"] #questionOverlay { display: block; }
+
+#questionOverlay {
+  display: none;
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.question-overlay-inner {
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  border-radius: 12px;
+  padding: 10px 24px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.question-overlay-inner h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.question-overlay-inner .game-hud-sub {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin: 0 0 2px;
+}
+
 /* ── サイドパネル ── */
 .game-panel {
   display: none; /* レイアウトルールで flex に切り替え */
