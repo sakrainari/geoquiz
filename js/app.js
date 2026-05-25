@@ -178,6 +178,7 @@
   syncStartSettingsUI();
   setSelectedQuizMode(DEFAULT_QUIZ_MODE);
   document.body.classList.toggle("is-lite-mode", liteMode);
+  loadPrepRanking();
 
   els.quizModeButtons.forEach((button) => {
     if (!appConfig.enabledModes.includes(button.dataset.startMode)) return;
@@ -456,6 +457,7 @@
     els.elapsedTime.textContent = "00:00";
     if (els.referencePreview) els.referencePreview.innerHTML = "";
     if (els.referencePreviewTop) els.referencePreviewTop.innerHTML = "";
+    loadPrepRanking();
   }
 
   function beginSelectedQuizMode() {
@@ -1209,7 +1211,7 @@
     els.globalRankingList.innerHTML = scores.map(s => {
       const isMe   = myId && s.clientId === myId;
       const tStr   = formatRankingTime(s.time);
-      const name   = escapeGRHtml(s.name || "匿名");
+      const name   = escapeGRHtml(truncateName(s.name));
       return `<div class="global-ranking-item${isMe ? " is-mine" : ""}">
         <span class="global-ranking-rank">${s.rank}位</span>
         <span class="global-ranking-name">${name}</span>
@@ -1230,6 +1232,98 @@
     return String(str).replace(/[&<>"']/g, c =>
       ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
     );
+  }
+
+  function truncateName(name) {
+    if (!name) return "匿名";
+    return name.length > 10 ? name.slice(0, 10) + "…" : name;
+  }
+
+  // ── Prep ランキングパネル ──────────────────────────────────────────
+  function waitForFirebaseRanking(resolve, maxMs) {
+    if (typeof window.fetchRankingScores === "function") { resolve(); return; }
+    let elapsed = 0;
+    const INTERVAL = 200;
+    const timer = setInterval(() => {
+      elapsed += INTERVAL;
+      if (typeof window.fetchRankingScores === "function") {
+        clearInterval(timer); resolve();
+      } else if (elapsed >= (maxMs || 3000)) {
+        clearInterval(timer); resolve();
+      }
+    }, INTERVAL);
+  }
+
+  function renderPrepRankingList(scores, myId) {
+    if (!scores || !scores.length) {
+      return '<span class="prep-ranking-empty">まだ記録がありません</span>';
+    }
+    const RANK_CLS = ["", "prep-ranking-gold", "prep-ranking-silver", "prep-ranking-bronze"];
+    const top3 = scores.slice(0, 3);
+    const selfIdx = myId ? scores.findIndex(s => s.clientId === myId) : -1;
+    const selfInTop3  = selfIdx >= 0 && selfIdx < 3;
+    const selfOutside = selfIdx >= 3;
+
+    let html = top3.map((s, i) => {
+      const isMe = myId && s.clientId === myId;
+      const cls  = [RANK_CLS[i + 1], isMe ? "prep-ranking-mine" : ""].filter(Boolean).join(" ");
+      return `<div class="prep-ranking-item ${cls}">
+        <span class="prep-ranking-rank">${s.rank}位</span>
+        <span class="prep-ranking-name">${escapeGRHtml(truncateName(s.name))}</span>
+        <span class="prep-ranking-time">${formatRankingTime(s.time)}</span>
+      </div>`;
+    }).join("");
+
+    if (selfOutside) {
+      const self = scores[selfIdx];
+      html += `<div class="prep-ranking-divider"></div>
+      <div class="prep-ranking-item prep-ranking-mine">
+        <span class="prep-ranking-rank">👤 ${self.rank}位</span>
+        <span class="prep-ranking-name">${escapeGRHtml(truncateName(self.name))}</span>
+        <span class="prep-ranking-time">${formatRankingTime(self.time)}</span>
+      </div>`;
+    } else if (myId && !selfInTop3) {
+      /* 自分のスコアが上位10件に入っていない */
+      html += `<div class="prep-ranking-divider"></div>
+      <div class="prep-ranking-item prep-ranking-no-score">
+        <span class="prep-ranking-rank">👤</span>
+        <span class="prep-ranking-name">--</span>
+        <span class="prep-ranking-time">--:--</span>
+      </div>`;
+    }
+    return html;
+  }
+
+  async function fetchPrepSection(listId, quizMode, mapVisible) {
+    const el = document.getElementById(listId);
+    if (!el) return;
+    el.innerHTML = '<span class="prep-ranking-loading">読み込み中…</span>';
+    await new Promise(resolve => waitForFirebaseRanking(resolve, 3000));
+    if (typeof window.fetchRankingScores !== "function") {
+      el.innerHTML = '<span class="prep-ranking-empty">Firebase 未接続</span>';
+      return;
+    }
+    const myId = typeof window.getClientId === "function" ? window.getClientId() : null;
+    try {
+      const scores = await window.fetchRankingScores(appConfig.id, "normal", quizMode, mapVisible, 10);
+      el.innerHTML = renderPrepRankingList(scores, myId);
+    } catch (e) {
+      el.innerHTML = '<span class="prep-ranking-empty">取得に失敗しました</span>';
+    }
+  }
+
+  function loadPrepRanking() {
+    const hasMa  = !!(appConfig.enabledModes && appConfig.enabledModes.includes("ma"));
+    const panel  = document.getElementById("prepRankingPanel");
+    const maCol  = document.getElementById("prepRankingMaCol");
+    if (panel) panel.classList.toggle("prep-ranking-panel--single", !hasMa);
+    if (maCol)  maCol.style.display = hasMa ? "" : "none";
+    fetchPrepSection("prepRankingMuniNomap", "municipality", false);
+    fetchPrepSection("prepRankingMuniMap",   "municipality", true);
+    if (hasMa) {
+      fetchPrepSection("prepRankingMaNomap", "ma", false);
+      fetchPrepSection("prepRankingMaMap",   "ma", true);
+    }
   }
   // ─────────────────────────────────────────────────────────────────
 

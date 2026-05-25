@@ -90,24 +90,34 @@
 
           </div>
 
-          <p class="section-label">確認マップ</p>
-          <div class="mode-grid-confirm" aria-label="確認マップ">
+          <p class="section-label">グローバルランキング</p>
+          <div id="prepRankingPanel" class="prep-ranking-panel">
 
-            <button class="mode-card mode-card-confirm" data-start-mode="confirm">
-              <div class="mode-card-icon">◎</div>
-              <div class="mode-card-body">
-                <div class="mode-card-title">市区町村マップ</div>
-                <div class="mode-card-desc">全市区町村を表示して確認</div>
+            <!-- 市区町村列 -->
+            <div class="prep-ranking-col" id="prepRankingMuniCol">
+              <div class="prep-ranking-col-title">🏙️ 市区町村</div>
+              <div class="prep-ranking-section">
+                <div class="prep-ranking-section-title">📵 地図なし</div>
+                <div class="prep-ranking-list" id="prepRankingMuniNomap"><span class="prep-ranking-loading">読み込み中…</span></div>
               </div>
-            </button>
+              <div class="prep-ranking-section">
+                <div class="prep-ranking-section-title">🗺️ 地図あり</div>
+                <div class="prep-ranking-list" id="prepRankingMuniMap"><span class="prep-ranking-loading">読み込み中…</span></div>
+              </div>
+            </div>
 
-            <button class="mode-card mode-card-confirm" data-start-mode="confirm_ma">
-              <div class="mode-card-icon">◎</div>
-              <div class="mode-card-body">
-                <div class="mode-card-title">市外局番マップ</div>
-                <div class="mode-card-desc">市外局番エリアを表示して確認</div>
+            <!-- 市外局番列 -->
+            <div class="prep-ranking-col" id="prepRankingMaCol">
+              <div class="prep-ranking-col-title">📞 市外局番</div>
+              <div class="prep-ranking-section">
+                <div class="prep-ranking-section-title">📵 地図なし</div>
+                <div class="prep-ranking-list" id="prepRankingMaNomap"><span class="prep-ranking-loading">読み込み中…</span></div>
               </div>
-            </button>
+              <div class="prep-ranking-section">
+                <div class="prep-ranking-section-title">🗺️ 地図あり</div>
+                <div class="prep-ranking-list" id="prepRankingMaMap"><span class="prep-ranking-loading">読み込み中…</span></div>
+              </div>
+            </div>
 
           </div>
 

@@ -2895,3 +2895,119 @@ svg.leaflet-zoom-animated {
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+/* ── Prep ランキングパネル ── */
+.prep-ranking-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 10px;
+}
+
+.prep-ranking-panel--single {
+  grid-template-columns: 1fr;
+}
+
+.prep-ranking-col {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+.prep-ranking-col-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--line);
+}
+
+.prep-ranking-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.prep-ranking-section-title {
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 600;
+  opacity: 0.8;
+  margin-bottom: 1px;
+}
+
+.prep-ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.prep-ranking-item {
+  display: grid;
+  grid-template-columns: 3em 1fr auto;
+  gap: 0 4px;
+  align-items: center;
+  padding: 2px 3px;
+  border-radius: 3px;
+  line-height: 1.4;
+}
+
+.prep-ranking-rank {
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 10px;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  white-space: nowrap;
+}
+
+.prep-ranking-name {
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+}
+
+.prep-ranking-time {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* メダル色 */
+.prep-ranking-gold   .prep-ranking-rank { color: var(--accent-2); }
+.prep-ranking-silver .prep-ranking-rank { color: #a8b6be; }
+.prep-ranking-bronze .prep-ranking-rank { color: #b07030; }
+
+/* 自分 */
+.prep-ranking-mine {
+  background: rgba(79, 183, 165, 0.10);
+}
+
+.prep-ranking-mine .prep-ranking-rank,
+.prep-ranking-mine .prep-ranking-name,
+.prep-ranking-mine .prep-ranking-time {
+  color: var(--accent);
+}
+
+/* 未登録プレースホルダー */
+.prep-ranking-no-score {
+  opacity: 0.38;
+}
+
+.prep-ranking-divider {
+  height: 1px;
+  background: var(--line);
+  margin: 2px 0;
+}
+
+.prep-ranking-loading,
+.prep-ranking-empty {
+  color: var(--muted);
+  font-size: 10px;
+  opacity: 0.75;
+  padding: 2px 0;
+  display: block;
+}
