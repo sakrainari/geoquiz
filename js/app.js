@@ -93,6 +93,7 @@
     layoutRightButton: document.getElementById("layoutRightButton"),
     referencePreview: document.getElementById("referencePreview"),
     referencePreviewTop: document.getElementById("referencePreviewTop"),
+    referencePreviewOverlay: document.getElementById("referencePreviewOverlay"),
     questionText: document.getElementById("questionText"),
     modeLabel: document.getElementById("modeLabel"),
     remainingCount: document.getElementById("remainingCount"),
@@ -1649,6 +1650,7 @@
     if (!question) {
       els.referencePreview.innerHTML = "";
       if (els.referencePreviewTop) els.referencePreviewTop.innerHTML = "";
+      if (els.referencePreviewOverlay) els.referencePreviewOverlay.innerHTML = "";
       return;
     }
 
@@ -1656,6 +1658,7 @@
     const previewHtml = feature ? renderReferenceSvg(feature) : "";
     els.referencePreview.innerHTML = previewHtml;
     if (els.referencePreviewTop) els.referencePreviewTop.innerHTML = previewHtml;
+    if (els.referencePreviewOverlay) els.referencePreviewOverlay.innerHTML = previewHtml;
   }
 
   function referenceFeatureForQuestion(question) {
