@@ -679,15 +679,22 @@
 
   /* bottomBarOverlay ボタンのイベント */
   ;(function () {
-    var pairs = [
-      ['bottomBarMenu',    'backToMenuButton'],
-      ['bottomBarRestart', 'resetButton'],
-    ];
-    pairs.forEach(function (pair) {
-      var btn = document.getElementById(pair[0]);
-      var orig = document.getElementById(pair[1]);
-      if (btn && orig) btn.addEventListener('click', function () { orig.click(); });
-    });
+    /* リスタートはそのまま橋渡し */
+    var restartBtn = document.getElementById('bottomBarRestart');
+    var resetOrig  = document.getElementById('resetButton');
+    if (restartBtn && resetOrig) {
+      restartBtn.addEventListener('click', function () { resetOrig.click(); });
+    }
+    /* メニューボタンは確認ダイアログ付き */
+    var menuBtn  = document.getElementById('bottomBarMenu');
+    var menuOrig = document.getElementById('backToMenuButton');
+    if (menuBtn && menuOrig) {
+      menuBtn.addEventListener('click', function () {
+        if (confirm('TOP画面に戻りますか？\n（現在の進行状況は失われます）')) {
+          menuOrig.click();
+        }
+      });
+    }
   })();
 
   /* tileLayerToggle・backToMenuButton・resetButton の上バー→パネル橋渡し */
