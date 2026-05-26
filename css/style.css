@@ -775,6 +775,47 @@ h3 {
 .game-screen[data-layout="overlay"] .top-overlay-bottom { display: none; }
 .game-screen[data-layout="overlay"] #questionOverlay { display: block; }
 
+/* ── オーバーレイHUD ── */
+.hud-overlay {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 490;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  padding: 8px 20px;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+[data-layout="overlay"] .hud-overlay {
+  display: flex;
+}
+
+.hud-overlay-item {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.hud-overlay-item strong {
+  color: var(--text);
+  font-size: 1rem;
+  margin-left: 4px;
+}
+
+.hud-overlay-miss strong {
+  color: var(--danger, #ff6b6b);
+}
+
+/* HUD分だけ問題テキストを下げる */
+[data-layout="overlay"] #questionOverlay {
+  top: 52px;
+}
+
 #questionOverlay {
   display: none;
   position: absolute;

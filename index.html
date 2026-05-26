@@ -243,6 +243,12 @@
         <!-- 地図 -->
         <div id="playMapSlot" class="map-slot">
           <div id="map" class="map-panel" aria-label="埼玉県クイズ地図"></div>
+          <div id="hudOverlay" class="hud-overlay">
+            <span class="hud-overlay-item">残り <strong id="hudOverlayRemain">0</strong></span>
+            <span class="hud-overlay-item">正解 <strong id="hudOverlayCorrect">0</strong></span>
+            <span class="hud-overlay-item hud-overlay-miss">ミス <strong id="hudOverlayMiss">0</strong></span>
+            <span class="hud-overlay-item"><strong id="hudOverlayTime">00:00</strong></span>
+          </div>
           <div id="questionOverlay" class="question-overlay">
             <div class="question-overlay-inner">
               <div id="referencePreviewOverlay" class="reference-preview-overlay"></div>
@@ -665,7 +671,11 @@
     ['correctCount',   'correctCountTop'],
     ['mistakeCount',   'mistakeCountTop'],
     ['elapsedTime',    'elapsedTimeTop'],
-    ['modeLabel',      'modeLabelTop']
+    ['modeLabel',      'modeLabelTop'],
+    ['remainingCount', 'hudOverlayRemain'],
+    ['correctCount',   'hudOverlayCorrect'],
+    ['mistakeCount',   'hudOverlayMiss'],
+    ['elapsedTime',    'hudOverlayTime']
   ];
   setInterval(function () {
     statPairs.forEach(function (pair) {

@@ -94,6 +94,10 @@
     referencePreview: document.getElementById("referencePreview"),
     referencePreviewTop: document.getElementById("referencePreviewTop"),
     referencePreviewOverlay: document.getElementById("referencePreviewOverlay"),
+    hudOverlayRemain: document.getElementById("hudOverlayRemain"),
+    hudOverlayCorrect: document.getElementById("hudOverlayCorrect"),
+    hudOverlayMiss: document.getElementById("hudOverlayMiss"),
+    hudOverlayTime: document.getElementById("hudOverlayTime"),
     questionText: document.getElementById("questionText"),
     modeLabel: document.getElementById("modeLabel"),
     remainingCount: document.getElementById("remainingCount"),
@@ -1459,6 +1463,10 @@
     els.mistakeCount.textContent = `${engine.mistakes}`;
     els.elapsedTime.textContent = formatTime(engine.elapsedMs());
     updateReferencePreview();
+    if (els.hudOverlayRemain)  els.hudOverlayRemain.textContent  = els.remainingCount.textContent;
+    if (els.hudOverlayCorrect) els.hudOverlayCorrect.textContent = els.correctCount.textContent;
+    if (els.hudOverlayMiss)    els.hudOverlayMiss.textContent    = els.mistakeCount.textContent;
+    if (els.hudOverlayTime)    els.hudOverlayTime.textContent    = els.elapsedTime.textContent;
   }
 
   function updatePuzzleState(state) {
