@@ -1529,6 +1529,12 @@ h3 {
   }
 }
 
+/* バー位置：上・下ボタンは全環境で非表示（左・右のみ） */
+#layoutTopButton,
+#layoutBottomButton {
+  display: none !important;
+}
+
 /* スマホ縦向きでは左・右レイアウトボタンを非表示 */
 @media (max-width: 600px) and (orientation: portrait) {
   .layout-btn[data-layout="left"],

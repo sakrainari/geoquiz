@@ -395,6 +395,15 @@
         element.disabled = true;
         element.title = `ルールは開始前に固定されます: ${ruleName(rule)}`;
       });
+    /* サドンデス時は地図表示を「なし」に固定し「あり」を無効化 */
+    if (els.tileLayerOnButton) {
+      els.tileLayerOnButton.disabled = suddenDeath;
+      els.tileLayerOnButton.style.opacity = suddenDeath ? "0.35" : "";
+      els.tileLayerOnButton.title = suddenDeath ? "サドンデスでは地図表示できません" : "";
+    }
+    if (suddenDeath && currentSessionSettings.tileLayerVisible) {
+      updateSessionSettings({ tileLayerVisible: false });
+    }
   }
 
   function setCheckboxValue(element, checked) {
