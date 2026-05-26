@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.24.0/dist/tabler-icons.min.css">
     <link rel="stylesheet" href="css/style.css">
   </head>
   <body>
@@ -278,7 +279,7 @@
               <button class="bottom-bar-btn layout-btn" data-layout="left" title="左">◧</button>
               <button class="bottom-bar-btn layout-btn" data-layout="right" title="右">◨</button>
               <button class="bottom-bar-btn layout-btn" data-layout="overlay" title="全画面">⛶</button>
-              <button class="bottom-bar-btn" id="bottomBarMusic" title="音楽">♪</button>
+              <button class="bottom-bar-btn" id="bottomBarAudioToggle" title="音声ON/OFF"><i class="ti ti-volume" id="bottomBarAudioIcon"></i></button>
             </div>
             <div class="bottom-bar-right">
               <span class="bottom-bar-legend unanswered">□ 未回答</span>
@@ -738,9 +739,10 @@
 
   /* 下部バーの設定状態を同期 */
   function syncBottomBar() {
-    var mapEl      = document.getElementById('bottomBarMap');
-    var suddenEl   = document.getElementById('bottomBarSudden');
-    var audioEl    = document.getElementById('bottomBarAudio');
+    var mapEl    = document.getElementById('bottomBarMap');
+    var suddenEl = document.getElementById('bottomBarSudden');
+    var audioEl  = document.getElementById('bottomBarAudio');
+
     if (mapEl) {
       var tileOnBtn = document.getElementById('tileLayerOnButton');
       mapEl.classList.toggle('is-active', tileOnBtn ? tileOnBtn.classList.contains('is-active') : false);
@@ -749,11 +751,28 @@
       var suddenToggle = document.getElementById('suddenDeathToggle');
       suddenEl.classList.toggle('is-active', suddenToggle ? suddenToggle.checked : false);
     }
-    if (audioEl) {
-      var audioOnBtn = document.getElementById('audioOnButton');
-      audioEl.classList.toggle('is-active', audioOnBtn ? audioOnBtn.classList.contains('is-active') : false);
-    }
+
+    /* 音声状態 */
+    var audioOnBtn     = document.getElementById('audioOnButton');
+    var audioOn        = audioOnBtn ? audioOnBtn.classList.contains('is-active') : false;
+    var audioIcon      = document.getElementById('bottomBarAudioIcon');
+    var audioToggleBtn = document.getElementById('bottomBarAudioToggle');
+
+    if (audioEl) audioEl.classList.toggle('is-active', audioOn);
+    if (audioIcon) audioIcon.className = audioOn ? 'ti ti-volume' : 'ti ti-volume-off';
+    if (audioToggleBtn) audioToggleBtn.style.opacity = audioOn ? '1' : '0.4';
   }
+
+  /* 音声トグルボタンのイベント */
+  ;(function () {
+    var btn = document.getElementById('bottomBarAudioToggle');
+    if (btn) {
+      btn.addEventListener('click', function () {
+        document.getElementById('mistakeSpeechToggle').click();
+        syncBottomBar();
+      });
+    }
+  })();
 
   setInterval(function () {
     statPairs.forEach(function (pair) {
