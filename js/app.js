@@ -230,9 +230,11 @@
   els.layoutRightButton.addEventListener("click", () => {
     updateSessionSettings({ layout: "right" });
   });
-  els.layoutOverlayButton.addEventListener("click", () => {
-    updateSessionSettings({ layout: "overlay" });
-  });
+  if (els.layoutOverlayButton) {
+    els.layoutOverlayButton.addEventListener("click", () => {
+      updateSessionSettings({ layout: "overlay" });
+    });
+  }
 
   els.tileLayerToggle.addEventListener("click", () => {
     if (!renderer) return;
