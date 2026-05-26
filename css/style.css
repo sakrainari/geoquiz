@@ -3707,6 +3707,26 @@ svg.leaflet-zoom-animated {
     border-radius: 6px;
   }
 
+  /* 準備画面：h2（出題準備）をコンパクトに */
+  .game-screen[data-layout="left"].is-prep-mode .game-panel h2,
+  .game-screen[data-layout="right"].is-prep-mode .game-panel h2 {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  /* 準備画面 かつ 通常モード：ミニマップを非表示 */
+  .game-screen[data-layout="left"].is-prep-mode:not(.is-sudden-death) .game-panel .reference-preview,
+  .game-screen[data-layout="right"].is-prep-mode:not(.is-sudden-death) .game-panel .reference-preview {
+    display: none !important;
+  }
+
+  /* 準備画面：Statsを非表示 */
+  .game-screen[data-layout="left"].is-prep-mode .game-panel .stat-grid,
+  .game-screen[data-layout="right"].is-prep-mode .game-panel .stat-grid {
+    display: none !important;
+  }
+
   /* パネル下部ミニバー */
   .game-screen[data-layout="left"] .game-panel .panel-mini-bar,
   .game-screen[data-layout="right"] .game-panel .panel-mini-bar {

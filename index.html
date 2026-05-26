@@ -889,6 +889,8 @@
       var show     = isSudden && isSide;
       badge.classList.toggle('is-hidden', !show);
       if (preview) preview.classList.toggle('is-hidden', show);
+      /* gameScreenにサドンデス状態クラスを付与 */
+      if (gameScreen) gameScreen.classList.toggle('is-sudden-death', isSudden);
     }
 
     toggle.addEventListener('change', syncBadge);
