@@ -1281,10 +1281,13 @@ h3 {
 
 .prep-overlay {
   position: absolute;
-  top: 18px;
-  left: 18px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   z-index: 1080;
   width: min(360px, calc(100% - 36px));
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .prep-panel {
