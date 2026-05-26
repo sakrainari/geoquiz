@@ -1314,6 +1314,53 @@ h3 {
   line-height: 1.6;
 }
 
+/* スマホ横向き: 準備画面を2カラムに */
+@media (max-height: 500px) and (orientation: landscape) {
+  .prep-overlay {
+    max-height: 96vh;
+    width: min(640px, calc(100% - 24px));
+  }
+
+  .prep-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+    gap: 8px 16px;
+    padding: 10px 14px;
+  }
+
+  .prep-panel .eyebrow,
+  #prepModeTitle {
+    grid-column: 1 / -1;
+  }
+
+  #prepModeCopy {
+    display: none;
+  }
+
+  #startQuizButton {
+    grid-column: 1 / -1;
+    min-height: 38px;
+  }
+
+  #startSelectionNote {
+    grid-column: 1 / -1;
+    font-size: 11px;
+    margin: 0;
+  }
+
+  .start-option-btn {
+    min-height: 32px;
+    font-size: 13px;
+    padding: 4px 8px;
+  }
+
+  .prep-panel h3 {
+    font-size: 16px;
+    margin: 0;
+  }
+}
+
 .countdown-overlay {
   position: absolute;
   inset: 0;
