@@ -3552,7 +3552,7 @@ svg.leaflet-zoom-animated {
   display: none;
 }
 
-@media (max-height: 500px) and (orientation: landscape) {
+@media (orientation: landscape) and (max-height: 460px) and (max-width: 950px) {
 
   /* パネルサイズ */
   .game-screen[data-layout="left"] .game-panel,
