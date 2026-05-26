@@ -287,6 +287,17 @@
               <span class="bottom-bar-legend weak">● 弱点</span>
             </div>
           </div>
+          <div id="confirmDialog" class="confirm-dialog" style="display:none">
+            <div class="confirm-dialog-inner">
+              <p class="confirm-dialog-text">TOP画面に戻りますか？<br>
+                <span>現在の進行状況は失われます</span>
+              </p>
+              <div class="confirm-dialog-buttons">
+                <button id="confirmDialogOk">戻る</button>
+                <button id="confirmDialogCancel">続ける</button>
+              </div>
+            </div>
+          </div>
           <div id="prepOverlay" class="prep-overlay is-hidden" aria-label="開始前設定">
             <div class="prep-panel">
               <p class="eyebrow">Ready</p>
@@ -685,14 +696,26 @@
     if (restartBtn && resetOrig) {
       restartBtn.addEventListener('click', function () { resetOrig.click(); });
     }
-    /* メニューボタンは確認ダイアログ付き */
+    /* メニューボタンはカスタムダイアログ表示 */
     var menuBtn  = document.getElementById('bottomBarMenu');
     var menuOrig = document.getElementById('backToMenuButton');
-    if (menuBtn && menuOrig) {
+    var dialog   = document.getElementById('confirmDialog');
+    var okBtn    = document.getElementById('confirmDialogOk');
+    var cancelBtn= document.getElementById('confirmDialogCancel');
+    if (menuBtn && dialog) {
       menuBtn.addEventListener('click', function () {
-        if (confirm('TOP画面に戻りますか？\n（現在の進行状況は失われます）')) {
-          menuOrig.click();
-        }
+        dialog.style.display = 'flex';
+      });
+    }
+    if (okBtn && dialog && menuOrig) {
+      okBtn.addEventListener('click', function () {
+        dialog.style.display = 'none';
+        menuOrig.click();
+      });
+    }
+    if (cancelBtn && dialog) {
+      cancelBtn.addEventListener('click', function () {
+        dialog.style.display = 'none';
       });
     }
   })();

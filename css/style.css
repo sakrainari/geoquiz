@@ -1634,6 +1634,65 @@ h3 {
   }
 }
 
+/* ── カスタム確認ダイアログ ── */
+.confirm-dialog {
+  position: absolute;
+  inset: 0;
+  z-index: 600;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.confirm-dialog-inner {
+  background: var(--bg-2, #1a1a2e);
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  max-width: 280px;
+  width: 90%;
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
+}
+
+.confirm-dialog-text {
+  color: var(--text, #fff);
+  font-size: 1rem;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.confirm-dialog-text span {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.confirm-dialog-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.confirm-dialog-buttons button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+#confirmDialogOk {
+  background: var(--danger, #e55);
+  color: #fff;
+}
+
+#confirmDialogCancel {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
 /* ── ゲーム画面 オーバーレイUI（旧スタイル・互換維持） ── */
 .game-hud-card {
   position: absolute;
