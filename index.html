@@ -258,7 +258,6 @@
           <div id="actionOverlay" class="action-overlay">
             <button class="action-overlay-btn" id="actionOverlayMenu" title="モード選択">≡</button>
             <button class="action-overlay-btn" id="actionOverlayRestart" title="リスタート">↺</button>
-            <button class="action-overlay-btn action-overlay-map" id="actionOverlayMap" title="地図">地図</button>
             <div class="action-overlay-divider"></div>
             <button class="action-overlay-btn layout-btn" data-layout="left" title="左">◧</button>
             <button class="action-overlay-btn layout-btn" data-layout="top" title="上">⬒</button>
@@ -646,7 +645,6 @@
     var pairs = [
       ['actionOverlayMenu',    'backToMenuButton'],
       ['actionOverlayRestart', 'resetButton'],
-      ['actionOverlayMap',     'tileLayerToggle']
     ];
     pairs.forEach(function (pair) {
       var btn = document.getElementById(pair[0]);
