@@ -816,8 +816,9 @@
   var questionMainTop   = document.getElementById('questionMainTop');
   var questionSub       = document.getElementById('questionSub');
   var questionSubTop    = document.getElementById('questionSubTop');
-  var referencePreview    = document.getElementById('referencePreview');
-  var referencePreviewTop = document.getElementById('referencePreviewTop');
+  var referencePreview        = document.getElementById('referencePreview');
+  var referencePreviewTop     = document.getElementById('referencePreviewTop');
+  var referencePreviewOverlay = document.getElementById('referencePreviewOverlay');
   var questionMainOverlay = document.getElementById('questionMainOverlay');
   var questionSubOverlay  = document.getElementById('questionSubOverlay');
 
@@ -835,8 +836,11 @@
     if (questionSubTop)  questionSubTop.textContent  = sub;
     if (questionMainOverlay) questionMainOverlay.textContent = main;
     if (questionSubOverlay)  questionSubOverlay.textContent  = sub;
-    if (referencePreview)    referencePreview.style.display    = isMa ? 'none' : '';
-    if (referencePreviewTop) referencePreviewTop.style.display = isMa ? 'none' : '';
+    var suddenToggle = document.getElementById('suddenDeathToggle');
+    var hideMinimap = isMa || (suddenToggle && suddenToggle.checked);
+    if (referencePreview)        referencePreview.style.display        = hideMinimap ? 'none' : '';
+    if (referencePreviewTop)     referencePreviewTop.style.display     = hideMinimap ? 'none' : '';
+    if (referencePreviewOverlay) referencePreviewOverlay.style.display = hideMinimap ? 'none' : '';
     if (gameScreen) {
       gameScreen.classList.toggle('is-ma-mode', isMa);
       gameScreen.classList.toggle('is-ma-long-code', isMa && main.length >= 5);
