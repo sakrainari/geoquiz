@@ -462,7 +462,7 @@
     els.resetButton.classList.add("is-hidden");
     els.puzzleControls.classList.add("is-hidden");
     els.modeLabel.textContent = `${modeName(nextMode)} / 開始前設定`;
-    els.questionText.textContent = "地図を確認してから開始";
+    els.questionText.textContent = "出題準備";
     els.remainingCount.textContent = "0";
     els.correctCount.textContent = "0";
     els.mistakeCount.textContent = "0";
