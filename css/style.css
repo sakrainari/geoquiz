@@ -872,7 +872,8 @@ h3 {
   stroke-width: 1.8;
 }
 
-[data-layout="overlay"] .reference-preview-overlay {
+[data-layout="overlay"] .reference-preview-overlay,
+[data-layout="top"] .reference-preview-overlay {
   display: block;
 }
 
@@ -960,6 +961,8 @@ h3 {
 [data-layout="top"] #questionOverlay {
   top: 52px;
   bottom: auto;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 [data-layout="bottom"] #questionOverlay {
@@ -2072,6 +2075,11 @@ h3 {
 
 .leaflet-bottom {
   bottom: 0;
+}
+
+[data-layout="top"] .leaflet-bottom,
+[data-layout="bottom"] .leaflet-bottom {
+  margin-bottom: 52px;
 }
 
 .leaflet-left {
