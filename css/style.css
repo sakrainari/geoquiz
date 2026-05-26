@@ -1483,6 +1483,16 @@ h3 {
   }
 }
 
+/* スマホ縦向きの準備画面では上（⬒）のみ表示 */
+@media (max-width: 600px) and (orientation: portrait) {
+  .start-option-btn[data-layout="bottom"],
+  .start-option-btn[data-layout="left"],
+  .start-option-btn[data-layout="right"],
+  .start-option-btn[data-layout="overlay"] {
+    display: none;
+  }
+}
+
 /* ── 下部バーオーバーレイ（上・下レイアウト共用） ── */
 .bottom-bar-overlay {
   display: none;
