@@ -1550,6 +1550,11 @@ h3 {
   padding: 0 4px;
 }
 
+.bottom-bar-center .layout-btn {
+  flex: none;
+  width: 36px;
+}
+
 .bottom-bar-btn {
   width: 36px;
   text-align: center;
@@ -1627,6 +1632,10 @@ h3 {
     width: 44px;
     font-size: 16px;
     padding: 6px 0;
+  }
+
+  .bottom-bar-center .layout-btn {
+    width: 44px;
   }
 
   .bottom-bar-left,
