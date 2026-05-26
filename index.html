@@ -193,6 +193,12 @@
             <span class="legend-item"><i class="swatch correct"></i>正解済み</span>
             <span class="legend-item"><i class="swatch miss"></i>弱点</span>
           </div>
+          <div class="panel-mini-bar" id="panelMiniBar">
+            <button class="panel-mini-bar-btn" id="panelLayoutToggle" title="左右切り替え">◧</button>
+            <button class="panel-mini-bar-btn" id="panelAudioToggle" title="音声ON/OFF"><i class="ti ti-volume" id="panelAudioIcon"></i></button>
+            <button class="panel-mini-bar-btn" id="panelRestart" title="リスタート">↺</button>
+            <button class="panel-mini-bar-btn" id="panelMenu" title="メニュー">≡</button>
+          </div>
           <div class="game-panel-actions">
             <button id="tileLayerToggle" class="ghost-button" type="button">地図</button>
             <button id="backToMenuButton" class="ghost-button" type="button">モード選択</button>
@@ -807,17 +813,80 @@
     }
   })();
 
+  /* パネルミニバーのボタン制御 */
   ;(function () {
-    var badge = document.getElementById('suddenDeathBadge');
+    var layoutToggle = document.getElementById('panelLayoutToggle');
+    var audioToggle  = document.getElementById('panelAudioToggle');
+    var audioIcon    = document.getElementById('panelAudioIcon');
+    var restart      = document.getElementById('panelRestart');
+    var menu         = document.getElementById('panelMenu');
+    var resetOrig    = document.getElementById('resetButton');
+    var menuOrig     = document.getElementById('backToMenuButton');
+    var dialog       = document.getElementById('confirmDialog');
+    var speechToggle = document.getElementById('mistakeSpeechToggle');
+
+    /* 左右切り替え */
+    if (layoutToggle) {
+      layoutToggle.addEventListener('click', function () {
+        var current = gameScreen.dataset.layout;
+        var next = current === 'left' ? 'right' : 'left';
+        var btn = document.querySelector('.layout-btn[data-layout="' + next + '"]');
+        if (btn) btn.click();
+      });
+    }
+
+    /* 音声ON/OFF */
+    if (audioToggle && speechToggle) {
+      audioToggle.addEventListener('click', function () {
+        speechToggle.click();
+      });
+    }
+
+    /* リスタート */
+    if (restart && resetOrig) {
+      restart.addEventListener('click', function () { resetOrig.click(); });
+    }
+
+    /* メニュー（確認ダイアログ） */
+    if (menu && dialog) {
+      menu.addEventListener('click', function () {
+        dialog.style.display = 'flex';
+      });
+    }
+
+    /* レイアウトアイコン・音声アイコンの状態同期 */
+    function syncMiniBar() {
+      if (!gameScreen) return;
+      var layout = gameScreen.dataset.layout;
+      if (layoutToggle) {
+        layoutToggle.textContent = layout === 'left' ? '◧' : '◨';
+      }
+      if (audioIcon && speechToggle) {
+        var on = speechToggle.checked;
+        audioIcon.className = on ? 'ti ti-volume' : 'ti ti-volume-off';
+        audioToggle.classList.toggle('is-active', on);
+      }
+    }
+
+    document.querySelectorAll('.layout-btn').forEach(function (btn) {
+      btn.addEventListener('click', syncMiniBar);
+    });
+
+    setInterval(syncMiniBar, 300);
+  })();
+
+  /* サドンデスバッジの表示制御 */
+  ;(function () {
+    var badge   = document.getElementById('suddenDeathBadge');
     var preview = document.getElementById('referencePreview');
-    var toggle = document.getElementById('suddenDeathToggle');
+    var toggle  = document.getElementById('suddenDeathToggle');
     if (!badge || !toggle) return;
 
     function syncBadge() {
       var isSudden = toggle.checked;
-      var layout = gameScreen ? gameScreen.dataset.layout : '';
-      var isSide = (layout === 'left' || layout === 'right');
-      var show = isSudden && isSide;
+      var layout   = gameScreen ? gameScreen.dataset.layout : '';
+      var isSide   = (layout === 'left' || layout === 'right');
+      var show     = isSudden && isSide;
       badge.classList.toggle('is-hidden', !show);
       if (preview) preview.classList.toggle('is-hidden', show);
     }
@@ -826,7 +895,7 @@
     document.querySelectorAll('.layout-btn').forEach(function (btn) {
       btn.addEventListener('click', syncBadge);
     });
-    setInterval(syncBadge, 500);
+    setInterval(syncBadge, 300);
   })();
 
   setInterval(function () {

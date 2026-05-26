@@ -3548,8 +3548,13 @@ svg.leaflet-zoom-animated {
    スマホ横向き：左右パネル最適化
    ═══════════════════════════════════════════════════ */
 
+.sudden-death-badge {
+  display: none;
+}
+
 @media (max-height: 500px) and (orientation: landscape) {
 
+  /* パネルサイズ */
   .game-screen[data-layout="left"] .game-panel,
   .game-screen[data-layout="right"] .game-panel {
     width: 200px;
@@ -3559,12 +3564,14 @@ svg.leaflet-zoom-animated {
     gap: 6px;
   }
 
+  /* モードラベル */
   .game-screen[data-layout="left"] .game-panel .eyebrow,
   .game-screen[data-layout="right"] .game-panel .eyebrow {
     font-size: 9px;
     margin-bottom: 0;
   }
 
+  /* 問題テキスト（市区町村名） */
   .game-screen[data-layout="left"] .game-panel h2,
   .game-screen[data-layout="right"] .game-panel h2 {
     font-size: clamp(16px, 2.2vw, 22px);
@@ -3572,6 +3579,7 @@ svg.leaflet-zoom-animated {
     line-height: 1.1;
   }
 
+  /* 市外局番：桁数に応じたサイズ調整 */
   .game-screen[data-layout="left"].is-ma-mode .game-panel h2,
   .game-screen[data-layout="right"].is-ma-mode .game-panel h2 {
     font-size: clamp(22px, 3vw, 32px);
@@ -3587,6 +3595,7 @@ svg.leaflet-zoom-animated {
     font-size: clamp(15px, 2.2vw, 22px);
   }
 
+  /* ミニマップ */
   .game-screen[data-layout="left"] .game-panel .reference-preview,
   .game-screen[data-layout="right"] .game-panel .reference-preview {
     aspect-ratio: auto;
@@ -3595,12 +3604,7 @@ svg.leaflet-zoom-animated {
     min-height: 88px;
   }
 
-  .game-screen[data-layout="left"] .game-panel .game-hud-sub,
-  .game-screen[data-layout="right"] .game-panel .game-hud-sub {
-    font-size: 10px;
-    margin: 0;
-  }
-
+  /* 統計グリッド */
   .game-screen[data-layout="left"] .game-panel .stat-box,
   .game-screen[data-layout="right"] .game-panel .stat-box {
     padding: 4px 6px;
@@ -3616,34 +3620,23 @@ svg.leaflet-zoom-animated {
     font-size: 15px;
   }
 
+  /* 横向き時に非表示にする要素 */
+  .game-screen[data-layout="left"] .game-panel .game-hud-sub,
+  .game-screen[data-layout="right"] .game-panel .game-hud-sub,
+  .game-screen[data-layout="left"] .game-panel .game-panel-divider,
+  .game-screen[data-layout="right"] .game-panel .game-panel-divider,
   .game-screen[data-layout="left"] .game-panel .game-toggle-row,
-  .game-screen[data-layout="right"] .game-panel .game-toggle-row {
-    min-height: 28px;
-    padding: 4px 8px;
-    font-size: 11px;
-  }
-
+  .game-screen[data-layout="right"] .game-panel .game-toggle-row,
   .game-screen[data-layout="left"] .game-panel .legend-block,
-  .game-screen[data-layout="right"] .game-panel .legend-block {
-    font-size: 11px;
-    padding: 6px;
-    gap: 4px;
+  .game-screen[data-layout="right"] .game-panel .legend-block,
+  .game-screen[data-layout="left"] .game-panel .game-panel-actions,
+  .game-screen[data-layout="right"] .game-panel .game-panel-actions,
+  .game-screen[data-layout="left"] .game-panel .layout-switcher,
+  .game-screen[data-layout="right"] .game-panel .layout-switcher {
+    display: none !important;
   }
 
-  .game-screen[data-layout="left"] .game-panel .game-panel-actions .ghost-button,
-  .game-screen[data-layout="left"] .game-panel .game-panel-actions .primary-button,
-  .game-screen[data-layout="right"] .game-panel .game-panel-actions .ghost-button,
-  .game-screen[data-layout="right"] .game-panel .game-panel-actions .primary-button {
-    min-height: 30px;
-    font-size: 11px;
-  }
-
-  .game-screen[data-layout="left"] .game-panel .layout-btn,
-  .game-screen[data-layout="right"] .game-panel .layout-btn {
-    min-height: 22px;
-    font-size: 12px;
-  }
-
+  /* サドンデスバッジ */
   .game-screen[data-layout="left"] .sudden-death-badge,
   .game-screen[data-layout="right"] .sudden-death-badge {
     display: flex;
@@ -3655,8 +3648,46 @@ svg.leaflet-zoom-animated {
     border: 1px solid #2f3942;
     border-radius: 6px;
   }
+
+  /* パネル下部ミニバー */
+  .game-screen[data-layout="left"] .game-panel .panel-mini-bar,
+  .game-screen[data-layout="right"] .game-panel .panel-mini-bar {
+    display: flex !important;
+    margin-top: auto;
+  }
 }
 
-.sudden-death-badge {
+/* パネル下部ミニバー（デフォルト非表示） */
+.panel-mini-bar {
   display: none;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: 4px;
+  border-top: 1px solid #2f3942;
+  padding-top: 6px;
+  margin-top: auto;
+}
+
+.panel-mini-bar-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 16px;
+  width: 36px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.panel-mini-bar-btn:hover {
+  color: #fff;
+}
+
+.panel-mini-bar-btn.is-active {
+  color: #fff;
 }
