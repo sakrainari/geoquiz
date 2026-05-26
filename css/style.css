@@ -1477,6 +1477,133 @@ h3 {
   }
 }
 
+/* ── 下部バーオーバーレイ（上・下レイアウト共用） ── */
+.bottom-bar-overlay {
+  display: none;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 490;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  padding: 4px 8px;
+  align-items: stretch;
+  gap: 0;
+  pointer-events: auto;
+  font-size: 11px;
+}
+
+[data-layout="top"] .bottom-bar-overlay {
+  display: flex;
+  bottom: 0;
+  top: auto;
+}
+
+[data-layout="bottom"] .bottom-bar-overlay {
+  display: flex;
+  top: 0;
+  bottom: auto;
+}
+
+.bottom-bar-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding-right: 8px;
+  border-right: 0.5px solid rgba(255, 255, 255, 0.15);
+  min-width: 56px;
+}
+
+.bottom-bar-status {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.bottom-bar-status.is-active {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.bottom-bar-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 8px;
+}
+
+.bottom-bar-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.bottom-bar-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.bottom-bar-btn.is-active {
+  color: var(--accent-1, #1d9e75);
+}
+
+.bottom-bar-right {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding-left: 8px;
+  border-left: 0.5px solid rgba(255, 255, 255, 0.15);
+  min-width: 56px;
+  text-align: right;
+}
+
+.bottom-bar-legend {
+  font-size: 10px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.bottom-bar-legend.correct { color: #1d9e75; }
+.bottom-bar-legend.weak    { color: #e2a84a; }
+
+/* 上・下レイアウト時は actionOverlay を非表示 */
+[data-layout="top"] #actionOverlay,
+[data-layout="bottom"] #actionOverlay {
+  display: none !important;
+}
+
+/* 準備画面では bottomBarOverlay を非表示 */
+.game-screen.is-prep-mode #bottomBarOverlay {
+  display: none !important;
+}
+
+/* スマホ縦向き: 左・右ボタン非表示・タップ領域拡大 */
+@media (max-width: 600px) and (orientation: portrait) {
+  .bottom-bar-btn[data-layout="left"],
+  .bottom-bar-btn[data-layout="right"] {
+    display: none;
+  }
+
+  .bottom-bar-btn {
+    padding: 6px 10px;
+    font-size: 16px;
+  }
+
+  .bottom-bar-left,
+  .bottom-bar-right {
+    font-size: 11px;
+  }
+}
+
 /* ── ゲーム画面 オーバーレイUI（旧スタイル・互換維持） ── */
 .game-hud-card {
   position: absolute;

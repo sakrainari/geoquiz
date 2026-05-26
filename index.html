@@ -264,6 +264,28 @@
             <button class="action-overlay-btn layout-btn" data-layout="bottom" title="下">⬓</button>
             <button class="action-overlay-btn layout-btn" data-layout="right" title="右">◨</button>
           </div>
+          <div id="bottomBarOverlay" class="bottom-bar-overlay">
+            <div class="bottom-bar-left">
+              <span id="bottomBarMap" class="bottom-bar-status">地図</span>
+              <span id="bottomBarSudden" class="bottom-bar-status">サドンデス</span>
+              <span id="bottomBarAudio" class="bottom-bar-status">音声</span>
+            </div>
+            <div class="bottom-bar-center">
+              <button class="bottom-bar-btn" id="bottomBarMenu" title="モード選択">≡</button>
+              <button class="bottom-bar-btn" id="bottomBarRestart" title="リスタート">↺</button>
+              <button class="bottom-bar-btn layout-btn" data-layout="top" title="上">⬒</button>
+              <button class="bottom-bar-btn layout-btn" data-layout="bottom" title="下">⬓</button>
+              <button class="bottom-bar-btn layout-btn" data-layout="left" title="左">◧</button>
+              <button class="bottom-bar-btn layout-btn" data-layout="right" title="右">◨</button>
+              <button class="bottom-bar-btn layout-btn" data-layout="overlay" title="全画面">⛶</button>
+              <button class="bottom-bar-btn" id="bottomBarMusic" title="音楽">♪</button>
+            </div>
+            <div class="bottom-bar-right">
+              <span class="bottom-bar-legend unanswered">□ 未回答</span>
+              <span class="bottom-bar-legend correct">● 正解済み</span>
+              <span class="bottom-bar-legend weak">● 弱点</span>
+            </div>
+          </div>
           <div id="prepOverlay" class="prep-overlay is-hidden" aria-label="開始前設定">
             <div class="prep-panel">
               <p class="eyebrow">Ready</p>
@@ -654,6 +676,19 @@
     });
   })();
 
+  /* bottomBarOverlay ボタンのイベント */
+  ;(function () {
+    var pairs = [
+      ['bottomBarMenu',    'backToMenuButton'],
+      ['bottomBarRestart', 'resetButton'],
+    ];
+    pairs.forEach(function (pair) {
+      var btn = document.getElementById(pair[0]);
+      var orig = document.getElementById(pair[1]);
+      if (btn && orig) btn.addEventListener('click', function () { orig.click(); });
+    });
+  })();
+
   /* tileLayerToggle・backToMenuButton・resetButton の上バー→パネル橋渡し */
   ['tileLayerToggle', 'backToMenuButton', 'resetButton'].forEach(function (id) {
     var top = document.getElementById(id + 'Top');
@@ -700,12 +735,33 @@
     ['mistakeCount',   'hudOverlayMiss'],
     ['elapsedTime',    'hudOverlayTime']
   ];
+
+  /* 下部バーの設定状態を同期 */
+  function syncBottomBar() {
+    var mapEl      = document.getElementById('bottomBarMap');
+    var suddenEl   = document.getElementById('bottomBarSudden');
+    var audioEl    = document.getElementById('bottomBarAudio');
+    if (mapEl) {
+      var tileOnBtn = document.getElementById('tileLayerOnButton');
+      mapEl.classList.toggle('is-active', tileOnBtn ? tileOnBtn.classList.contains('is-active') : false);
+    }
+    if (suddenEl) {
+      var suddenToggle = document.getElementById('suddenDeathToggle');
+      suddenEl.classList.toggle('is-active', suddenToggle ? suddenToggle.checked : false);
+    }
+    if (audioEl) {
+      var audioOnBtn = document.getElementById('audioOnButton');
+      audioEl.classList.toggle('is-active', audioOnBtn ? audioOnBtn.classList.contains('is-active') : false);
+    }
+  }
+
   setInterval(function () {
     statPairs.forEach(function (pair) {
       var src = document.getElementById(pair[0]);
       var dst = document.getElementById(pair[1]);
       if (src && dst) dst.textContent = src.textContent;
     });
+    syncBottomBar();
   }, 200);
 
   /* questionText の変更を各表示要素へ反映 */
