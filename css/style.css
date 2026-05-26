@@ -1589,6 +1589,16 @@ h3 {
   display: none !important;
 }
 
+/* 上・下レイアウト時は topbar の冗長な要素を非表示（bottom-bar-overlay で代替） */
+[data-layout="top"] .game-topbar .layout-switcher,
+[data-layout="bottom"] .game-topbar .layout-switcher,
+[data-layout="top"] .game-topbar-actions,
+[data-layout="bottom"] .game-topbar-actions,
+[data-layout="top"] .game-topbar-toggles,
+[data-layout="bottom"] .game-topbar-toggles {
+  display: none;
+}
+
 /* スマホ縦向き: 左・右ボタン非表示・タップ領域拡大 */
 @media (max-width: 600px) and (orientation: portrait) {
   .bottom-bar-btn[data-layout="left"],
