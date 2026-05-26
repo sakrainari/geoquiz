@@ -1,0 +1,2 @@
+window.GUNMA_LABEL_OVERRIDES = {
+};

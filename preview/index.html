@@ -1,0 +1,1531 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+ <title>GeoQuiz</title>   
+    <link rel="icon" href="data:,">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.24.0/dist/tabler-icons.min.css">
+    <link rel="stylesheet" href="css/style.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <div id="storageNotice" class="notice-bar is-hidden">
+        <span id="storageNoticeText">累積成績を確認しています。</span>
+        <button id="storageNoticeClose" class="ghost-button" type="button">閉じる</button>
+      </div>
+      <section id="startScreen" class="start-screen">
+
+        <!-- 左カラム：データセット picker -->
+        <div class="start-left">
+          <header class="start-header picker-header">
+            <div class="brand-block">
+              <p class="eyebrow" id="appSubtitle" hidden>GeoGuessr training</p>
+              <h1 id="appTitle">GeoQuiz</h1>
+              <p id="appDescription" hidden>地図から、知識を叩き込むトレーニングツール。</p>
+            </div>
+            <span id="regionInfoBadge" class="region-info-badge" aria-live="polite">—</span>
+          </header>
+
+          <!-- 地方タブ -->
+          <div id="regionTabBar" class="region-tab-bar" role="tablist" aria-label="地方選択"></div>
+
+          <!-- データセットカードグリッド -->
+          <div id="datasetPickerGrid" class="dataset-picker-grid"></div>
+
+          <!-- app.js 後方互換のため非表示で温存 -->
+          <div hidden>
+            <button id="regionSelector" class="ghost-button region-selector" type="button" aria-haspopup="true" aria-expanded="false">地域選択 ▾</button>
+            <div id="regionMenu" class="region-menu is-hidden" role="menu" aria-label="地域選択"></div>
+          </div>
+        </div>
+
+        <!-- 右カラム：クイズモード + 確認マップ + 統計 -->
+        <div class="start-right">
+          <p class="section-label">クイズ</p>
+          <div class="mode-grid" aria-label="モード選択">
+
+            <button class="mode-card" data-start-mode="municipality">
+              <div class="mode-card-icon">▣</div>
+              <div class="mode-card-body">
+                <div class="mode-card-tag">MUNICIPALITY</div>
+                <div class="mode-card-title" id="modeCardMuniTitle">市区町村</div>
+                <div class="mode-card-desc">市町村名から場所を当てる · 63問</div>
+              </div>
+              <span class="mode-card-arrow">›</span>
+            </button>
+
+            <button class="mode-card" data-start-mode="ma">
+              <div class="mode-card-icon">#</div>
+              <div class="mode-card-body">
+                <div class="mode-card-tag">AREA CODE</div>
+                <div class="mode-card-title" id="modeCardMaTitle">市外局番</div>
+                <div class="mode-card-desc">番号からエリアを当てる · 8問</div>
+              </div>
+              <span class="mode-card-arrow">›</span>
+            </button>
+
+            <button class="mode-card is-hidden" data-start-mode="puzzle" aria-hidden="true">
+              <div class="mode-card-icon">⊞</div>
+              <div class="mode-card-body">
+                <div class="mode-card-tag">PUZZLE</div>
+                <div class="mode-card-title">パズル</div>
+                <div class="mode-card-desc">ずれた市区町村を元の位置へ戻す</div>
+              </div>
+              <span class="mode-card-arrow">›</span>
+            </button>
+
+            <button class="mode-card is-disabled" data-start-mode="image" disabled>
+              <div class="mode-card-icon">⊡</div>
+              <div class="mode-card-body">
+                <div class="mode-card-tag">IMAGE · COMING SOON</div>
+                <div class="mode-card-title">画像判別</div>
+                <div class="mode-card-desc">様々なクイズを搭載予定</div>
+              </div>
+              <span class="mode-card-arrow">›</span>
+            </button>
+
+          </div>
+
+          <p class="section-label">グローバルランキング</p>
+          <div id="prepRankingPanel" class="prep-ranking-panel">
+
+            <!-- 市区町村列 -->
+            <div class="prep-ranking-col" id="prepRankingMuniCol">
+              <div class="prep-ranking-col-title" id="prepRankingMuniColTitle">🏙️ 市区町村</div>
+              <div class="prep-ranking-section">
+                <div class="prep-ranking-section-title">📵 地図なし</div>
+                <div class="prep-ranking-list" id="prepRankingMuniNomap"><span class="prep-ranking-loading">読み込み中…</span></div>
+              </div>
+              <div class="prep-ranking-section">
+                <div class="prep-ranking-section-title">🗺️ 地図あり</div>
+                <div class="prep-ranking-list" id="prepRankingMuniMap"><span class="prep-ranking-loading">読み込み中…</span></div>
+              </div>
+            </div>
+
+            <!-- 市外局番列 -->
+            <div class="prep-ranking-col" id="prepRankingMaCol">
+              <div class="prep-ranking-col-title" id="prepRankingMaColTitle">📞 市外局番</div>
+              <div class="prep-ranking-section">
+                <div class="prep-ranking-section-title">📵 地図なし</div>
+                <div class="prep-ranking-list" id="prepRankingMaNomap"><span class="prep-ranking-loading">読み込み中…</span></div>
+              </div>
+              <div class="prep-ranking-section">
+                <div class="prep-ranking-section-title">🗺️ 地図あり</div>
+                <div class="prep-ranking-list" id="prepRankingMaMap"><span class="prep-ranking-loading">読み込み中…</span></div>
+              </div>
+            </div>
+
+          </div>
+
+          <div id="topStatsPanel" class="top-stats-panel">
+            <div class="top-stat">
+              <div class="top-stat-value" id="topStatSessions"></div>
+              <div class="top-stat-label">セッション</div>
+            </div>
+            <div class="top-stat">
+              <div class="top-stat-value" id="topStatAccuracy"></div>
+              <div class="top-stat-label">正答率</div>
+            </div>
+            <div class="top-stat">
+              <div class="top-stat-value" id="topStatWeak"></div>
+              <div class="top-stat-label">苦手問題</div>
+            </div>
+            <div class="top-stat">
+              <div class="top-stat-value" id="topStatLastPlay"></div>
+              <div class="top-stat-label">最終プレイ</div>
+            </div>
+            <div id="topMiniHeatmap" class="top-mini-heatmap"></div>
+          </div>
+        </div>
+
+      </section>
+
+      <section id="gameScreen" class="game-screen is-hidden" data-layout="left">
+
+        <!-- サイドパネル（left/rightで使用） -->
+        <aside id="gamePanel" class="game-panel">
+          <p class="eyebrow" id="modeLabel">市区町村モード</p>
+          <h2 id="questionMain"></h2>
+          <div id="referencePreview" class="reference-preview"></div>
+          <div id="suddenDeathBadge" class="sudden-death-badge is-hidden">
+            <svg viewBox="0 0 88 88" width="64" height="64" aria-hidden="true">
+              <circle cx="44" cy="44" r="38" fill="none" stroke="#e35d5d" stroke-width="6"/>
+              <line x1="18" y1="18" x2="70" y2="70" stroke="#e35d5d" stroke-width="6" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <p id="questionSub" class="game-hud-sub">をクリック</p>
+          <div id="puzzleControls" class="puzzle-controls is-hidden">
+            <label>
+              <span>ピース</span>
+              <select id="puzzlePieceSelect">
+                <option value="all">全市区町村</option>
+                <option value="small">少なめ15</option>
+              </select>
+            </label>
+            <div class="puzzle-best">
+              <span>ベスト</span>
+              <strong id="puzzleBestTime">--:--</strong>
+            </div>
+          </div>
+          <div class="game-panel-divider"></div>
+          <div class="stat-grid">
+            <div class="stat-box"><span class="stat-lbl">残り</span><strong id="remainingCount">0</strong></div>
+            <div class="stat-box"><span class="stat-lbl">正解</span><strong id="correctCount">0</strong></div>
+            <div class="stat-box stat-box-danger"><span class="stat-lbl">ミス</span><strong id="mistakeCount">0</strong></div>
+            <div class="stat-box"><span class="stat-lbl">経過</span><strong id="elapsedTime">00:00</strong></div>
+          </div>
+          <div class="game-panel-divider"></div>
+          <label class="game-toggle-row">
+            <input id="suddenDeathToggle" type="checkbox">
+            <span>サドンデス</span>
+          </label>
+          <label class="game-toggle-row">
+            <input id="mistakeSpeechToggle" type="checkbox">
+            <span>音声</span>
+          </label>
+          <div class="legend-block">
+            <span class="legend-item"><i class="swatch pending"></i>未回答</span>
+            <span class="legend-item"><i class="swatch correct"></i>正解済み</span>
+            <span class="legend-item"><i class="swatch miss"></i>弱点</span>
+          </div>
+          <div class="panel-mini-bar" id="panelMiniBar">
+            <button class="panel-mini-bar-btn" id="panelLayoutToggle" title="左右切り替え">◧</button>
+            <button class="panel-mini-bar-btn" id="panelAudioToggle" title="音声ON/OFF"><i class="ti ti-volume" id="panelAudioIcon"></i></button>
+            <button class="panel-mini-bar-btn" id="panelRestart" title="リスタート">↺</button>
+            <button class="panel-mini-bar-btn" id="panelMenu" title="メニュー">≡</button>
+          </div>
+          <div class="game-panel-actions">
+            <button id="tileLayerToggle" class="ghost-button" type="button">地図</button>
+            <button id="backToMenuButton" class="ghost-button" type="button">モード選択</button>
+            <button id="resetButton" class="primary-button" type="button">リスタート</button>
+          </div>
+          <div class="layout-switcher">
+            <button class="layout-btn" data-layout="left" title="左パネル">◧</button>
+            <button class="layout-btn" data-layout="top" title="上バー">⬒</button>
+            <button class="layout-btn" data-layout="bottom" title="下バー">⬓</button>
+            <button class="layout-btn" data-layout="right" title="右パネル">◨</button>
+            <button class="layout-btn" data-layout="overlay" title="全画面">⛶</button>
+          </div>
+        </aside>
+
+        <!-- 上バー（topで使用） -->
+        <header id="gameTopbar" class="game-topbar">
+          <div class="game-topbar-left">
+            <p class="eyebrow" id="modeLabelTop"></p>
+          </div>
+          <div class="game-topbar-question">
+            <h2 id="questionMainTop"></h2>
+            <div id="referencePreviewTop" class="reference-preview-inline"></div>
+            <span id="questionSubTop" class="game-hud-sub"></span>
+          </div>
+          <div class="game-topbar-stats">
+            <div class="stat-pill"><span class="stat-pill-label">残り</span><strong id="remainingCountTop">0</strong></div>
+            <div class="stat-pill"><span class="stat-pill-label">正解</span><strong id="correctCountTop">0</strong></div>
+            <div class="stat-pill stat-pill-danger"><span class="stat-pill-label">ミス</span><strong id="mistakeCountTop">0</strong></div>
+            <div class="stat-pill"><span class="stat-pill-label">経過</span><strong id="elapsedTimeTop">00:00</strong></div>
+          </div>
+          <div class="game-topbar-actions">
+            <button id="tileLayerToggleTop" class="ghost-button" type="button">地図</button>
+            <button id="backToMenuButtonTop" class="ghost-button" type="button">モード選択</button>
+            <button id="resetButtonTop" class="primary-button" type="button">リスタート</button>
+          </div>
+          <div class="game-topbar-toggles">
+            <label class="game-toggle-row game-toggle-row-compact">
+              <input id="suddenDeathToggleBar" type="checkbox">
+              <span>サドンデス</span>
+            </label>
+            <label class="game-toggle-row game-toggle-row-compact">
+              <input id="mistakeSpeechToggleBar" type="checkbox">
+              <span>音声</span>
+            </label>
+          </div>
+          <div class="layout-switcher">
+            <button class="layout-btn" data-layout="left" title="左パネル">◧</button>
+            <button class="layout-btn" data-layout="top" title="上バー">⬒</button>
+            <button class="layout-btn" data-layout="bottom" title="下バー">⬓</button>
+            <button class="layout-btn" data-layout="right" title="右パネル">◨</button>
+            <button class="layout-btn" data-layout="overlay" title="全画面">⛶</button>
+          </div>
+        </header>
+
+        <!-- 地図 -->
+        <div id="playMapSlot" class="map-slot">
+          <div id="map" class="map-panel" aria-label="埼玉県クイズ地図"></div>
+          <div id="hudOverlay" class="hud-overlay">
+            <span class="hud-overlay-item">残り <strong id="hudOverlayRemain">0</strong></span>
+            <span class="hud-overlay-item">正解 <strong id="hudOverlayCorrect">0</strong></span>
+            <span class="hud-overlay-item hud-overlay-miss">ミス <strong id="hudOverlayMiss">0</strong></span>
+            <span class="hud-overlay-item"><strong id="hudOverlayTime">00:00</strong></span>
+          </div>
+          <div id="questionOverlay" class="question-overlay">
+            <div class="question-overlay-inner">
+              <h2 id="questionMainOverlay"></h2>
+              <div id="referencePreviewOverlay" class="reference-preview-overlay"></div>
+            </div>
+          </div>
+          <div id="actionOverlay" class="action-overlay">
+            <button class="action-overlay-btn" id="actionOverlayMenu" title="モード選択">≡</button>
+            <button class="action-overlay-btn" id="actionOverlayRestart" title="リスタート">↺</button>
+            <div class="action-overlay-divider"></div>
+            <button class="action-overlay-btn layout-btn" data-layout="left" title="左">◧</button>
+            <button class="action-overlay-btn layout-btn" data-layout="top" title="上">⬒</button>
+            <button class="action-overlay-btn layout-btn" data-layout="bottom" title="下">⬓</button>
+            <button class="action-overlay-btn layout-btn" data-layout="right" title="右">◨</button>
+          </div>
+          <div id="bottomBarOverlay" class="bottom-bar-overlay">
+            <div class="bottom-bar-left">
+              <span id="bottomBarMap" class="bottom-bar-status">地図</span>
+              <span id="bottomBarSudden" class="bottom-bar-status">サドンデス</span>
+              <span id="bottomBarAudio" class="bottom-bar-status">音声</span>
+            </div>
+            <div class="bottom-bar-center">
+              <button class="bottom-bar-btn" id="bottomBarMenu" title="モード選択">≡</button>
+              <button class="bottom-bar-btn" id="bottomBarRestart" title="リスタート">↺</button>
+              <button class="bottom-bar-btn layout-btn" data-layout="top" title="上">⬒</button>
+              <button class="bottom-bar-btn layout-btn" data-layout="left" title="左">◧</button>
+              <button class="bottom-bar-btn layout-btn" data-layout="right" title="右">◨</button>
+              <button class="bottom-bar-btn" id="bottomBarAudioToggle" title="音声ON/OFF"><i class="ti ti-volume" id="bottomBarAudioIcon"></i></button>
+            </div>
+            <div class="bottom-bar-right">
+              <span class="bottom-bar-legend unanswered">● 未回答</span>
+              <span class="bottom-bar-legend correct">● 正解済み</span>
+              <span class="bottom-bar-legend weak">● 弱点</span>
+            </div>
+          </div>
+          <div id="confirmDialog" class="confirm-dialog" style="display:none">
+            <div class="confirm-dialog-inner">
+              <p class="confirm-dialog-text">TOP画面に戻りますか？<br>
+                <span>現在の進行状況は失われます</span>
+              </p>
+              <div class="confirm-dialog-buttons">
+                <button id="confirmDialogOk">戻る</button>
+                <button id="confirmDialogCancel">続ける</button>
+              </div>
+            </div>
+          </div>
+          <div id="prepOverlay" class="prep-overlay is-hidden" aria-label="開始前設定">
+            <div class="prep-panel">
+              <p class="eyebrow">Ready</p>
+              <h3 id="prepModeTitle">市区町村モード</h3>
+              <p id="prepModeCopy" class="prep-copy">地図を確認してから開始できます。</p>
+              <div class="start-setting-group">
+                <span class="start-setting-label">ルール</span>
+                <div class="start-option-row" role="group" aria-label="ルール設定">
+                  <button id="ruleEasyButton" class="start-option-btn" type="button">イージー</button>
+                  <button id="ruleNormalButton" class="start-option-btn is-active" type="button">ノーマル</button>
+                  <button id="ruleSuddenDeathButton" class="start-option-btn" type="button">サドンデス</button>
+                </div>
+              </div>
+              <div class="start-setting-group">
+                <span class="start-setting-label">音声</span>
+                <div class="start-option-row" role="group" aria-label="音声設定">
+                  <button id="audioOnButton" class="start-option-btn is-active" type="button">ON</button>
+                  <button id="audioOffButton" class="start-option-btn" type="button">OFF</button>
+                </div>
+              </div>
+              <div class="start-setting-group">
+                <span class="start-setting-label">地図表示</span>
+                <div class="start-option-row" role="group" aria-label="地図表示設定">
+                  <button id="tileLayerOnButton" class="start-option-btn" type="button">あり</button>
+                  <button id="tileLayerOffButton" class="start-option-btn is-active" type="button">なし</button>
+                </div>
+              </div>
+              <div class="start-setting-group">
+                <span class="start-setting-label">バー位置</span>
+                <div class="start-option-row start-option-row-layout" role="group" aria-label="バー位置設定">
+                  <button id="layoutLeftButton" class="start-option-btn is-active" type="button" data-layout="left">◧</button>
+                  <button id="layoutTopButton" class="start-option-btn" type="button" data-layout="top">⬒</button>
+                  <button id="layoutBottomButton" class="start-option-btn" type="button" data-layout="bottom">⬓</button>
+                  <button id="layoutRightButton" class="start-option-btn" type="button" data-layout="right">◨</button>
+                </div>
+              </div>
+              <p id="startSelectionNote" class="start-selection-note">市区町村モードで開始</p>
+              <button id="startQuizButton" class="primary-button start-quiz-button" type="button">開始</button>
+            </div>
+          </div>
+          <div id="countdownOverlay" class="countdown-overlay is-hidden" aria-live="polite">
+            <div id="countdownText" class="countdown-text">3</div>
+          </div>
+          <div id="endOverlay" class="end-overlay is-hidden" aria-live="polite">
+            <div id="endCard" class="end-card">
+              <p id="endModeLabel" class="eyebrow">Result</p>
+              <h3 id="endTitle">Clear</h3>
+              <p id="endSummary" class="end-copy">結果を集計しています。</p>
+              <div class="end-grid">
+                <div class="end-stat-card">
+                  <span id="endPrimaryLabel">問題数</span>
+                  <strong id="endPrimaryValue">0</strong>
+                </div>
+                <div class="end-stat-card">
+                  <span>一発正解数</span>
+                  <strong id="endFirstTryValue">0</strong>
+                </div>
+                <div class="end-stat-card">
+                  <span>ミス</span>
+                  <strong id="endMistakesValue">0</strong>
+                </div>
+                <div class="end-stat-card">
+                  <span>平均回答時間</span>
+                  <strong id="endAverageValue">0.0秒</strong>
+                </div>
+                <div class="end-stat-card end-stat-card-wide">
+                  <span id="endTimeLabel">クリアタイム</span>
+                  <strong id="endTimeValue">00:00</strong>
+                </div>
+              </div>
+              <div class="end-actions">
+                <button id="endRestartButton" class="primary-button end-primary-action" type="button">リスタート</button>
+                <div class="end-secondary-actions">
+                  <button id="endAnalysisButton" class="ghost-button" type="button">分析</button>
+                  <button id="endTopButton" class="ghost-button" type="button">TOP画面</button>
+                  <button id="endShareButton" class="ghost-button" type="button">Xで投稿</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 上バー時の追加オーバーレイ（.map-slot内でposition:absolute） -->
+          <div class="top-overlay-bottom">
+            <label class="game-toggle-row">
+              <input id="suddenDeathToggleTop" type="checkbox">
+              <span>サドンデス</span>
+            </label>
+            <label class="game-toggle-row">
+              <input id="mistakeSpeechToggleTop" type="checkbox">
+              <span>音声</span>
+            </label>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- app.js参照用の非表示要素 -->
+      <h2 id="questionText" class="is-hidden" aria-hidden="true"></h2>
+
+      <aside id="labelEditorPanel" class="label-editor-panel is-hidden" aria-label="ラベル調整">
+        <div>
+          <p class="eyebrow">Label editor</p>
+          <h3>ラベル調整</h3>
+          <p id="labelDraftStatus" class="editor-status">文字か丸点をドラッグして移動できます</p>
+        </div>
+        <div class="editor-tabs" role="tablist" aria-label="ラベル種別">
+          <button id="municipalityLabelEditButton" class="ranking-tab is-active" type="button" aria-selected="true">市区町村</button>
+          <button id="areaCodeLabelEditButton" class="ranking-tab" type="button" aria-selected="false">市外局番</button>
+        </div>
+        <label class="toggle-row editor-toggle">
+          <input id="labelVisibleToggle" type="checkbox" checked>
+          <span>ラベル表示</span>
+        </label>
+        <label class="editor-select-row">
+          <span>対象ラベル</span>
+          <select id="labelTargetSelect"></select>
+        </label>
+        <div class="editor-row">
+          <label>角度 <input id="labelAngleInput" type="range" min="-45" max="45" step="1" value="0"></label>
+          <label>サイズ <input id="labelSizeInput" type="range" min="7" max="18" step="0.5" value="10"></label>
+        </div>
+        <p class="editor-hint">矢印キーで微調整、Shift+矢印で大きく移動。</p>
+        <textarea id="labelOverrideOutput" readonly spellcheck="false"></textarea>
+        <div class="editor-actions">
+          <button id="copyLabelOverridesButton" class="primary-button" type="button">補正JSONをコピー</button>
+          <button id="discardLabelDraftButton" class="ghost-button" type="button">下書きを破棄</button>
+        </div>
+      </aside>
+
+      <section id="resultScreen" class="result-screen is-hidden">
+
+        <div class="result-left">
+          <div class="result-copy">
+            <p class="eyebrow">Analysis</p>
+            <p class="eyebrow" id="resultModeLabel">Result</p>
+            <h2 id="resultTitle">分析</h2>
+            <p id="resultSummary">結果を集計しています。</p>
+          </div>
+
+          <section class="result-section">
+            <div class="result-section-heading">
+              <p class="eyebrow">This Run</p>
+              <h3>今回の結果</h3>
+            </div>
+            <div class="result-grid result-grid-extended">
+              <div class="result-card"><span>正解</span><strong id="resultCorrect">0</strong></div>
+              <div class="result-card"><span>ミス</span><strong id="resultMistakes">0</strong></div>
+              <div class="result-card"><span>一発正解</span><strong id="resultFirstTry">0</strong></div>
+              <div class="result-card"><span>平均回答</span><strong id="resultAverage">0.0秒</strong></div>
+              <div class="result-card"><span id="resultTotalLabel">出題数</span><strong id="resultTotal">0</strong></div>
+              <div class="result-card"><span id="resultTimeLabel">クリアタイム</span><strong id="resultTime">00:00</strong></div>
+              <div class="result-card result-card-accent"><span>前回比</span><strong id="resultPreviousDelta">初回</strong></div>
+              <div class="result-card result-card-accent"><span>自己ベスト</span><strong id="resultBestStatus">記録なし</strong></div>
+            </div>
+          </section>
+
+          <div class="result-lower-grid">
+            <section class="ranking-panel result-lower-panel" aria-label="累積苦手ランキング">
+              <div class="ranking-heading">
+                <div>
+                  <p class="eyebrow">Long Term</p>
+                  <h3>累積分析</h3>
+                  <p class="ranking-copy">苦手を確認して、そのまま再挑戦へつなげます。</p>
+                </div>
+              </div>
+              <div class="ranking-heading ranking-heading-sub">
+                <div>
+                  <p class="eyebrow">Ranking</p>
+                  <h3 id="rankingTitle">苦手ランキング</h3>
+                </div>
+                <div class="ranking-tabs" role="tablist" aria-label="ランキング切替">
+                  <button class="ranking-tab is-active" type="button" data-ranking-type="weak" role="tab" aria-selected="true">ミス</button>
+                  <button class="ranking-tab" type="button" data-ranking-type="accuracy" role="tab" aria-selected="false">正答率</button>
+                  <button class="ranking-tab" type="button" data-ranking-type="time" role="tab" aria-selected="false">平均時間</button>
+                </div>
+              </div>
+              <ol id="weakRankingList" class="ranking-list ranking-list-compact"></ol>
+            </section>
+
+            <section class="result-side-panel result-next-panel result-lower-panel">
+              <div class="result-section-heading result-section-heading-inline">
+                <p class="eyebrow">Next Try</p>
+                <h3>次にやる</h3>
+              </div>
+              <div class="ranking-actions">
+                <button id="practiceWeakButton" class="ghost-button" type="button" disabled>苦手上位10件を再出題</button>
+                <button id="practiceLastMistakeButton" class="ghost-button" type="button" disabled>前回ミスだけ再出題</button>
+                <button id="practiceUnansweredButton" class="ghost-button" type="button" disabled>未正解だけ再出題</button>
+                <button id="practiceRecentMistakeButton" class="ghost-button" type="button" disabled>最近ミスだけ再出題</button>
+                <button id="practiceLowAccuracyButton" class="ghost-button" type="button" disabled>低正答率を優先出題</button>
+              </div>
+            </section>
+          </div>
+
+          <div class="result-actions">
+            <button id="retryButton" class="ghost-button" type="button">もう一度プレイ</button>
+            <button id="resultBackToMenuButton" class="ghost-button" type="button">トップへ戻る</button>
+          </div>
+
+          <!-- グローバルランキング登録 -->
+          <div id="globalRankingSubmit" class="global-ranking-panel" style="display:none">
+            <div class="global-ranking-panel-title">🏆 ランキングに登録する</div>
+            <div class="global-ranking-row">
+              <label for="rankingNameInput">名前</label>
+              <input id="rankingNameInput" type="text" maxlength="20" placeholder="匿名OK">
+            </div>
+            <div class="global-ranking-info">
+              クリアタイム: <strong id="rankingTimeDisplay">--</strong>
+              ミス: <strong id="rankingMissesDisplay">--</strong>回
+              地図: <strong id="rankingMapVisibleDisplay">--</strong>
+            </div>
+            <div class="global-ranking-panel-actions">
+              <button id="rankingSubmitBtn" class="ghost-button global-ranking-submit-btn" type="button">登録する</button>
+              <div id="rankingSubmitMsg" class="global-ranking-submitted" style="display:none">✅ 登録しました！</div>
+            </div>
+          </div>
+          <button id="rankingViewBtn" class="ghost-button global-ranking-view-btn" type="button" style="display:none">🏆 ランキングを見る</button>
+        </div>
+
+        <!-- 右カラム：完成地図 -->
+        <div class="result-right">
+          <p class="eyebrow">Reference map</p>
+          <div id="resultMapSlot" class="result-map-slot"></div>
+          <section class="result-section result-section-compact result-section-side">
+            <div class="result-section-heading">
+              <p class="eyebrow">Battle Record</p>
+              <h3>戦績</h3>
+              <p id="resultHistoryCopy" class="ranking-copy">前回比と自己ベストを軸に、直近の流れを短く確認できます。</p>
+            </div>
+            <div class="history-panel history-panel-compact">
+              <div class="history-panel-head">
+                <span id="resultHistoryMetricLabel" class="history-panel-label">直近5回のクリアタイム</span>
+                <span id="resultHistoryBestLabel" class="history-panel-best">ベスト --:--</span>
+              </div>
+              <div id="resultHistoryList" class="history-summary-list history-summary-list-side"></div>
+            </div>
+          </section>
+        </div>
+
+      </section>
+    </main>
+
+    <!-- グローバルランキング モーダル -->
+    <div id="globalRankingModal" class="global-ranking-modal" style="display:none" role="dialog" aria-modal="true" aria-label="グローバルランキング">
+      <div class="global-ranking-modal-inner">
+        <div class="global-ranking-modal-title">🏆 グローバルランキング</div>
+        <!-- クイズモードタブ -->
+        <div class="global-ranking-modal-tab-group">
+          <span class="global-ranking-tab-label">モード</span>
+          <div class="global-ranking-modal-tabs" role="tablist" aria-label="クイズモード">
+            <button class="global-ranking-quiz-tab is-active" data-quiz-mode="municipality" role="tab" type="button" id="rankingTabMuni">市区町村</button>
+            <button class="global-ranking-quiz-tab" data-quiz-mode="ma" role="tab" type="button" id="rankingTabMa">市外局番</button>
+          </div>
+        </div>
+        <!-- 地図タブ -->
+        <div class="global-ranking-modal-tab-group">
+          <span class="global-ranking-tab-label">地図</span>
+          <div class="global-ranking-modal-tabs" role="tablist" aria-label="地図表示">
+            <button class="global-ranking-tab is-active" data-map="true" role="tab" type="button">🗺️ あり</button>
+            <button class="global-ranking-tab" data-map="false" role="tab" type="button">🚫 なし</button>
+          </div>
+        </div>
+        <div id="globalRankingList" class="global-ranking-list"></div>
+        <button id="globalRankingModalClose" class="ghost-button" type="button">閉じる</button>
+      </div>
+    </div>
+
+    <script src="vendor/leaflet/leaflet.js"></script>
+    <script src="vendor/turf/turf.min.js"></script>
+    <script src="data/catalog.js"></script>
+    <script src="js/ma-union.js"></script>
+    <script src="js/quiz-modes.js"></script>
+    <script src="js/quiz-engine.js"></script>
+    <script src="js/result-analytics.js"></script>
+    <script src="js/progress-store.js"></script>
+    <script src="js/progress-bar-store.js"></script>
+    <script src="js/map-renderer.js"></script>
+    <!-- Firebase (CDN ESM) -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+      import { getFirestore, collection, addDoc, query, orderBy, where, limit, getDocs, serverTimestamp }
+        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyCUL_gHOcB5OMIG2yMcHWFTwhy0InUMI-8",
+        authDomain: "geoquiz-7bc09.firebaseapp.com",
+        projectId: "geoquiz-7bc09",
+        storageBucket: "geoquiz-7bc09.firebasestorage.app",
+        messagingSenderId: "379088940104",
+        appId: "1:379088940104:web:fabe7d0053a24d78dcfc7d"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      function getClientId() {
+        let id = localStorage.getItem("geoquiz:clientId");
+        if (!id) {
+          id = Math.random().toString(36).slice(2) + Date.now().toString(36);
+          localStorage.setItem("geoquiz:clientId", id);
+        }
+        return id;
+      }
+
+      window.submitRankingScore = async function(datasetId, scoreData) {
+        try {
+          await addDoc(collection(db, "rankings", datasetId, "scores"), {
+            ...scoreData,
+            clientId: getClientId(),
+            createdAt: serverTimestamp()
+          });
+          return { success: true };
+        } catch (e) {
+          console.error("スコア送信エラー:", e);
+          return { success: false, error: e };
+        }
+      };
+
+      window.fetchRankingScores = async function(datasetId, mode, quizMode, mapVisible, limitCount = 10) {
+        try {
+          const q = query(
+            collection(db, "rankings", datasetId, "scores"),
+            where("mode", "==", mode),
+            where("quizMode", "==", quizMode),
+            where("mapVisible", "==", mapVisible),
+            orderBy("time", "asc"),
+            limit(limitCount)
+          );
+          const snapshot = await getDocs(q);
+          return snapshot.docs.map((doc, i) => ({
+            rank: i + 1,
+            id: doc.id,
+            ...doc.data()
+          }));
+        } catch (e) {
+          console.error("ランキング取得エラー:", e);
+          return [];
+        }
+      };
+
+      window.getClientId = getClientId;
+      console.log("Firebase 初期化完了");
+    </script>
+    <!-- データ動的読み込み -->
+    <script src="js/data-loader.js"></script>
+    <script>
+(function () {
+  var LAYOUT_KEY = 'geoquiz:layout';
+  var gameScreen = document.getElementById('gameScreen');
+
+  /* Leaflet へリサイズを通知するヘルパー */
+  function triggerResize() {
+    setTimeout(function () { window.dispatchEvent(new Event('resize')); }, 30);
+  }
+
+  function applyLayout(layout) {
+    gameScreen.dataset.layout = layout;
+    localStorage.setItem(LAYOUT_KEY, layout);
+    document.querySelectorAll('.layout-btn').forEach(function (btn) {
+      btn.classList.toggle('is-active', btn.dataset.layout === layout);
+    });
+    triggerResize();
+  }
+
+  function resolveInitialLayout() {
+    var saved = localStorage.getItem(LAYOUT_KEY);
+    if (saved) return saved;
+    return window.innerWidth <= 600 ? 'overlay' : 'left';
+  }
+  applyLayout(resolveInitialLayout());
+
+  document.querySelectorAll('.layout-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      applyLayout(btn.dataset.layout);
+    });
+  });
+
+  /* actionOverlay ボタンのイベント（originalボタンの.click()を啇起） */
+  ;(function () {
+    var pairs = [
+      ['actionOverlayMenu',    'backToMenuButton'],
+      ['actionOverlayRestart', 'resetButton'],
+    ];
+    pairs.forEach(function (pair) {
+      var btn = document.getElementById(pair[0]);
+      var orig = document.getElementById(pair[1]);
+      if (btn && orig) btn.addEventListener("click", function () { orig.click(); });
+    });
+  })();
+
+  /* bottomBarOverlay ボタンのイベント */
+  ;(function () {
+    /* リスタートはそのまま橋渡し */
+    var restartBtn = document.getElementById('bottomBarRestart');
+    var resetOrig  = document.getElementById('resetButton');
+    if (restartBtn && resetOrig) {
+      restartBtn.addEventListener('click', function () { resetOrig.click(); });
+    }
+    /* メニューボタンはカスタムダイアログ表示 */
+    var menuBtn  = document.getElementById('bottomBarMenu');
+    var menuOrig = document.getElementById('backToMenuButton');
+    var dialog   = document.getElementById('confirmDialog');
+    var okBtn    = document.getElementById('confirmDialogOk');
+    var cancelBtn= document.getElementById('confirmDialogCancel');
+    if (menuBtn && dialog) {
+      menuBtn.addEventListener('click', function () {
+        dialog.style.display = 'flex';
+      });
+    }
+    if (okBtn && dialog && menuOrig) {
+      okBtn.addEventListener('click', function () {
+        dialog.style.display = 'none';
+        menuOrig.click();
+      });
+    }
+    if (cancelBtn && dialog) {
+      cancelBtn.addEventListener('click', function () {
+        dialog.style.display = 'none';
+      });
+    }
+  })();
+
+  /* tileLayerToggle・backToMenuButton・resetButton の上バー→パネル橋渡し */
+  ['tileLayerToggle', 'backToMenuButton', 'resetButton'].forEach(function (id) {
+    var top = document.getElementById(id + 'Top');
+    var orig = document.getElementById(id);
+    if (top && orig) {
+      top.addEventListener('click', function () { orig.click(); });
+    }
+  });
+
+  /* サドンデス・ミス音声トグルの双方向同期 */
+  [
+    ['suddenDeathToggle', 'suddenDeathToggleTop', 'suddenDeathToggleBar'],
+    ['mistakeSpeechToggle', 'mistakeSpeechToggleTop', 'mistakeSpeechToggleBar']
+  ].forEach(function (ids) {
+    var orig = document.getElementById(ids[0]);
+    var mirrors = ids.slice(1)
+      .map(function (id) { return document.getElementById(id); })
+      .filter(Boolean);
+    if (!orig || !mirrors.length) return;
+
+    mirrors.forEach(function (mirror) {
+      mirror.addEventListener('change', function () {
+        orig.checked = mirror.checked;
+        orig.dispatchEvent(new Event('change'));
+      });
+    });
+
+    orig.addEventListener('change', function () {
+      mirrors.forEach(function (mirror) {
+        mirror.checked = orig.checked;
+      });
+    });
+  });
+
+  /* 200ms インターバルでスタット・モードラベルを上バーへ同期 */
+  var statPairs = [
+    ['remainingCount', 'remainingCountTop'],
+    ['correctCount',   'correctCountTop'],
+    ['mistakeCount',   'mistakeCountTop'],
+    ['elapsedTime',    'elapsedTimeTop'],
+    ['modeLabel',      'modeLabelTop'],
+    ['remainingCount', 'hudOverlayRemain'],
+    ['correctCount',   'hudOverlayCorrect'],
+    ['mistakeCount',   'hudOverlayMiss'],
+    ['elapsedTime',    'hudOverlayTime']
+  ];
+
+  /* 下部バーの設定状態を同期 */
+  function syncBottomBar() {
+    var mapEl    = document.getElementById('bottomBarMap');
+    var suddenEl = document.getElementById('bottomBarSudden');
+    var audioEl  = document.getElementById('bottomBarAudio');
+
+    if (mapEl) {
+      var tileOnBtn = document.getElementById('tileLayerOnButton');
+      mapEl.classList.toggle('is-active', tileOnBtn ? tileOnBtn.classList.contains('is-active') : false);
+    }
+    if (suddenEl) {
+      var suddenToggle = document.getElementById('suddenDeathToggle');
+      suddenEl.classList.toggle('is-active', suddenToggle ? suddenToggle.checked : false);
+    }
+
+    /* 音声状態 */
+    var audioOnBtn     = document.getElementById('audioOnButton');
+    var audioOn        = audioOnBtn ? audioOnBtn.classList.contains('is-active') : false;
+    var audioIcon      = document.getElementById('bottomBarAudioIcon');
+    var audioToggleBtn = document.getElementById('bottomBarAudioToggle');
+
+    if (audioEl) audioEl.classList.toggle('is-active', audioOn);
+    if (audioIcon) audioIcon.className = audioOn ? 'ti ti-volume' : 'ti ti-volume-off';
+    if (audioToggleBtn) audioToggleBtn.style.opacity = audioOn ? '1' : '0.4';
+  }
+
+  /* 音声トグルボタンのイベント */
+  ;(function () {
+    var btn = document.getElementById('bottomBarAudioToggle');
+    if (btn) {
+      btn.addEventListener('click', function () {
+        document.getElementById('mistakeSpeechToggle').click();
+        syncBottomBar();
+      });
+    }
+  })();
+
+  /* パネルミニバーのボタン制御 */
+  ;(function () {
+    var layoutToggle = document.getElementById('panelLayoutToggle');
+    var audioToggle  = document.getElementById('panelAudioToggle');
+    var audioIcon    = document.getElementById('panelAudioIcon');
+    var restart      = document.getElementById('panelRestart');
+    var menu         = document.getElementById('panelMenu');
+    var resetOrig    = document.getElementById('resetButton');
+    var menuOrig     = document.getElementById('backToMenuButton');
+    var dialog       = document.getElementById('confirmDialog');
+    var speechToggle = document.getElementById('mistakeSpeechToggle');
+
+    /* 左右切り替え */
+    if (layoutToggle) {
+      layoutToggle.addEventListener('click', function () {
+        var current = gameScreen.dataset.layout;
+        var next = current === 'left' ? 'right' : 'left';
+        var btn = document.querySelector('.layout-btn[data-layout="' + next + '"]');
+        if (btn) btn.click();
+      });
+    }
+
+    /* 音声ON/OFF */
+    if (audioToggle && speechToggle) {
+      audioToggle.addEventListener('click', function () {
+        speechToggle.click();
+      });
+    }
+
+    /* リスタート */
+    if (restart && resetOrig) {
+      restart.addEventListener('click', function () { resetOrig.click(); });
+    }
+
+    /* メニュー（確認ダイアログ） */
+    if (menu && dialog) {
+      menu.addEventListener('click', function () {
+        dialog.style.display = 'flex';
+      });
+    }
+
+    /* レイアウトアイコン・音声アイコンの状態同期 */
+    function syncMiniBar() {
+      if (!gameScreen) return;
+      var layout = gameScreen.dataset.layout;
+      if (layoutToggle) {
+        layoutToggle.textContent = layout === 'left' ? '◧' : '◨';
+      }
+      if (audioIcon && speechToggle) {
+        var on = speechToggle.checked;
+        audioIcon.className = on ? 'ti ti-volume' : 'ti ti-volume-off';
+        audioToggle.classList.toggle('is-active', on);
+      }
+    }
+
+    document.querySelectorAll('.layout-btn').forEach(function (btn) {
+      btn.addEventListener('click', syncMiniBar);
+    });
+
+    setInterval(syncMiniBar, 300);
+  })();
+
+  /* サドンデスバッジの表示制御 */
+  ;(function () {
+    var badge   = document.getElementById('suddenDeathBadge');
+    var preview = document.getElementById('referencePreview');
+    var toggle  = document.getElementById('suddenDeathToggle');
+    if (!badge || !toggle) return;
+
+    function syncBadge() {
+      var isSudden = toggle.checked;
+      var layout   = gameScreen ? gameScreen.dataset.layout : '';
+      var isSide   = (layout === 'left' || layout === 'right');
+      var show     = isSudden && isSide;
+      badge.classList.toggle('is-hidden', !show);
+      if (preview) preview.classList.toggle('is-hidden', show);
+      /* gameScreenにサドンデス状態クラスを付与 */
+      if (gameScreen) gameScreen.classList.toggle('is-sudden-death', isSudden);
+    }
+
+    toggle.addEventListener('change', syncBadge);
+    document.querySelectorAll('.layout-btn').forEach(function (btn) {
+      btn.addEventListener('click', syncBadge);
+    });
+    setInterval(syncBadge, 300);
+  })();
+
+  setInterval(function () {
+    statPairs.forEach(function (pair) {
+      var src = document.getElementById(pair[0]);
+      var dst = document.getElementById(pair[1]);
+      if (src && dst) dst.textContent = src.textContent;
+    });
+    syncBottomBar();
+  }, 200);
+
+  /* questionText の変更を各表示要素へ反映 */
+  var questionText      = document.getElementById('questionText');
+  var questionMain      = document.getElementById('questionMain');
+  var questionMainTop   = document.getElementById('questionMainTop');
+  var questionSub       = document.getElementById('questionSub');
+  var questionSubTop    = document.getElementById('questionSubTop');
+  var referencePreview        = document.getElementById('referencePreview');
+  var referencePreviewTop     = document.getElementById('referencePreviewTop');
+  var referencePreviewOverlay = document.getElementById('referencePreviewOverlay');
+  var questionMainOverlay = document.getElementById('questionMainOverlay');
+  var questionSubOverlay  = document.getElementById('questionSubOverlay');
+
+  function syncQuestion() {
+    var text = (questionText ? questionText.textContent : '').trim();
+    if (!text) return;
+    var isMa = /のエリアをクリック/.test(text);
+    var main = isMa
+      ? text.replace(/\s*のエリアをクリック.*$/, '')
+      : text.replace(/\s*をクリック.*$/, '');
+    var sub = isMa ? 'エリアをクリック' : 'をクリック';
+    if (questionMain)    questionMain.textContent    = main;
+    if (questionMainTop) questionMainTop.textContent = main;
+    if (questionSub)     questionSub.textContent     = sub;
+    if (questionSubTop)  questionSubTop.textContent  = sub;
+    if (questionMainOverlay) questionMainOverlay.textContent = main;
+    if (questionSubOverlay)  questionSubOverlay.textContent  = sub;
+    var suddenToggle = document.getElementById('suddenDeathToggle');
+    var hideMinimap = isMa || (suddenToggle && suddenToggle.checked);
+    if (referencePreview)        referencePreview.style.display        = hideMinimap ? 'none' : '';
+    if (referencePreviewTop)     referencePreviewTop.style.display     = hideMinimap ? 'none' : '';
+    if (referencePreviewOverlay) referencePreviewOverlay.style.display = hideMinimap ? 'none' : '';
+    if (gameScreen) {
+      gameScreen.classList.toggle('is-ma-mode', isMa);
+      gameScreen.classList.toggle('is-ma-long-code', isMa && main.length >= 5);
+      gameScreen.classList.toggle('is-ma-extra-long-code', isMa && main.length >= 6);
+    }
+  }
+
+  if (questionText) {
+    new MutationObserver(syncQuestion).observe(
+      questionText, { childList: true, subtree: true, characterData: true }
+    );
+    syncQuestion();
+  }
+
+  /* ゲーム画面表示時に Leaflet へリサイズを通知 */
+  var gsObs = new MutationObserver(function () {
+    if (!gameScreen.classList.contains('is-hidden')) {
+      setTimeout(function () { window.dispatchEvent(new Event('resize')); }, 50);
+    }
+  });
+  gsObs.observe(gameScreen, { attributes: true, attributeFilter: ['class'] });
+})();
+
+/* ── データセットピッカー ── */
+(function () {
+  var REGIONS = [
+    {
+      id: 'hokkaido', label: '北海道',
+      allId: 'hokkaido_all',
+      prefIds: ['hokkaido_doo', 'hokkaido_donan', 'hokkaido_dohoku', 'hokkaido_doto']
+    },
+    {
+      id: 'kanto', label: '関東',
+      allId: 'kanto_all',
+      prefIds: ['tokyo', 'tokyo_all', 'tokyo_islands', 'saitama', 'chiba', 'kanagawa', 'ibaraki', 'gunma', 'tochigi']
+    },
+    {
+      id: 'tohoku', label: '東北',
+      allId: 'tohoku_all',
+      prefIds: ['aomori', 'iwate', 'miyagi', 'akita', 'yamagata', 'fukushima']
+    },
+    {
+      id: 'chubu', label: '中部',
+      allId: 'chubu_all',
+      prefIds: ['niigata', 'toyama', 'ishikawa', 'fukui', 'yamanashi', 'nagano', 'gifu', 'shizuoka', 'aichi']
+    },
+    {
+      id: 'kinki',  label: '近畿',
+      allId: 'kinki_all',
+      prefIds: ['mie', 'shiga', 'kyoto', 'osaka', 'hyogo', 'nara', 'wakayama']
+    },
+    {
+      id: 'chugoku', label: '中国',
+      allId: 'chugoku_all',
+      prefIds: ['tottori', 'shimane', 'okayama', 'hiroshima', 'yamaguchi']
+    },
+    {
+      id: 'shikoku', label: '四国',
+      allId: 'shikoku_all',
+      prefIds: ['tokushima', 'kagawa', 'ehime', 'kochi']
+    },
+    {
+      id: 'kyushu', label: '九州',
+      allId: 'kyushu_all',
+      prefIds: ['fukuoka', 'saga', 'nagasaki', 'kumamoto', 'oita', 'miyazaki', 'kagoshima']
+    },
+    {
+      id: 'okinawa', label: '沖縄',
+      prefIds: ['okinawa']
+    },
+    {
+      id: 'americas', label: '北米',
+      prefIds: ['usa']
+    },
+    {
+      id: 'special', label: '特集',
+      prefIds: ['tokorozawa', 'fujisawa'],
+      sectionLabel: '市区町村（町字）'
+    }
+  ];
+
+  var datasets = window.GEOQUIZ_DATASETS || [];
+  var dsMap = {};
+  datasets.forEach(function (d) { dsMap[d.id] = d; });
+
+  /* ── ミニマップ SVG 生成 ── */
+  var _pathCache = {};  // パス文字列(d)だけキャッシュ。色は呼び出し側で指定。
+
+  function buildMiniSvg(features) {
+    var VW = 100, VH = 60;
+    if (!features || !features.length) return '';
+
+    /* ① 各 feature のバウンディングボックスと重心を求める */
+    function featureBbox(geom) {
+      var x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+      function scan(ring) {
+        for (var i = 0; i < ring.length; i++) {
+          var x = ring[i][0], y = ring[i][1];
+          if (x < x0) x0 = x; if (x > x1) x1 = x;
+          if (y < y0) y0 = y; if (y > y1) y1 = y;
+        }
+      }
+      if (geom.type === 'Polygon') geom.coordinates.forEach(scan);
+      else if (geom.type === 'MultiPolygon') geom.coordinates.forEach(function(p) { p.forEach(scan); });
+      return isFinite(x0) ? { x0: x0, x1: x1, y0: y0, y1: y1,
+                              cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 } : null;
+    }
+
+    var fb = [];
+    for (var fi = 0; fi < features.length; fi++) {
+      var b = features[fi].geometry ? featureBbox(features[fi].geometry) : null;
+      if (b) fb.push(b);
+    }
+    if (!fb.length) return '';
+
+    /* ② IQR フィルタでビューポート範囲を決定（離島外れ値対策）
+       feature の重心の IQR を K=2.5 倍まで許容し、それ以遠は
+       ビューポート計算から除外する。除外されても描画はするので
+       SVG の viewBox で自動クリップされる。                    */
+    function quantile(arr, q) {
+      var s = arr.slice().sort(function(a, b) { return a - b; });
+      var idx = q * (s.length - 1);
+      var lo = Math.floor(idx);
+      return s[lo] + (s[Math.ceil(idx)] - s[lo]) * (idx - lo);
+    }
+
+    var cxs = fb.map(function(b) { return b.cx; });
+    var cys = fb.map(function(b) { return b.cy; });
+    var K = 2.5, MIN_IQR = 0.01;
+
+    var q1x = quantile(cxs, 0.25), q3x = quantile(cxs, 0.75);
+    var q1y = quantile(cys, 0.25), q3y = quantile(cys, 0.75);
+    var loX = q1x - K * Math.max(q3x - q1x, MIN_IQR);
+    var hiX = q3x + K * Math.max(q3x - q1x, MIN_IQR);
+    var loY = q1y - K * Math.max(q3y - q1y, MIN_IQR);
+    var hiY = q3y + K * Math.max(q3y - q1y, MIN_IQR);
+
+    var vpX0 = Infinity, vpX1 = -Infinity, vpY0 = Infinity, vpY1 = -Infinity;
+    for (var bi = 0; bi < fb.length; bi++) {
+      var b = fb[bi];
+      if (b.cx >= loX && b.cx <= hiX && b.cy >= loY && b.cy <= hiY) {
+        if (b.x0 < vpX0) vpX0 = b.x0; if (b.x1 > vpX1) vpX1 = b.x1;
+        if (b.y0 < vpY0) vpY0 = b.y0; if (b.y1 > vpY1) vpY1 = b.y1;
+      }
+    }
+    /* フォールバック：全 feature が外れ値になった場合 */
+    if (!isFinite(vpX0)) {
+      for (var bi = 0; bi < fb.length; bi++) {
+        if (fb[bi].x0 < vpX0) vpX0 = fb[bi].x0; if (fb[bi].x1 > vpX1) vpX1 = fb[bi].x1;
+        if (fb[bi].y0 < vpY0) vpY0 = fb[bi].y0; if (fb[bi].y1 > vpY1) vpY1 = fb[bi].y1;
+      }
+    }
+
+    /* ③ ビューポートに合わせてスケーリング */
+    var pad = 3;
+    var dX = vpX1 - vpX0 || 1, dY = vpY1 - vpY0 || 1;
+    var scale = Math.min((VW - pad * 2) / dX, (VH - pad * 2) / dY);
+    var offX = (VW - dX * scale) / 2;
+    var offY = (VH - dY * scale) / 2;
+
+    function pt(lng, lat) {
+      return (+(((lng - vpX0) * scale + offX).toFixed(1))) + ',' +
+             (+(( VH - ((lat - vpY0) * scale + offY)).toFixed(1)));
+    }
+
+    function ringPath(coords) {
+      var d = 'M' + pt(coords[0][0], coords[0][1]);
+      for (var ci = 1; ci < coords.length; ci++) d += 'L' + pt(coords[ci][0], coords[ci][1]);
+      return d + 'Z';
+    }
+
+    /* ④ 全 feature を描画（ビューポート外はクリップ） */
+    var d = '';
+    for (var fi = 0; fi < features.length; fi++) {
+      var geom = features[fi].geometry;
+      if (!geom) continue;
+      var polys = geom.type === 'Polygon' ? [geom.coordinates] :
+                  geom.type === 'MultiPolygon' ? geom.coordinates : [];
+      for (var pi = 0; pi < polys.length; pi++) {
+        for (var ri = 0; ri < polys[pi].length; ri++) {
+          d += ringPath(polys[pi][ri]);
+        }
+      }
+    }
+
+    return d;  // パス文字列のみ返す（色は getMiniSvg で適用）
+  }
+
+  /** パス文字列をキャッシュして取得 */
+  function getMiniPath(ds) {
+    if (_pathCache[ds.id] !== undefined) return _pathCache[ds.id];
+    var data = ds.dataGlobal ? window[ds.dataGlobal] : null;
+    var d = data && data.features ? buildMiniSvg(data.features) : '';
+    _pathCache[ds.id] = d;
+    return d;
+  }
+
+  /**
+   * ランク色を反映した SVG HTML を返す。
+   * color: "#cd8500" など。省略時は緑（既存デザイン）。
+   */
+  function getMiniSvg(ds, color) {
+    var VW = 100, VH = 60;
+    var d = getMiniPath(ds);
+    if (!d) return '';
+    var c = color || '#1d9e75';
+    var fillOpacity = color ? '0.55' : '0.45';
+    var strokeOpacity = color ? '1' : '0.85';
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + VW + ' ' + VH + '" width="100%" height="100%">' +
+      '<path d="' + d + '" fill="' + c + '" fill-opacity="' + fillOpacity + '" stroke="' + c + '" stroke-opacity="' + strokeOpacity + '" stroke-width="0.5" fill-rule="evenodd"/>' +
+      '</svg>';
+  }
+
+  var params = new URLSearchParams(location.search);
+  var currentDsId = params.get('dataset') || '';
+
+  function findRegionForDataset(dsId) {
+    for (var i = 0; i < REGIONS.length; i++) {
+      var r = REGIONS[i];
+      if (r.coming) continue;
+      if (r.allId === dsId) return r;
+      if (r.prefIds && r.prefIds.indexOf(dsId) !== -1) return r;
+    }
+    return null;
+  }
+
+  var activeRegion = findRegionForDataset(currentDsId);
+  if (!activeRegion) {
+    activeRegion = REGIONS.filter(function (r) { return !r.coming; })[0];
+  }
+
+  var tabBar  = document.getElementById('regionTabBar');
+  var grid    = document.getElementById('datasetPickerGrid');
+  var badge   = document.getElementById('regionInfoBadge');
+
+  function updateBadge() {
+    var ds = dsMap[currentDsId];
+    if (ds) {
+      badge.textContent = ds.shortName || ds.name;
+    } else if (activeRegion) {
+      var cnt = (activeRegion.prefIds ? activeRegion.prefIds.length : 0) +
+                (activeRegion.allId ? 1 : 0);
+      badge.textContent = activeRegion.label + ' · ' + cnt + 'データセット';
+    } else {
+      badge.textContent = '—';
+    }
+  }
+
+  function renderTabs() {
+    tabBar.innerHTML = '';
+    REGIONS.forEach(function (region) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'region-tab' +
+        (region.coming ? ' is-coming-soon' : '') +
+        (!region.coming && region.id === activeRegion.id ? ' is-active' : '');
+      btn.textContent = region.label;
+      btn.setAttribute('role', 'tab');
+      btn.setAttribute('aria-selected', (!region.coming && region.id === activeRegion.id) ? 'true' : 'false');
+      if (region.coming) {
+        btn.disabled = true;
+        btn.title = '準備中';
+      } else {
+        btn.addEventListener('click', function () {
+          activeRegion = region;
+          renderTabs();
+          renderGrid();
+          updateBadge();
+          initCardRankingObserver();
+        });
+      }
+      tabBar.appendChild(btn);
+    });
+  }
+
+  function esc(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  /* window[ds.dataGlobal] から市区町村数・MA数を取得 */
+  function getDsStats(ds) {
+    var data = ds.dataGlobal ? window[ds.dataGlobal] : null;
+    return {
+      muniCount : data && data.features  ? data.features.length  : null,
+      maCount   : data && data.maFeatures ? data.maFeatures.length : null
+    };
+  }
+
+  /* 統計をテキストに整形 */
+  function statsText(stats, long) {
+    var parts = [];
+    if (stats.muniCount != null) parts.push('市区町村 ' + stats.muniCount + '問');
+    if (stats.maCount   != null) parts.push('MA ' + stats.maCount + (long ? 'エリア' : ''));
+    return parts.join(' · ');
+  }
+
+  /* ── カードランキング行ヘルパー ── */
+  function fmtCardTime(sec) {
+    if (sec == null || sec <= 0) return '--:--';
+    var s = Math.round(sec);
+    var m = Math.floor(s / 60); s = s % 60;
+    return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function getCardPersonalBest(dsId) {
+    var ps = window.ProgressStore;
+    if (!ps) return null;
+    var dp = ps.getDatasetProgress(dsId);
+    if (!dp || !dp.modes || !dp.modes.municipality) return null;
+    return dp.modes.municipality.bestClear || null;
+  }
+
+  function buildRankingInfoRow(dsId) {
+    var best = getCardPersonalBest(dsId);
+    var myTime = best ? fmtCardTime(Math.round((best.elapsedMs || 0) / 1000)) : '--:--';
+    return '<div class="ds-ranking-row" data-ds-id="' + esc(dsId) + '">' +
+      '<span class="ds-ranking-first">' +
+        '<span class="ds-ranking-medal">🥇</span>' +
+        '<span class="ds-ranking-first-time">--:--</span>' +
+      '</span>' +
+      '<span class="ds-ranking-mine">' +
+        '<span class="ds-ranking-mine-icon">👤</span>' +
+        '<span class="ds-ranking-mine-time' + (best ? '' : ' ds-ranking-none') + '">' + esc(myTime) + '</span>' +
+        (best ? '<span class="ds-ranking-mine-miss"> ミス' + (best.mistakes || 0) + '</span>' : '') +
+      '</span>' +
+    '</div>';
+  }
+
+  /**
+   * Bronze / Gold / Platinum の3行を組み立てるヘルパー。
+   * qtData: { easy, normal, sudden_death }
+   * denom : Platinum バーの分母（市区町村数 or MA数）
+   */
+  function buildPbRows(qtData, denom) {
+    var pbs   = window.ProgressBarStore;
+    var easy  = (qtData && qtData.easy)         || {};
+    var norm  = (qtData && qtData.normal)       || {};
+    var sd    = (qtData && qtData.sudden_death) || {};
+    var den   = denom || 1;
+
+    function row(color, plays, num, denVal, extra) {
+      var active = num > 0;
+      var dot    = active ? color : pbs.COLOR_NONE;
+      var fill   = active ? color : pbs.COLOR_NONE;
+      var width  = (plays > 0 && denVal > 0) ? Math.min(100, Math.round(num / denVal * 100)) : 0;
+      var val    = plays > 0 ? (num + '/' + denVal) : '--';
+      if (extra && plays > 0) val += ' ' + extra;
+      return '<div class="ds-pb-row">' +
+        '<span class="ds-pb-dot" style="background:' + dot + '"></span>' +
+        '<div class="ds-pb-track">' +
+          '<div class="ds-pb-fill" style="width:' + width + '%;background:' + fill + '"></div>' +
+        '</div>' +
+        '<span class="ds-pb-value">' + esc(val) + '</span>' +
+        '</div>';
+    }
+
+    var bRow = row(pbs.RANKS.bronze.color,
+      easy.plays || 0, easy.first_try_correct || 0, easy.plays || 1);
+    var gRow = row(pbs.RANKS.gold.color,
+      norm.plays || 0, norm.first_try_correct || 0, norm.plays || 1);
+    var clears = sd.clears || 0;
+    var extra  = clears > 0 ? 'C\xd7' + clears : '';
+    var pRow = row(pbs.RANKS.platinum.color,
+      sd.plays || 0, sd.best_streak || 0, den, extra);
+
+    return bRow + gRow + pRow;
+  }
+
+  /**
+   * カード下部の進捗バーエリアを組み立てる。
+   * rd       : ProgressBarStore.getRegion() の戻り値 { municipality, ma }
+   * muniCount: 市区町村数（Platinum バーの分母）
+   * maCount  : MA数（局番タブの Platinum 分母）
+   * hasMa    : 市外局番モードが有効か
+   */
+  function buildProgressBars(rd, muniCount, maCount, hasMa) {
+    var pbs = window.ProgressBarStore;
+    if (!pbs) return '';
+
+    var muniData = rd.municipality || {};
+    var maData   = rd.ma           || {};
+
+    if (!hasMa) {
+      /* 局番なし: タブなしで地名の3行のみ */
+      return '<div class="ds-progress-bars">' +
+        buildPbRows(muniData, muniCount) +
+        '</div>';
+    }
+
+    /* 局番あり: 地名 / 局番 タブ切り替え */
+    return '<div class="ds-progress-bars">' +
+      '<div class="ds-pb-tabs">' +
+        '<span class="ds-pb-tab is-active" data-pb-target="municipality">地名</span>' +
+        '<span class="ds-pb-tab" data-pb-target="ma">局番</span>' +
+      '</div>' +
+      '<div class="ds-pb-panel" data-pb-panel="municipality">' +
+        buildPbRows(muniData, muniCount) +
+      '</div>' +
+      '<div class="ds-pb-panel ds-pb-panel-hidden" data-pb-panel="ma">' +
+        buildPbRows(maData, maCount) +
+      '</div>' +
+    '</div>';
+  }
+
+  function renderGrid() {
+    grid.innerHTML = '';
+    if (!activeRegion || activeRegion.coming) return;
+
+    /* 全域カード */
+    if (activeRegion.allId) {
+      var allDs = dsMap[activeRegion.allId];
+      if (allDs) {
+        var allStats = getDsStats(allDs);
+        var allCard = document.createElement('button');
+        allCard.type = 'button';
+        allCard.className = 'ds-card-all' + (currentDsId === allDs.id ? ' is-active' : '');
+        allCard.dataset.datasetId = allDs.id;
+        allCard.innerHTML =
+          '<div class="ds-card-body">' +
+            '<div class="ds-card-name">' + esc(allDs.shortName || allDs.name) + '</div>' +
+            (allStats.muniCount != null
+              ? '<div class="ds-card-meta">' + esc(statsText(allStats, true)) + '</div>'
+              : '') +
+          '</div>' +
+          '<span class="ds-card-badge">全域まとめて練習</span>';
+        allCard.addEventListener('click', function () {
+          location.href = '?dataset=' + allDs.id;
+        });
+        grid.appendChild(allCard);
+      }
+    }
+
+    /* 都道府県グリッド */
+    if (activeRegion.prefIds && activeRegion.prefIds.length) {
+      var secLabel = document.createElement('p');
+      secLabel.className = 'section-label';
+      secLabel.textContent = activeRegion.sectionLabel || '都道府県別';
+      grid.appendChild(secLabel);
+
+      var prefGrid = document.createElement('div');
+      prefGrid.className = 'ds-pref-grid';
+
+      activeRegion.prefIds.forEach(function (pid) {
+        var ds = dsMap[pid];
+        if (!ds) return;
+        var stats = getDsStats(ds);
+
+        /* 進捗ランクを取得してミニマップ色を決定 */
+        var pbs   = window.ProgressBarStore;
+        var rd    = pbs ? pbs.getRegion(ds.id) : { municipality: {}, ma: {} };
+        var rank  = pbs ? pbs.getRank(rd, 'municipality') : null;
+        var mc    = pbs ? pbs.rankColor(rank) : null;
+        var svg   = getMiniSvg(ds, mc);
+        var hasMa = !!(ds.enabledModes && ds.enabledModes.indexOf('ma') !== -1 && stats.maCount);
+
+        var card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'ds-card-pref' + (currentDsId === ds.id ? ' is-active' : '');
+        card.dataset.datasetId = ds.id;
+        if (rank) card.dataset.rank = rank;
+
+        card.innerHTML =
+          (svg ? '<div class="ds-minimap">' + svg + '</div>' : '') +
+          '<div class="ds-card-pref-info">' +
+            '<div class="ds-card-name">' + esc(ds.shortName || ds.name) + '</div>' +
+            (stats.muniCount != null
+              ? '<div class="ds-card-meta">' + esc(statsText(stats, false)) + '</div>'
+              : '') +
+          '</div>' +
+          buildProgressBars(rd, stats.muniCount, stats.maCount, hasMa) +
+          buildRankingInfoRow(ds.id);
+
+        card.addEventListener('click', function (e) {
+          /* タブクリック時はパネル切り替えのみ（ページ遷移しない） */
+          var t = e.target;
+          while (t && t !== card) {
+            if (t.getAttribute && t.getAttribute('data-pb-target')) {
+              e.stopPropagation();
+              var view = t.getAttribute('data-pb-target');
+              var bars = card.querySelector('.ds-progress-bars');
+              if (bars) {
+                var tabs = bars.querySelectorAll('.ds-pb-tab');
+                for (var ti = 0; ti < tabs.length; ti++) {
+                  tabs[ti].classList.toggle('is-active', tabs[ti].getAttribute('data-pb-target') === view);
+                }
+                var panels = bars.querySelectorAll('.ds-pb-panel');
+                for (var pi = 0; pi < panels.length; pi++) {
+                  panels[pi].classList.toggle('ds-pb-panel-hidden', panels[pi].getAttribute('data-pb-panel') !== view);
+                }
+              }
+              return;
+            }
+            t = t.parentElement;
+          }
+          location.href = '?dataset=' + ds.id;
+        });
+        prefGrid.appendChild(card);
+      });
+
+      grid.appendChild(prefGrid);
+    }
+  }
+
+  /* ── グローバル1位の遅延フェッチ ── */
+  var _rankObserver = null;
+  var _rankCache = {};    // dsId → 表示タイム文字列 | '' (データなし)
+  var _rankFetching = {}; // dsId → true (重複防止)
+
+  function waitForFirebase(cb, maxMs) {
+    if (typeof window.fetchRankingScores === 'function') { cb(); return; }
+    var elapsed = 0;
+    var INTERVAL = 200;
+    function poll() {
+      elapsed += INTERVAL;
+      if (typeof window.fetchRankingScores === 'function') { cb(); return; }
+      if (elapsed < maxMs) setTimeout(poll, INTERVAL);
+    }
+    setTimeout(poll, INTERVAL);
+  }
+
+  function applyRankCache(dsId, timeStr) {
+    var row = grid.querySelector('.ds-ranking-row[data-ds-id="' + dsId + '"]');
+    if (!row) return;
+    var el = row.querySelector('.ds-ranking-first-time');
+    if (el) el.textContent = timeStr || '--:--';
+  }
+
+  function fetchGlobalRank(dsId) {
+    if (_rankFetching[dsId]) return;
+    if (Object.prototype.hasOwnProperty.call(_rankCache, dsId)) {
+      applyRankCache(dsId, _rankCache[dsId]);
+      return;
+    }
+    _rankFetching[dsId] = true;
+    waitForFirebase(function () {
+      window.fetchRankingScores(dsId, 'normal', 'municipality', false, 1)
+        .then(function (scores) {
+          var t = (scores && scores.length > 0) ? fmtCardTime(scores[0].time) : '';
+          _rankCache[dsId] = t;
+          delete _rankFetching[dsId];
+          applyRankCache(dsId, t);
+        })
+        .catch(function () {
+          _rankCache[dsId] = '';
+          delete _rankFetching[dsId];
+        });
+    }, 3000);
+  }
+
+  function initCardRankingObserver() {
+    if (_rankObserver) _rankObserver.disconnect();
+    _rankObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        var row = entry.target.querySelector('.ds-ranking-row');
+        if (!row) return;
+        var dsId = row.getAttribute('data-ds-id');
+        if (dsId) fetchGlobalRank(dsId);
+        _rankObserver.unobserve(entry.target);
+      });
+    }, { threshold: 0.1 });
+
+    var cards = grid.querySelectorAll('.ds-card-pref');
+    cards.forEach(function (card) {
+      var row = card.querySelector('.ds-ranking-row');
+      if (!row) return;
+      var dsId = row.getAttribute('data-ds-id');
+      if (!dsId) return;
+      /* キャッシュ済みはすぐ適用、未取得は交差観察 */
+      if (Object.prototype.hasOwnProperty.call(_rankCache, dsId) && !_rankFetching[dsId]) {
+        applyRankCache(dsId, _rankCache[dsId]);
+      } else {
+        _rankObserver.observe(card);
+      }
+    });
+  }
+
+  renderTabs();
+  renderGrid();
+  updateBadge();
+  initCardRankingObserver();
+})();
+    </script>
+  </body>
+</html>

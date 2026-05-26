@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400" role="img" aria-labelledby="title desc">
+  <title id="title">Saitama image quiz placeholder</title>
+  <desc id="desc">Placeholder image for future image quiz data.</desc>
+  <rect width="640" height="400" fill="#101418"/>
+  <rect x="36" y="36" width="568" height="328" rx="8" fill="#1c242b" stroke="#6b7280" stroke-width="2"/>
+  <path d="M162 246c45-92 95-138 150-138 62 0 108 40 166 124" fill="none" stroke="#4fb7a5" stroke-width="18" stroke-linecap="round"/>
+  <circle cx="422" cy="144" r="34" fill="#d4b46a"/>
+  <text x="320" y="318" text-anchor="middle" fill="#d7e1e8" font-family="Arial, sans-serif" font-size="24">IMAGE QUIZ PLACEHOLDER</text>
+</svg>

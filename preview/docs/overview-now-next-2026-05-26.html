@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GeoQuiz やりたいこと・今の状況・次にやること</title>
+  <style>
+    :root {
+      --bg: #f4efe6;
+      --card: #fffdf8;
+      --text: #20242a;
+      --muted: #5a625d;
+      --line: #d8cfbf;
+      --brand: #145c55;
+      --brand-soft: #dcefeb;
+      --next: #8a4b14;
+      --next-soft: #fdebd9;
+      --shadow: 0 18px 42px rgba(54, 44, 29, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Yu Gothic UI", "Hiragino Sans", "Meiryo", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(20, 92, 85, 0.12), transparent 24%),
+        radial-gradient(circle at top right, rgba(138, 75, 20, 0.10), transparent 22%),
+        linear-gradient(180deg, #f9f4ec 0%, var(--bg) 100%);
+      line-height: 1.75;
+    }
+
+    .wrap {
+      width: min(1100px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 28px 0 56px;
+    }
+
+    .hero, .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 30px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -70px;
+      bottom: -70px;
+      width: 200px;
+      height: 200px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(20, 92, 85, 0.16), transparent 70%);
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--brand);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 14px 0 0;
+      font-size: clamp(30px, 5vw, 50px);
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+    }
+
+    .lead {
+      margin: 16px 0 0;
+      max-width: 830px;
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .meta span {
+      padding: 7px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      font-size: 13px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 18px;
+      margin-top: 20px;
+    }
+
+    .card {
+      grid-column: span 12;
+      padding: 24px;
+    }
+
+    .span-7 { grid-column: span 12; }
+    .span-5 { grid-column: span 12; }
+    .span-6 { grid-column: span 12; }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 24px;
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      margin: 18px 0 8px;
+      font-size: 17px;
+    }
+
+    p { margin: 0 0 12px; }
+
+    .big-points {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .point {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      background: linear-gradient(180deg, #fff 0%, #f8f6f0 100%);
+    }
+
+    .point strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 6px;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    li + li {
+      margin-top: 8px;
+    }
+
+    .state-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .state-item {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px 16px;
+      background: #fff;
+    }
+
+    .state-item strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .next-box {
+      border-radius: 18px;
+      padding: 16px;
+      background: var(--next-soft);
+      color: #6b390f;
+      margin-top: 12px;
+    }
+
+    .note {
+      border-radius: 16px;
+      padding: 14px 16px;
+      background: var(--brand-soft);
+      color: #0f4a45;
+      margin-top: 12px;
+    }
+
+    code {
+      font-family: Consolas, Monaco, monospace;
+      background: #f2eee6;
+      border-radius: 6px;
+      padding: 0.08em 0.38em;
+    }
+
+    .footer {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: right;
+    }
+
+    @media (min-width: 880px) {
+      .span-7 { grid-column: span 7; }
+      .span-5 { grid-column: span 5; }
+      .span-6 { grid-column: span 6; }
+    }
+
+    @media (max-width: 879px) {
+      .big-points {
+        grid-template-columns: 1fr;
+      }
+
+      .hero, .card {
+        padding: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <span class="tag">Simple Overview</span>
+      <h1>GeoQuiz は何を作りたいのか、今どこにいるのか</h1>
+      <p class="lead">
+        このページは、コードをあまり知らない人でも今の状況がわかるように作った説明ページです。
+        技術の細かい話より先に、「何を目指しているか」「どこまでできているか」「次に何をやるか」を整理しています。
+      </p>
+      <div class="meta">
+        <span>作業フォルダ: <code>G:\geoquiz-main\geoquiz-main</code></span>
+        <span>確認日: 2026-05-26</span>
+        <span>基準: 現行 <code>master</code></span>
+      </div>
+      <div class="big-points">
+        <div class="point">
+          <strong>作りたいもの</strong>
+          GeoGuessr の日本マップを練習しやすくする学習ツール
+        </div>
+        <div class="point">
+          <strong>今の状態</strong>
+          かなり動く。県別や地方別のクイズ、分析、再練習まである
+        </div>
+        <div class="point">
+          <strong>次に大事なこと</strong>
+          新機能を増やす前に、UI を端末ごとに整える
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card span-7">
+        <h2>1. このアプリでやりたいこと</h2>
+        <p>
+          GeoQuiz は、GeoGuessr で「この地名はどこか」「この市外局番はどの地域か」を素早く思い出せるようになるための練習アプリです。
+        </p>
+        <p>
+          ただの地図クイズではなく、<strong>苦手を見つけて、そこだけ何度も練習できる</strong> ことが大事なテーマになっています。
+        </p>
+        <h3>目指している姿</h3>
+        <ul>
+          <li>白地図を見ながら、地名と場所の結びつきを覚えられる</li>
+          <li>市外局番や地域の特徴も一緒に覚えられる</li>
+          <li>どこを間違えやすいかを後から見返せる</li>
+          <li>将来的には全国版や画像クイズにも広げられる</li>
+        </ul>
+        <div class="note">
+          全国版を作るなら、いきなり全部を入れるのではなく、まずは <strong>都道府県を当てる</strong>、
+          次に <strong>市区町村を当てる</strong>、そのあとに <strong>市外局番を当てる</strong> の順で進めるのが理想です。
+          これはかなり後半の段階の話です。
+        </div>
+      </article>
+
+      <article class="card span-5">
+        <h2>2. 今のアプリの大きな状態</h2>
+        <div class="state-list">
+          <div class="state-item">
+            <strong>かなり作り込まれている</strong>
+            試作というより、すでに遊べる学習アプリに近い段階です。
+          </div>
+          <div class="state-item">
+            <strong>データが多い</strong>
+            現在は 63 データセットあり、県別や地方別の切り替えができます。
+          </div>
+          <div class="state-item">
+            <strong>分析機能もある</strong>
+            結果保存、苦手ランキング、再出題などが入っています。
+          </div>
+          <div class="state-item">
+            <strong>未整理の部分もある</strong>
+            文書では「ある」と読めるものが、現行コードではまだ表に出ていない箇所があります。
+          </div>
+          <div class="state-item">
+            <strong>現在の主作業は UI 改善</strong>
+            いまは新機能追加より、スマホ横向きの使いやすさ調整を優先しています。
+          </div>
+        </div>
+      </article>
+
+      <article class="card span-6">
+        <h2>3. もうできていること</h2>
+        <ul>
+          <li>市区町村クイズ</li>
+          <li>市外局番クイズ</li>
+          <li>一部データセットでのパズルモード</li>
+          <li>確認用の地図表示</li>
+          <li>プレイ結果の保存</li>
+          <li>苦手ランキング表示</li>
+          <li>苦手だけ再練習する機能</li>
+          <li>ラベル位置を調整する編集モード</li>
+          <li>スマホ向けの軽量表示モード</li>
+        </ul>
+        <div class="note">
+          つまり、「クイズを出す」だけではなく、「覚え直す」ための機能までかなり入っています。
+        </div>
+      </article>
+
+      <article class="card span-6">
+        <h2>4. まだ途中のこと</h2>
+        <ul>
+          <li>画像判別モードはまだ未完成です</li>
+          <li>全国版 <code>japan_all</code> は一度仮実装されたが、重すぎて実用的ではないため現状は外されています</li>
+          <li>地方全域データセットは動くが、全国版だけは別格に重い状態です</li>
+          <li>3桁までの広域市外局番専用モードは、現方針では採用していません</li>
+          <li>README などの説明文が、今の実物と少しズレています</li>
+        </ul>
+        <div class="next-box">
+          いま一番困りやすいのは「説明を読むとできそうに見えるのに、実際にはまだ出ていない機能がある」ことです。
+        </div>
+        <div class="note">
+          目安として、北海道全域では INP が 120ms 以下で収まる一方、日本全国版では 900ms 台まで悪化していました。
+          そのため、問題は「地方全域」ではなく「日本全国を一度に扱うこと」だと考えられます。
+        </div>
+      </article>
+
+      <article class="card">
+        <h2>5. 今の問題は何か</h2>
+        <p>
+          今のGeoQuizは、機能が少なすぎるのではなく、むしろ<strong>いろいろ増えてきたので整理が追いついていない</strong>状態に近いです。
+        </p>
+        <h3>大きく3つあります</h3>
+        <ul>
+          <li><strong>説明と実物のズレ</strong>: 文書には書いてあるが、今の画面ではまだ使えないものがある</li>
+          <li><strong>全国版の重さ</strong>: 地方全域は INP 120ms 以下で遊べるが、日本全国版は 900ms 台まで悪化した</li>
+          <li><strong>端末ごとの UI 調整</strong>: スマホ縦、スマホ横、PC、タブレットで見え方と操作感をそろえる必要がある</li>
+        </ul>
+      </article>
+
+      <article class="card span-6">
+        <h2>6. 次にやること</h2>
+        <ul>
+          <li>スマホ横向きの UI を調整する</li>
+          <li>そのあとで PC とタブレットの UI を整える</li>
+          <li>README と文書を、今の実物に合わせて少しずつ直す</li>
+          <li>全国版を外している理由も、あとで迷わないように文書へ残す</li>
+        </ul>
+        <div class="next-box">
+          全国版そのものは、今すぐ復活させるよりもかなり後半の課題です。
+          作る場合も、最初は「都道府県クイズ」から始めるのが現実的です。
+        </div>
+        <div class="note">
+          UI を一通り整えたあとには、もう一度調整のフェーズがあります。
+          そのときは自分以外のプレイヤーに実際に遊んでもらい、TOPページから結果画面までの流れ全体を見直します。
+        </div>
+      </article>
+
+      <article class="card span-6">
+        <h2>7. 今すぐの優先順位</h2>
+        <ol>
+          <li>スマホ横向き UI を整える</li>
+          <li>PC とタブレット UI の調整に進む</li>
+          <li>説明を今の実態に合わせてわかりやすくする</li>
+          <li>そのあとで新機能を考える</li>
+        </ol>
+        <div class="note">
+          スマホ縦向きの開始画面とプレイ中画面は、現状ではかなり満足できている前提です。
+        </div>
+      </article>
+
+      <article class="card">
+        <h2>8. 今回の整理で作った補助資料</h2>
+        <ul>
+          <li><code>docs/project-status-2026-05-26.html</code>: もう少し詳しい調査結果</li>
+          <li><code>docs/development/current-focus-audit-2026-05-26.md</code>: 開発者向けの整理メモ</li>
+        </ul>
+        <p>
+          このページは「ざっくり理解する用」、他の2つは「詳しく確認する用」と考えるとわかりやすいです。
+        </p>
+      </article>
+
+      <article class="card">
+        <h2>9. UI 調整の2周目で見る流れ</h2>
+        <p>
+          一通り「こういう UI にしたい」という形まで作れたら、次は自分以外のプレイヤーに通しで遊んでもらって調整します。
+        </p>
+        <ol>
+          <li>TOPページを見る</li>
+          <li>データセットを選ぶ</li>
+          <li>市区町村か市外局番を選ぶ</li>
+          <li>ゲーム準備画面に進む</li>
+          <li>プレイ中の画面を触る</li>
+          <li>クリア時または失敗時の画面を見る</li>
+          <li>分析画面を見る</li>
+          <li>ランキング画面を見る</li>
+        </ol>
+        <div class="next-box">
+          つまり最終的には、1つの画面だけを良くするのではなく、最初から最後までの体験全体を整えることが目標です。
+        </div>
+      </article>
+
+      <article class="card">
+        <h2>10. 機能面で次にやりたいこと</h2>
+        <p>
+          UI 調整と並行して、機能面では次の順番で考えている。
+        </p>
+        <ol>
+          <li><strong>サドンデスの見直し</strong>: 地図ありを選べてしまうなら、地図なし固定にする</li>
+          <li><strong>画像モードの実装</strong>: まずは USA データセットで、州旗を見て州をクリックする形から考える</li>
+          <li><strong>画像の種類を増やす</strong>: 州道標識、ナンバープレートを見て州をクリックする問題へ広げる</li>
+          <li><strong>ブラー版の追加</strong>: GeoGuessr でナンバープレートにはブラーがかかるため、ブラーありの練習モードも用意したい</li>
+        </ol>
+        <div class="note">
+          画像モードは「ただ画像を出す」だけではなく、GeoGuessr の実戦に近い見え方まで寄せることが大事なポイントです。
+        </div>
+      </article>
+    </section>
+
+    <div class="footer">
+      Simple summary generated from current repository state on 2026-05-26
+    </div>
+  </div>
+</body>
+</html>

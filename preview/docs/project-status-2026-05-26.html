@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GeoQuiz 現在状況まとめ</title>
+  <style>
+    :root {
+      --bg: #f5f1e8;
+      --paper: #fffdf8;
+      --ink: #1f2328;
+      --muted: #5c625f;
+      --line: #d9cfbf;
+      --accent: #0f766e;
+      --accent-soft: #d8f0ec;
+      --warning: #9a3412;
+      --warning-soft: #ffedd5;
+      --shadow: 0 16px 40px rgba(48, 40, 26, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Yu Gothic UI", "Hiragino Sans", "Meiryo", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(15, 118, 110, 0.12), transparent 28%),
+        radial-gradient(circle at top right, rgba(154, 52, 18, 0.10), transparent 24%),
+        linear-gradient(180deg, #f8f3ea 0%, var(--bg) 100%);
+      line-height: 1.7;
+    }
+
+    .wrap {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 64px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(255, 253, 248, 0.96), rgba(245, 247, 244, 0.92));
+      border: 1px solid rgba(217, 207, 191, 0.9);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -80px -80px auto;
+      width: 220px;
+      height: 220px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(15, 118, 110, 0.18), transparent 68%);
+    }
+
+    .eyebrow {
+      display: inline-block;
+      margin: 0 0 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(32px, 5vw, 52px);
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+    }
+
+    .lead {
+      max-width: 860px;
+      margin: 16px 0 0;
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .meta span {
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.82);
+      font-size: 13px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 18px;
+      margin-top: 22px;
+    }
+
+    .card {
+      grid-column: span 12;
+      background: var(--paper);
+      border: 1px solid rgba(217, 207, 191, 0.95);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .card h2 {
+      margin: 0 0 14px;
+      font-size: 24px;
+      letter-spacing: -0.02em;
+    }
+
+    .card h3 {
+      margin: 20px 0 10px;
+      font-size: 17px;
+    }
+
+    .card p {
+      margin: 0 0 12px;
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .kpi {
+      background: linear-gradient(180deg, #fff 0%, #f7f5ef 100%);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .kpi .value {
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .kpi .label {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .cols {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    li + li {
+      margin-top: 8px;
+    }
+
+    .note,
+    .warn {
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin-top: 14px;
+    }
+
+    .note {
+      background: var(--accent-soft);
+      color: #0a4d47;
+    }
+
+    .warn {
+      background: var(--warning-soft);
+      color: var(--warning);
+    }
+
+    code {
+      font-family: Consolas, Monaco, monospace;
+      font-size: 0.95em;
+      background: #f2eee5;
+      border-radius: 6px;
+      padding: 0.08em 0.4em;
+    }
+
+    .status-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .status-item {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px 16px;
+      background: #fff;
+    }
+
+    .status-item strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .footer {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: right;
+    }
+
+    @media (min-width: 860px) {
+      .span-6 {
+        grid-column: span 6;
+      }
+
+      .span-7 {
+        grid-column: span 7;
+      }
+
+      .span-5 {
+        grid-column: span 5;
+      }
+    }
+
+    @media (max-width: 859px) {
+      .kpis,
+      .cols {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .card {
+        padding: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Repository Status</div>
+      <h1>GeoQuiz の現在状況まとめ</h1>
+      <p class="lead">
+        2026-05-26 時点で、<code>G:\geoquiz-main\geoquiz-main</code> のリポジトリ実体を確認してまとめた状況整理。
+        実装済み機能、技術構成、データ規模、確認できたテスト状況、文書と現行コードの差分までを一枚で把握できるように整理している。
+      </p>
+      <div class="meta">
+        <span>対象ブランチ: <code>master</code></span>
+        <span>公開形式: 静的 Web アプリ</span>
+        <span>主要技術: Vanilla JS / Leaflet / Turf.js</span>
+        <span>調査日: 2026-05-26</span>
+      </div>
+      <div class="kpis">
+        <div class="kpi">
+          <div class="value">63</div>
+          <div class="label">現行 catalog 上のデータセット数</div>
+        </div>
+        <div class="kpi">
+          <div class="value">4+</div>
+          <div class="label">主要クイズ系モード</div>
+        </div>
+        <div class="kpi">
+          <div class="value">2</div>
+          <div class="label">ロジックテスト実行数</div>
+        </div>
+        <div class="kpi">
+          <div class="value">1</div>
+          <div class="label">未実装扱いの画像判別モード</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card span-7">
+        <h2>概要</h2>
+        <p>
+          GeoQuiz は、GeoGuessr 向けの地域認識トレーニングツールとして作られている静的 Web アプリ。
+          白地図をクリックしながら、市区町村や市外局番の位置関係を覚える構成になっている。
+        </p>
+        <p>
+          起動は <code>index.html</code> を直接開く方式で、アプリ本体はビルドレスのバニラ JavaScript。
+          ランタイム依存は軽く、地図描画に Leaflet、GeoJSON 処理に Turf.js、累積成績保存に <code>localStorage</code> を使っている。
+        </p>
+        <div class="note">
+          README と実装の両方を見る限り、単なる地図クイズではなく「GeoGuessr 練習向けの学習ツール」として育てる方針が明確。
+        </div>
+      </article>
+
+      <article class="card span-5">
+        <h2>主要ファイル</h2>
+        <ul>
+          <li><code>index.html</code>: UI 全体と Firebase ランキング初期化</li>
+          <li><code>js/app.js</code>: 画面遷移、ゲーム進行、ランキング、分析</li>
+          <li><code>js/map-renderer.js</code>: 地図描画、ラベル、パズル、ヒート表現</li>
+          <li><code>js/quiz-engine.js</code>: 出題と正誤判定</li>
+          <li><code>js/progress-store.js</code>: 累積成績保存と再出題用データ</li>
+          <li><code>data/catalog.js</code>: データセット定義</li>
+          <li><code>tools/</code>: データ生成、事前計算、検証、E2E テスト</li>
+        </ul>
+      </article>
+
+      <article class="card span-6">
+        <h2>実装済み機能</h2>
+        <div class="status-list">
+          <div class="status-item">
+            <strong>市区町村クイズ</strong>
+            地名から該当エリアを当てる基本モード。イージー、ノーマル、サドンデスのルール切り替えあり。
+          </div>
+          <div class="status-item">
+            <strong>市外局番クイズ</strong>
+            局番エリア単位の判定に対応。結合済みポリゴンや局番ラベルの表示制御も入っている。
+          </div>
+          <div class="status-item">
+            <strong>確認マップ / 分析画面</strong>
+            リザルト後に参照用の地図とランキングを確認できる。
+          </div>
+          <div class="status-item">
+            <strong>パズルモード</strong>
+            市区町村ポリゴンをドラッグして正位置に戻す MVP 実装あり。ベストタイム保存も対応。
+          </div>
+          <div class="status-item">
+            <strong>累積成績と再出題</strong>
+            苦手、前回ミス、未正解、最近ミス、低正答率などから練習セットを再構成できる。
+          </div>
+          <div class="status-item">
+            <strong>ラベル調整モード</strong>
+            <code>?edit=labels</code> で専用 UI を開き、ドラッグ、角度調整、サイズ調整、JSON 書き出しができる。
+          </div>
+        </div>
+      </article>
+
+      <article class="card span-6">
+        <h2>データ状況</h2>
+        <p>
+          現行の <code>data/catalog.js</code> では 63 データセットを管理している。
+          県別だけでなく、地方全域、北海道 4 分割、東京島しょ、所沢市・藤沢市の町字なども含まれる。
+        </p>
+        <div class="cols">
+          <div>
+            <h3>広域系</h3>
+            <ul>
+              <li>北海道: 道央 / 道南 / 道北 / 道東 / 全域</li>
+              <li>東北・関東・中部・近畿・中国・四国・九州の全域版あり</li>
+              <li>東京全域・東京島しょにも分岐あり</li>
+            </ul>
+          </div>
+          <div>
+            <h3>特集系</h3>
+            <ul>
+              <li><code>tokorozawa</code>: 所沢市 町字</li>
+              <li><code>fujisawa</code>: 藤沢市 町字</li>
+              <li><code>usa</code>: 大分県宇佐市の専用データセット</li>
+            </ul>
+          </div>
+        </div>
+        <div class="note">
+          データ生成スクリプトは都道府県ごとにかなり揃っていて、追加運用の仕組みはすでに整っている。
+        </div>
+      </article>
+
+      <article class="card span-6">
+        <h2>確認できたテスト状況</h2>
+        <ul>
+          <li><code>node tools/test-quiz-engine.mjs</code>: 実行済み、<code>status: ok</code></li>
+          <li><code>node tools/test-progress-store.mjs</code>: 実行済み、<code>status: ok</code></li>
+          <li><code>tools/test-app-flow.mjs</code>: 用意あり。Playwright ベースの広めのフローテストだが今回は未実行</li>
+        </ul>
+        <h3>E2E スクリプトで見ている範囲</h3>
+        <ul>
+          <li>市区町村モード完走</li>
+          <li>市外局番モード完走</li>
+          <li>サドンデス</li>
+          <li>市外局番の判定安定性</li>
+          <li>パズルモード</li>
+          <li>ラベルエディタ</li>
+          <li>Lite Mode</li>
+        </ul>
+      </article>
+
+      <article class="card span-6">
+        <h2>ロードマップ上の位置</h2>
+        <p>
+          企画メモでは、基礎安定化、累積成績、ランキング、苦手練習、ラベル調整、パズル MVP は概ね実装済み扱い。
+          現在の主作業は UI 改善で、特にスマホ横向き UI の調整が優先されている。
+        </p>
+        <ul>
+          <li>スマホ縦向きの開始画面とプレイ中画面は、現状でかなり満足できる状態</li>
+          <li>現在はスマホ横向き UI を調整中</li>
+          <li>PC とタブレット UI はその後の予定</li>
+          <li>画像判別モードは UI 上もまだ未着手に近い</li>
+          <li>GeoGuessr 用 JSON 出力や都道府県クイズなどの将来機能は未実装</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h2>気になった点</h2>
+        <div class="warn">
+          文書と現行コードのあいだに少しズレがある。
+        </div>
+        <ul>
+          <li><code>CHANGELOG.md</code> には <code>japan_all</code> 追加や <code>forceLiteMode</code> の記述がある</li>
+          <li>ただし、現行の <code>data/catalog.js</code> には少なくとも <code>japan_all</code> は見当たらない</li>
+          <li>そのため、変更記録が先行しているか、別ブランチや未反映作業の痕跡が残っている可能性がある</li>
+        </ul>
+        <p>
+          つまり、文書上の「最新状況」と、今の <code>master</code> の実体は完全一致ではない。
+          今後の作業前には、現行ブランチ基準で再確認したほうが安全。
+        </p>
+      </article>
+
+      <article class="card">
+        <h2>総評</h2>
+        <p>
+          現在の GeoQuiz は、試作段階をかなり越えていて、複数県・広域データ・分析・反復学習まで含んだ実用寄りの学習アプリになっている。
+          UI、データ生成、ローカル保存、再出題導線、パズル、ラベル調整までつながっており、土台はかなり強い。
+        </p>
+        <p>
+          次の焦点は、新機能を足すことよりも、現行機能の整合性、軽さ、文書との差分整理、そして実ブラウザでの体感確認に寄りそう。
+        </p>
+      </article>
+    </section>
+
+    <div class="footer">
+      Generated from repository inspection on 2026-05-26
+    </div>
+  </div>
+</body>
+</html>
