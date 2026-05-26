@@ -91,6 +91,7 @@
     layoutTopButton: document.getElementById("layoutTopButton"),
     layoutBottomButton: document.getElementById("layoutBottomButton"),
     layoutRightButton: document.getElementById("layoutRightButton"),
+    layoutOverlayButton: document.getElementById("layoutOverlayButton"),
     referencePreview: document.getElementById("referencePreview"),
     referencePreviewTop: document.getElementById("referencePreviewTop"),
     referencePreviewOverlay: document.getElementById("referencePreviewOverlay"),
@@ -229,6 +230,9 @@
   els.layoutRightButton.addEventListener("click", () => {
     updateSessionSettings({ layout: "right" });
   });
+  els.layoutOverlayButton.addEventListener("click", () => {
+    updateSessionSettings({ layout: "overlay" });
+  });
 
   els.tileLayerToggle.addEventListener("click", () => {
     if (!renderer) return;
@@ -361,6 +365,7 @@
     els.layoutTopButton.classList.toggle("is-active", currentSessionSettings.layout === "top");
     els.layoutBottomButton.classList.toggle("is-active", currentSessionSettings.layout === "bottom");
     els.layoutRightButton.classList.toggle("is-active", currentSessionSettings.layout === "right");
+    if (els.layoutOverlayButton) els.layoutOverlayButton.classList.toggle("is-active", currentSessionSettings.layout === "overlay");
     if (els.startSelectionNote) {
       els.startSelectionNote.textContent = `${modeName(selectedQuizMode || DEFAULT_QUIZ_MODE)} / ${ruleName(currentSessionSettings.rule)}で開始`;
     }
