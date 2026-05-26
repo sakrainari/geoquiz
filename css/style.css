@@ -1587,7 +1587,11 @@ h3 {
   display: none !important;
 }
 
-/* 準備画面では bottomBarOverlay を非表示 */
+/* 準備画面では questionOverlay・bottomBarOverlay を非表示 */
+.game-screen.is-prep-mode #questionOverlay {
+  display: none !important;
+}
+
 .game-screen.is-prep-mode #bottomBarOverlay {
   display: none !important;
 }
