@@ -1551,21 +1551,23 @@ h3 {
 }
 
 .bottom-bar-btn {
+  width: 36px;
+  text-align: center;
+  flex-shrink: 0;
   background: transparent !important;
   border: none;
   color: rgba(255, 255, 255, 0.5);
   font-size: 14px;
-  padding: 4px 6px;
-  border-radius: 6px;
+  padding: 4px 0;
   cursor: pointer;
   line-height: 1;
 }
 
-.bottom-bar-btn:hover {
+.bottom-bar-btn.is-active {
   color: #fff;
 }
 
-.bottom-bar-btn.is-active {
+.bottom-bar-btn:hover {
   color: #fff;
 }
 
@@ -1614,7 +1616,7 @@ h3 {
   display: none;
 }
 
-/* スマホ縦向き: 左・右ボタン非表示・タップ領域拡大 */
+/* スマホ縦向き: 左・右ボタン非表示・タップ領域拡大（4ボタン表示） */
 @media (max-width: 600px) and (orientation: portrait) {
   .bottom-bar-btn[data-layout="left"],
   .bottom-bar-btn[data-layout="right"] {
@@ -1622,13 +1624,22 @@ h3 {
   }
 
   .bottom-bar-btn {
-    padding: 6px 10px;
+    width: 44px;
     font-size: 16px;
+    padding: 6px 0;
   }
 
   .bottom-bar-left,
   .bottom-bar-right {
     font-size: 11px;
+  }
+}
+
+/* スマホ横向き: 6ボタンをコンパクトに表示 */
+@media (max-width: 900px) and (orientation: landscape) {
+  .bottom-bar-btn {
+    width: 32px;
+    font-size: 13px;
   }
 }
 
