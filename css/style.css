@@ -1568,7 +1568,8 @@ h3 {
 }
 
 .bottom-bar-btn.is-active {
-  color: var(--accent-1, #1d9e75);
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
 }
 
 .bottom-bar-right {
