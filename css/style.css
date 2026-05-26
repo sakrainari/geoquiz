@@ -3543,3 +3543,120 @@ svg.leaflet-zoom-animated {
   padding: 2px 0;
   display: block;
 }
+
+/* ═══════════════════════════════════════════════════
+   スマホ横向き：左右パネル最適化
+   ═══════════════════════════════════════════════════ */
+
+@media (max-height: 500px) and (orientation: landscape) {
+
+  .game-screen[data-layout="left"] .game-panel,
+  .game-screen[data-layout="right"] .game-panel {
+    width: 200px;
+    min-width: 200px;
+    max-width: 200px;
+    padding: 10px 12px;
+    gap: 6px;
+  }
+
+  .game-screen[data-layout="left"] .game-panel .eyebrow,
+  .game-screen[data-layout="right"] .game-panel .eyebrow {
+    font-size: 9px;
+    margin-bottom: 0;
+  }
+
+  .game-screen[data-layout="left"] .game-panel h2,
+  .game-screen[data-layout="right"] .game-panel h2 {
+    font-size: clamp(16px, 2.2vw, 22px);
+    margin: 0;
+    line-height: 1.1;
+  }
+
+  .game-screen[data-layout="left"].is-ma-mode .game-panel h2,
+  .game-screen[data-layout="right"].is-ma-mode .game-panel h2 {
+    font-size: clamp(22px, 3vw, 32px);
+  }
+
+  .game-screen[data-layout="left"].is-ma-long-code .game-panel h2,
+  .game-screen[data-layout="right"].is-ma-long-code .game-panel h2 {
+    font-size: clamp(18px, 2.6vw, 26px);
+  }
+
+  .game-screen[data-layout="left"].is-ma-extra-long-code .game-panel h2,
+  .game-screen[data-layout="right"].is-ma-extra-long-code .game-panel h2 {
+    font-size: clamp(15px, 2.2vw, 22px);
+  }
+
+  .game-screen[data-layout="left"] .game-panel .reference-preview,
+  .game-screen[data-layout="right"] .game-panel .reference-preview {
+    aspect-ratio: auto;
+    width: 100%;
+    height: 88px;
+    min-height: 88px;
+  }
+
+  .game-screen[data-layout="left"] .game-panel .game-hud-sub,
+  .game-screen[data-layout="right"] .game-panel .game-hud-sub {
+    font-size: 10px;
+    margin: 0;
+  }
+
+  .game-screen[data-layout="left"] .game-panel .stat-box,
+  .game-screen[data-layout="right"] .game-panel .stat-box {
+    padding: 4px 6px;
+  }
+
+  .game-screen[data-layout="left"] .game-panel .stat-lbl,
+  .game-screen[data-layout="right"] .game-panel .stat-lbl {
+    font-size: 8px;
+  }
+
+  .game-screen[data-layout="left"] .game-panel .stat-box strong,
+  .game-screen[data-layout="right"] .game-panel .stat-box strong {
+    font-size: 15px;
+  }
+
+  .game-screen[data-layout="left"] .game-panel .game-toggle-row,
+  .game-screen[data-layout="right"] .game-panel .game-toggle-row {
+    min-height: 28px;
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .game-screen[data-layout="left"] .game-panel .legend-block,
+  .game-screen[data-layout="right"] .game-panel .legend-block {
+    font-size: 11px;
+    padding: 6px;
+    gap: 4px;
+  }
+
+  .game-screen[data-layout="left"] .game-panel .game-panel-actions .ghost-button,
+  .game-screen[data-layout="left"] .game-panel .game-panel-actions .primary-button,
+  .game-screen[data-layout="right"] .game-panel .game-panel-actions .ghost-button,
+  .game-screen[data-layout="right"] .game-panel .game-panel-actions .primary-button {
+    min-height: 30px;
+    font-size: 11px;
+  }
+
+  .game-screen[data-layout="left"] .game-panel .layout-btn,
+  .game-screen[data-layout="right"] .game-panel .layout-btn {
+    min-height: 22px;
+    font-size: 12px;
+  }
+
+  .game-screen[data-layout="left"] .sudden-death-badge,
+  .game-screen[data-layout="right"] .sudden-death-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 88px;
+    background: #10161a;
+    border: 1px solid #2f3942;
+    border-radius: 6px;
+  }
+}
+
+.sudden-death-badge {
+  display: none;
+}

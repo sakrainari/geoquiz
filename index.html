@@ -152,6 +152,12 @@
           <p class="eyebrow" id="modeLabel">市区町村モード</p>
           <h2 id="questionMain"></h2>
           <div id="referencePreview" class="reference-preview"></div>
+          <div id="suddenDeathBadge" class="sudden-death-badge is-hidden">
+            <svg viewBox="0 0 88 88" width="64" height="64" aria-hidden="true">
+              <circle cx="44" cy="44" r="38" fill="none" stroke="#e35d5d" stroke-width="6"/>
+              <line x1="18" y1="18" x2="70" y2="70" stroke="#e35d5d" stroke-width="6" stroke-linecap="round"/>
+            </svg>
+          </div>
           <p id="questionSub" class="game-hud-sub">をクリック</p>
           <div id="puzzleControls" class="puzzle-controls is-hidden">
             <label>
@@ -799,6 +805,28 @@
         syncBottomBar();
       });
     }
+  })();
+
+  ;(function () {
+    var badge = document.getElementById('suddenDeathBadge');
+    var preview = document.getElementById('referencePreview');
+    var toggle = document.getElementById('suddenDeathToggle');
+    if (!badge || !toggle) return;
+
+    function syncBadge() {
+      var isSudden = toggle.checked;
+      var layout = gameScreen ? gameScreen.dataset.layout : '';
+      var isSide = (layout === 'left' || layout === 'right');
+      var show = isSudden && isSide;
+      badge.classList.toggle('is-hidden', !show);
+      if (preview) preview.classList.toggle('is-hidden', show);
+    }
+
+    toggle.addEventListener('change', syncBadge);
+    document.querySelectorAll('.layout-btn').forEach(function (btn) {
+      btn.addEventListener('click', syncBadge);
+    });
+    setInterval(syncBadge, 500);
   })();
 
   setInterval(function () {
