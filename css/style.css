@@ -3624,7 +3624,8 @@ svg.leaflet-zoom-animated {
   .game-screen[data-layout="left"] .game-panel .stat-grid,
   .game-screen[data-layout="right"] .game-panel .stat-grid {
     grid-template-columns: 1fr;
-    gap: 2px;
+    gap: 1px;
+    margin-top: 0;
   }
 
   .game-screen[data-layout="left"] .game-panel .stat-box,
@@ -3632,7 +3633,7 @@ svg.leaflet-zoom-animated {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 3px 8px;
+    padding: 2px 8px;
     text-align: left;
   }
 
@@ -3649,14 +3650,27 @@ svg.leaflet-zoom-animated {
     line-height: 1;
   }
 
+  /* パネル全体のgapをさらに詰める */
+  .game-screen[data-layout="left"] .game-panel,
+  .game-screen[data-layout="right"] .game-panel {
+    gap: 4px;
+  }
+
+  /* ミニマップを少し高く */
+  .game-screen[data-layout="left"] .game-panel .reference-preview,
+  .game-screen[data-layout="right"] .game-panel .reference-preview {
+    height: 96px;
+    min-height: 96px;
+  }
+
   /* 凡例を横向き時に復活・1行横並び */
   .game-screen[data-layout="left"] .game-panel .legend-block,
   .game-screen[data-layout="right"] .game-panel .legend-block {
     display: flex !important;
     flex-direction: row;
     flex-wrap: wrap;
-    gap: 6px;
-    padding: 4px 2px;
+    gap: 4px;
+    padding: 2px 2px;
     font-size: 10px;
   }
 
