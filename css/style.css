@@ -1529,12 +1529,6 @@ h3 {
   }
 }
 
-/* バー位置：上・下ボタンは全環境で非表示（左・右のみ） */
-#layoutTopButton,
-#layoutBottomButton {
-  display: none !important;
-}
-
 /* スマホ縦向きでは左・右レイアウトボタンを非表示 */
 @media (max-width: 600px) and (orientation: portrait) {
   .layout-btn[data-layout="left"],
@@ -3711,6 +3705,12 @@ svg.leaflet-zoom-animated {
     background: #10161a;
     border: 1px solid #2f3942;
     border-radius: 6px;
+  }
+
+  /* バー位置：スマホ横向きでは上・下を非表示（左・右のみ） */
+  #layoutTopButton,
+  #layoutBottomButton {
+    display: none !important;
   }
 
   /* パネル下部ミニバー */
