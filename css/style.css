@@ -3620,6 +3620,52 @@ svg.leaflet-zoom-animated {
     font-size: 15px;
   }
 
+  /* Stats を4行縦並びに変更 */
+  .game-screen[data-layout="left"] .game-panel .stat-grid,
+  .game-screen[data-layout="right"] .game-panel .stat-grid {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .game-screen[data-layout="left"] .game-panel .stat-box,
+  .game-screen[data-layout="right"] .game-panel .stat-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 3px 8px;
+    text-align: left;
+  }
+
+  .game-screen[data-layout="left"] .game-panel .stat-lbl,
+  .game-screen[data-layout="right"] .game-panel .stat-lbl {
+    font-size: 9px;
+    display: inline;
+  }
+
+  .game-screen[data-layout="left"] .game-panel .stat-box strong,
+  .game-screen[data-layout="right"] .game-panel .stat-box strong {
+    font-size: 16px;
+    display: inline;
+    line-height: 1;
+  }
+
+  /* 凡例を横向き時に復活・1行横並び */
+  .game-screen[data-layout="left"] .game-panel .legend-block,
+  .game-screen[data-layout="right"] .game-panel .legend-block {
+    display: flex !important;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 4px 2px;
+    font-size: 10px;
+  }
+
+  /* パネルミニバーはautoではなく自然に下へ */
+  .game-screen[data-layout="left"] .game-panel .panel-mini-bar,
+  .game-screen[data-layout="right"] .game-panel .panel-mini-bar {
+    margin-top: 0;
+  }
+
   /* 横向き時に非表示にする要素 */
   .game-screen[data-layout="left"] .game-panel .game-hud-sub,
   .game-screen[data-layout="right"] .game-panel .game-hud-sub,
@@ -3627,8 +3673,6 @@ svg.leaflet-zoom-animated {
   .game-screen[data-layout="right"] .game-panel .game-panel-divider,
   .game-screen[data-layout="left"] .game-panel .game-toggle-row,
   .game-screen[data-layout="right"] .game-panel .game-toggle-row,
-  .game-screen[data-layout="left"] .game-panel .legend-block,
-  .game-screen[data-layout="right"] .game-panel .legend-block,
   .game-screen[data-layout="left"] .game-panel .game-panel-actions,
   .game-screen[data-layout="right"] .game-panel .game-panel-actions,
   .game-screen[data-layout="left"] .game-panel .layout-switcher,
