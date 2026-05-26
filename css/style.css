@@ -1467,6 +1467,16 @@ h3 {
   }
 }
 
+/* スマホ縦向きでは左・右レイアウトボタンを非表示 */
+@media (max-width: 600px) and (orientation: portrait) {
+  .layout-btn[data-layout="left"],
+  .layout-btn[data-layout="right"],
+  .start-option-btn[data-layout="left"],
+  .start-option-btn[data-layout="right"] {
+    display: none;
+  }
+}
+
 /* ── ゲーム画面 オーバーレイUI（旧スタイル・互換維持） ── */
 .game-hud-card {
   position: absolute;
