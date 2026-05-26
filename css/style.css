@@ -3674,11 +3674,6 @@ svg.leaflet-zoom-animated {
     font-size: 10px;
   }
 
-  /* パネルミニバーはautoではなく自然に下へ */
-  .game-screen[data-layout="left"] .game-panel .panel-mini-bar,
-  .game-screen[data-layout="right"] .game-panel .panel-mini-bar {
-    margin-top: 0;
-  }
 
   /* 横向き時に非表示にする要素 */
   .game-screen[data-layout="left"] .game-panel .game-hud-sub,
