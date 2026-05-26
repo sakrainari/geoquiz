@@ -811,9 +811,10 @@ h3 {
   color: var(--danger, #ff6b6b);
 }
 
-/* HUD分だけ問題テキストを下げる */
+/* overlay: 問題テキストを下部に表示（action-overlayの上） */
 [data-layout="overlay"] #questionOverlay {
-  top: 52px;
+  top: auto;
+  bottom: 72px;
 }
 
 #questionOverlay {
@@ -941,6 +942,35 @@ h3 {
     top: 8px;
     width: 90%;
   }
+
+  /* overlay モバイル: bottom 位置を調整 */
+  [data-layout="overlay"] #questionOverlay {
+    top: auto;
+    bottom: 60px;
+    width: 90%;
+  }
+}
+
+/* ── 上・下レイアウト：questionOverlay を表示 ── */
+[data-layout="top"] #questionOverlay,
+[data-layout="bottom"] #questionOverlay {
+  display: block;
+}
+
+[data-layout="top"] #questionOverlay {
+  top: 52px;
+  bottom: auto;
+}
+
+[data-layout="bottom"] #questionOverlay {
+  bottom: 52px;
+  top: auto;
+}
+
+/* 上・下レイアウト時は topbar の問題テキストを非表示 */
+[data-layout="top"] .game-topbar-question,
+[data-layout="bottom"] .game-topbar-question {
+  display: none;
 }
 
 /* ── サイドパネル ── */
