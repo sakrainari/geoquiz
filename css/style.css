@@ -1589,12 +1589,16 @@ h3 {
 
 .bottom-bar-legend {
   font-size: 10px;
-  line-height: 1.5;
+  line-height: 1.7;
+  display: flex;
+  align-items: center;
+  gap: 4px;
   color: rgba(255, 255, 255, 0.5);
 }
 
-.bottom-bar-legend.correct { color: #1d9e75; }
-.bottom-bar-legend.weak    { color: #e2a84a; }
+.bottom-bar-legend.unanswered { color: rgba(255, 255, 255, 0.35); }
+.bottom-bar-legend.correct    { color: #1d9e75; }
+.bottom-bar-legend.weak       { color: #e2a84a; }
 
 /* 上・下レイアウト時は actionOverlay を非表示 */
 [data-layout="top"] #actionOverlay,
