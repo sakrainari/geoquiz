@@ -1359,6 +1359,15 @@ h3 {
     font-size: 16px;
     margin: 0;
   }
+
+  .start-option-row-layout {
+    flex-wrap: nowrap;
+  }
+
+  .start-option-row-layout .start-option-btn {
+    min-width: 36px;
+    padding: 4px;
+  }
 }
 
 .countdown-overlay {
