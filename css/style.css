@@ -851,8 +851,8 @@ h3 {
 }
 
 .reference-preview-overlay {
-  width: 80px;
-  height: 80px;
+  width: 104px;
+  height: 104px;
   border-radius: 8px;
   overflow: hidden;
   flex-shrink: 0;
@@ -931,8 +931,8 @@ h3 {
   }
 
   .reference-preview-overlay {
-    width: 56px;
-    height: 56px;
+    width: 72px;
+    height: 72px;
   }
 
   .question-overlay-inner h2 {
