@@ -612,8 +612,12 @@
     triggerResize();
   }
 
-  var saved = localStorage.getItem(LAYOUT_KEY) || 'left';
-  applyLayout(saved);
+  function resolveInitialLayout() {
+    var saved = localStorage.getItem(LAYOUT_KEY);
+    if (saved) return saved;
+    return window.innerWidth <= 600 ? 'overlay' : 'left';
+  }
+  applyLayout(resolveInitialLayout());
 
   document.querySelectorAll('.layout-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {

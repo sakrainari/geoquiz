@@ -1333,6 +1333,13 @@ h3 {
   display: none;
 }
 
+/* スマホの準備画面では game-panel 内の layout-switcher のみ表示 */
+@media (max-width: 600px) {
+  .game-screen.is-prep-mode .game-panel .layout-switcher {
+    display: flex;
+  }
+}
+
 /* ── ゲーム画面 オーバーレイUI（旧スタイル・互換維持） ── */
 .game-hud-card {
   position: absolute;
