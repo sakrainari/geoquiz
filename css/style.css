@@ -1089,6 +1089,16 @@ h3 {
   letter-spacing: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
+  max-width: 45vw;
+}
+@media (max-width: 600px) {
+  .game-topbar-question {
+    min-width: 0;
+  }
+  .game-topbar-question h2 {
+    max-width: 35vw;
+    font-size: 1.1rem;
+  }
 }
 .game-panel h2 {
   margin: 0;
