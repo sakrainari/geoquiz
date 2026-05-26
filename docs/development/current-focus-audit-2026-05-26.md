@@ -79,7 +79,7 @@
 
 - `README.md` に `全国モード（japan_all）のパフォーマンス改善` とある
 - `CHANGELOG.md` に `japan_all`, `preferCanvas`, `forceLiteMode` の記述がある
-- `docs/vectorgrid-migration-plan.md` は `japan_all` を前提にかなり具体的
+- `docs/archive/planning/vectorgrid-migration-plan.md` は `japan_all` を前提にかなり具体的
 - `tools/build-japan-all-data.mjs` も存在する
 - しかし現行の `data/catalog.js` には `japan_all` が存在しない
 
@@ -377,7 +377,7 @@ PC / タブレット UI の調整準備をする。
 
 - `README.md`
 - `CHANGELOG.md`
-- `docs/vectorgrid-migration-plan.md`
+- `docs/archive/planning/vectorgrid-migration-plan.md`
 - `docs/overview-now-next-2026-05-26.html`
 
 ### 優先 4
