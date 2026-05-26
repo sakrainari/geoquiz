@@ -1551,7 +1551,7 @@ h3 {
 }
 
 .bottom-bar-btn {
-  background: transparent;
+  background: transparent !important;
   border: none;
   color: rgba(255, 255, 255, 0.5);
   font-size: 14px;
@@ -1562,17 +1562,11 @@ h3 {
 }
 
 .bottom-bar-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
   color: #fff;
 }
 
 .bottom-bar-btn.is-active {
-  background: transparent;
   color: #fff;
-}
-
-.bottom-bar-btn:not(.is-active) {
-  color: rgba(255, 255, 255, 0.5);
 }
 
 .bottom-bar-right {
