@@ -959,7 +959,7 @@ h3 {
 }
 
 [data-layout="top"] #questionOverlay {
-  top: 52px;
+  top: 8px;
   bottom: auto;
   left: 50%;
   transform: translateX(-50%);
