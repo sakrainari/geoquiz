@@ -114,6 +114,10 @@ window.GEOQUIZ_DATASETS = [
     defaultMode: "municipality",
     enabledModes: ["municipality", "ma", "puzzle", "confirm", "confirm_ma"],
     center: [35.96, 139.35],
+    initialView: {
+      center: [35.96, 139.35],
+      zoom: 9
+    },
     version: "0.2.0"
   },
   {
