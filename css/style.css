@@ -3561,6 +3561,10 @@ svg.leaflet-zoom-animated {
   align-items: center;
   justify-content: center;
   width: 100%;
+  background: #10161a;
+  border: 1px solid #2f3942;
+  border-radius: 6px;
+  padding: 12px 0;
 }
 
 /* prep-mode中：is-sudden-deathクラスがあればレイアウト問わず表示 */
@@ -3569,6 +3573,10 @@ svg.leaflet-zoom-animated {
   align-items: center;
   justify-content: center;
   width: 100%;
+  background: #10161a;
+  border: 1px solid #2f3942;
+  border-radius: 6px;
+  padding: 12px 0;
 }
 
 @media (orientation: landscape) and (max-height: 460px) and (max-width: 950px) {
