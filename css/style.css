@@ -979,9 +979,9 @@ h3 {
 /* ── サイドパネル ── */
 .game-panel {
   display: none; /* レイアウトルールで flex に切り替え */
-  width: 260px;
-  min-width: 260px;
-  max-width: 260px;
+  width: 300px;
+  min-width: 300px;
+  max-width: 300px;
   flex-shrink: 0;
   height: 100%;
   background: var(--panel);
