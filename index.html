@@ -898,6 +898,12 @@
       btn.addEventListener('click', syncBadge);
     });
     setInterval(syncBadge, 300);
+    /* prep画面のルール選択ボタン（サドンデス）でもバッジを同期 */
+    document.querySelectorAll('[data-start-mode], #ruleSuddenDeathButton, #ruleEasyButton, #ruleNormalButton').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        setTimeout(syncBadge, 50);
+      });
+    });
   })();
 
   setInterval(function () {

@@ -1518,7 +1518,9 @@ h3 {
 .game-screen.is-prep-mode .game-topbar-actions,
 .game-screen.is-prep-mode .game-topbar-toggles,
 .game-screen.is-prep-mode .game-topbar .layout-switcher,
-.game-screen.is-prep-mode .top-overlay-bottom {
+.game-screen.is-prep-mode .top-overlay-bottom,
+.game-screen.is-prep-mode .game-panel .game-hud-sub,
+.game-screen.is-prep-mode .game-panel .game-panel-divider {
   display: none;
 }
 
