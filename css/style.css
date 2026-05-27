@@ -3750,3 +3750,105 @@ svg.leaflet-zoom-animated {
 .panel-mini-bar-btn.is-active {
   color: #fff;
 }
+
+
+/* ═══════════════════════════════════════════════════
+   スマホ横向き：prepパネルの上・下バーボタンを非表示
+   （PC・スマホ縦に影響なし）
+   ═══════════════════════════════════════════════════ */
+@media (orientation: landscape) and (max-height: 520px) {
+  #layoutTopButton,
+  #layoutBottomButton {
+    display: none !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   スマホ横向き：Game Over / Clear カードを画面内に収める
+   対象：Pixel 8（高さ412px）・iPhone 14 Pro Max（高さ430px）
+   PC・スマホ縦に影響なし
+   ═══════════════════════════════════════════════════ */
+@media (orientation: landscape) and (max-height: 520px) {
+
+  /* オーバーレイ：余白を詰める・スクロール保険 */
+  .end-overlay {
+    padding: 10px 16px;
+    overflow-y: auto;
+    align-items: flex-start;
+  }
+
+  /* カード全体 */
+  .end-card {
+    width: min(680px, calc(100% - 24px));
+    padding: 12px 16px;
+    gap: 8px;
+    margin: auto;
+  }
+
+  /* eyebrow（モード名ラベル） */
+  .end-card .eyebrow {
+    font-size: 10px;
+    margin-bottom: 0;
+  }
+
+  /* タイトル（Clear / Game Over） */
+  .end-card h3 {
+    font-size: 36px;
+    line-height: 1;
+    margin: 0;
+  }
+
+  /* 説明文：横向きでは非表示 */
+  .end-copy {
+    display: none;
+  }
+
+  /* 統計グリッド：4枚横並びを維持・高さ圧縮 */
+  .end-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .end-stat-card {
+    min-height: unset;
+    padding: 8px 10px;
+    gap: 2px;
+  }
+
+  .end-stat-card span {
+    font-size: 10px;
+  }
+
+  .end-stat-card strong {
+    font-size: 20px;
+    line-height: 1.1;
+  }
+
+  /* タイムカード（横幅いっぱいの wide カード） */
+  .end-stat-card-wide {
+    grid-column: span 4;
+    min-height: unset;
+    padding: 8px 10px;
+  }
+
+  /* ボタン群 */
+  .end-actions {
+    gap: 6px;
+  }
+
+  .end-primary-action {
+    min-height: 40px;
+    font-size: 15px;
+  }
+
+  .end-secondary-actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .end-secondary-actions .ghost-button {
+    min-height: 34px;
+    font-size: 13px;
+    padding: 0 8px;
+  }
+}
