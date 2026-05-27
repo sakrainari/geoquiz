@@ -3883,3 +3883,11 @@ svg.leaflet-zoom-animated {
     padding: 0 8px;
   }
 }
+
+/* ═══════════════════════════════════════════════════
+   overlayレイアウトボタンを非表示（現在未使用）
+   ═══════════════════════════════════════════════════ */
+.layout-btn[data-layout="overlay"],
+.action-overlay-btn.layout-btn[data-layout="overlay"] {
+  display: none !important;
+}
