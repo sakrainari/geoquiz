@@ -886,7 +886,9 @@
       var isSudden = toggle.checked;
       var layout   = gameScreen ? gameScreen.dataset.layout : '';
       var isSide   = (layout === 'left' || layout === 'right');
-      var show     = isSudden && isSide;
+      var isPrep   = gameScreen ? gameScreen.classList.contains('is-prep-mode') : false;
+      /* prep-mode中はレイアウト問わずサドンデスならバッジ表示 */
+      var show     = isSudden && (isSide || isPrep);
       badge.classList.toggle('is-hidden', !show);
       if (preview) preview.classList.toggle('is-hidden', show);
       /* gameScreenにサドンデス状態クラスを付与 */
