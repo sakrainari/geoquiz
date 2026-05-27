@@ -3554,6 +3554,23 @@ svg.leaflet-zoom-animated {
   display: none;
 }
 
+/* 左・右レイアウト時：is-hiddenでなければ表示（全デバイス共通） */
+.game-screen[data-layout="left"] .sudden-death-badge:not(.is-hidden),
+.game-screen[data-layout="right"] .sudden-death-badge:not(.is-hidden) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+/* prep-mode中：is-sudden-deathクラスがあればレイアウト問わず表示 */
+.game-screen.is-prep-mode.is-sudden-death .sudden-death-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
 @media (orientation: landscape) and (max-height: 460px) and (max-width: 950px) {
 
   /* パネルサイズ */
