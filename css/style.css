@@ -828,6 +828,12 @@ h3 {
   white-space: nowrap;
 }
 
+/* 上・下バーレイアウト時はquestionOverlayを非表示 */
+[data-layout="top"] #questionOverlay,
+[data-layout="bottom"] #questionOverlay {
+  display: none !important;
+}
+
 .question-overlay-inner {
   display: flex;
   align-items: center;
@@ -972,10 +978,10 @@ h3 {
   top: auto;
 }
 
-/* 上・下レイアウト時は topbar の問題テキストを非表示 */
+/* 上・下レイアウト時は topbar の問題テキストを表示 */
 [data-layout="top"] .game-topbar-question,
 [data-layout="bottom"] .game-topbar-question {
-  display: none;
+  display: flex;
 }
 
 /* ── サイドパネル ── */
