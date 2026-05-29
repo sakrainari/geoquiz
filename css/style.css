@@ -832,9 +832,11 @@ h3 {
   display: flex;
   align-items: center;
   gap: 16px;
-  background: transparent;
-  border: none;
-  padding: 8px 24px;
+  background: rgba(23, 29, 34, 0.94);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 20px;
+  backdrop-filter: blur(4px);
 }
 
 .question-overlay-inner h2 {
