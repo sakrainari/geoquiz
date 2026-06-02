@@ -711,7 +711,7 @@
     ensureMap().reset();
     applyTileLayerSelection(currentSessionSettings.tileLayerVisible);
     renderer.setMode(mode);
-    renderer.setEasyMode(currentSessionSettings.rule === "easy" && ["municipality", "ma"].includes(mode));
+    renderer.setEasyMode(currentSessionSettings.rule === "easy" && ["municipality", "municipality_th", "ma"].includes(mode));
     lastReferenceKey = null;
     inputLocked = true;
     engine.reset(mode, currentSessionSettings.rule, startOptions);
