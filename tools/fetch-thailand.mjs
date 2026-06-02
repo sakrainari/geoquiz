@@ -37,6 +37,24 @@ function provinceNameToId(name) {
     .replace(/[^a-z0-9_]/g, '');
 }
 
+// ─── タイ語名の正規化 ─────────────────────────────────────────────
+// Natural Earth の name_local は一部誤りがあるため手動で補正する。
+// また "จังหวัด"（県）・"อำเภอเมือง"（市）プレフィックスを除去する。
+const NAME_TH_OVERRIDES = {
+  'Bangkok Metropolis': 'กรุงเทพมหานคร', // name_local が Chiang Mai を誤指定
+  'Bueng Kan':          'บึงกาฬ',        // name_local が Nong Khai を誤指定（name_alt が正しい）
+  'Chaiyaphum':         'ชัยภูมิ',       // name_local が Chai Nat を誤指定
+};
+
+function normalizeNameTh(englishName, rawNameTh) {
+  if (NAME_TH_OVERRIDES[englishName]) return NAME_TH_OVERRIDES[englishName];
+  if (!rawNameTh) return null;
+  return rawNameTh
+    .replace(/^จังหวัด/, '')    // 「県」プレフィックスを除去
+    .replace(/^อำเภอเมือง/, '') // 「市」プレフィックスを除去
+    .trim() || null;
+}
+
 // ─── メイン処理 ──────────────────────────────────────────────────
 async function main() {
   const URL =
@@ -93,6 +111,8 @@ async function main() {
   for (const province of thProvinces) {
     const name = province.properties.name;
     const id = provinceNameToId(name);
+    const nameTh = normalizeNameTh(name, province.properties.name_local || null);
+    const nameJa = province.properties.name_ja || null;
 
     // turf.simplify でジオメトリを軽量化
     let simplified;
@@ -118,6 +138,7 @@ async function main() {
       properties: {
         id,
         name,
+        ...(nameTh ? { name_th: nameTh } : {}),
         area_code: null,
         tags: [],
         labelPoint: lp
@@ -125,8 +146,13 @@ async function main() {
       geometry: simplified.geometry
     });
 
-    municipalities.push({ id, name });
-    process.stdout.write(`  ✅ ${name}\n`);
+    municipalities.push({
+      id,
+      name,
+      ...(nameTh ? { name_th: nameTh } : {}),
+      ...(nameJa ? { name_ja: nameJa } : {})
+    });
+    process.stdout.write(`  ✅ ${name}${nameTh ? ` (${nameTh})` : ''}\n`);
   }
 
   console.log(`\n📦 ${features.length} 県のデータを生成しました`);

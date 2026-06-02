@@ -72,6 +72,30 @@
         return question.memberIds;
       }
     },
+    municipality_th: {
+      id: "municipality_th",
+      label: "タイ語名モード",
+      buildQuestions(answers) {
+        return answers
+          .filter((item) => item.name_th)
+          .map((item) => ({
+            id: item.id,
+            answerId: item.id,
+            answerLabel: item.name_th,
+            nameEn: item.name,
+            memberIds: [item.id]
+          }));
+      },
+      questionText(question) {
+        return question.answerLabel;
+      },
+      isCorrect(question, featureProperties) {
+        return featureProperties.id === question.answerId;
+      },
+      correctMemberIds(question) {
+        return question.memberIds;
+      }
+    },
     confirm: {
       id: "confirm",
       label: "確認マップ",

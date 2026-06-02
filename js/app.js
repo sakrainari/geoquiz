@@ -1819,6 +1819,11 @@
     if (confirmAreaCodeButton) {
       confirmAreaCodeButton.textContent = `全${areaCodeCount}市外局番エリアを表示して確認`;
     }
+    const muniThButton = document.querySelector('[data-start-mode="municipality_th"] .mode-card-desc');
+    if (muniThButton) {
+      const thCount = dataset.municipalities.filter((m) => m.name_th).length;
+      if (thCount > 0) muniThButton.textContent = `タイ語名で県を当てる · ${thCount}問`;
+    }
   }
 
   function applyAvailableModes() {
