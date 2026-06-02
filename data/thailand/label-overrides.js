@@ -1,0 +1,1 @@
+window.THAILAND_LABEL_OVERRIDES = {};

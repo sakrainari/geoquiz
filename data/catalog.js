@@ -126,6 +126,32 @@ window.GEOQUIZ_DATASETS = [
     version: "0.1.0"
   },
   {
+    id: "thailand",
+    name: "タイ",
+    shortName: "Thailand",
+    title: "GeoQuiz",
+    subtitle: "Thailand Province Quiz",
+    description: "タイ77県の位置を覚えるトレーニングツール。",
+    dataGlobal: "THAILAND_MUNICIPALITIES",
+    labelOverridesGlobal: "THAILAND_LABEL_OVERRIDES",
+    speechReadingsGlobal: "THAILAND_SPEECH_READINGS",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [13.0, 101.0],
+    initialView: { center: [13.0, 101.0], zoom: 6 },
+    mapMinZoom: 4,
+    mapMaxZoom: 11,
+    regionLabel: "Province",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "県",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  },
+  {
     id: "philippines",
     name: "フィリピン",
     shortName: "Philippines",

@@ -1,0 +1,1 @@
+window.THAILAND_SPEECH_READINGS = {};
