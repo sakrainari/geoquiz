@@ -13,7 +13,7 @@ window.NIGERIA_SPEECH_READINGS = {
   "nigeria_edo":                        "エド",
   "nigeria_ekiti":                      "エキティ",
   "nigeria_enugu":                      "エヌグ",
-  "nigeria_federal_capital_territory":  "FCTアブジャ",
+  "nigeria_federal_capital_territory":  "FCT アブジャ",
   "nigeria_gombe":                      "ゴンベ",
   "nigeria_imo":                        "イモ",
   "nigeria_jigawa":                     "ジガワ",

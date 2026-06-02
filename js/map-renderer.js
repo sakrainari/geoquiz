@@ -73,10 +73,11 @@
       this._canvasMain = this.preferCanvas ? L.canvas({ pane: "mainPane" }) : null;
       this._canvasMa   = this.preferCanvas ? L.canvas({ pane: "mainPane" }) : null;
       this._canvasGhost = this.preferCanvas ? L.canvas({ pane: "ghostPane" }) : null;
-      // OSM tile layer — requires internet connection; disabled by default
+      // CartoDB Positron tile layer — requires internet connection; disabled by default
       this.tileLayerVisible = false;
-      this.tileLayer = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      this.tileLayer = L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
         opacity: 0.35,
         maxZoom: 19
       });

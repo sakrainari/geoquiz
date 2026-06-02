@@ -120,7 +120,7 @@ window.GEOQUIZ_DATASETS = [
       easyMunicipalityNameSuffixes: [""]
     },
     i18n: {
-      municipality: { ja: "州", en: "State" },
+      municipality: "州",
       areaCode: "Area Code"
     },
     version: "0.1.0"
