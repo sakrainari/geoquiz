@@ -23,7 +23,7 @@
   let puzzleState = null;
   let previousPuzzleFixed = 0;
   let audioContext = null;
-  const QUIZ_START_MODES = ["municipality", "ma", "municipality_th"];
+  const QUIZ_START_MODES = ["municipality", "ma", "municipality_th", "municipality_th_abbr"];
   const DEFAULT_QUIZ_MODE = appConfig.enabledModes.includes("municipality")
     ? "municipality"
     : (QUIZ_START_MODES.find((mode) => appConfig.enabledModes.includes(mode)) || "municipality");
@@ -711,7 +711,7 @@
     ensureMap().reset();
     applyTileLayerSelection(currentSessionSettings.tileLayerVisible);
     renderer.setMode(mode);
-    renderer.setEasyMode(currentSessionSettings.rule === "easy" && ["municipality", "municipality_th", "ma"].includes(mode));
+    renderer.setEasyMode(currentSessionSettings.rule === "easy" && ["municipality", "municipality_th", "municipality_th_abbr", "ma"].includes(mode));
     lastReferenceKey = null;
     inputLocked = true;
     engine.reset(mode, currentSessionSettings.rule, startOptions);
@@ -1823,6 +1823,11 @@
     if (muniThButton) {
       const thCount = dataset.municipalities.filter((m) => m.name_th).length;
       if (thCount > 0) muniThButton.textContent = `タイ語名で県を当てる · ${thCount}問`;
+    }
+    const muniThAbbrButton = document.querySelector('[data-start-mode="municipality_th_abbr"] .mode-card-desc');
+    if (muniThAbbrButton) {
+      const abbrCount = dataset.municipalities.filter((m) => m.name_abbr_th).length;
+      if (abbrCount > 0) muniThAbbrButton.textContent = `タイ語略称で県を当てる · ${abbrCount}問`;
     }
   }
 

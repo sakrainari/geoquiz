@@ -136,7 +136,7 @@ window.GEOQUIZ_DATASETS = [
     labelOverridesGlobal: "THAILAND_LABEL_OVERRIDES",
     speechReadingsGlobal: "THAILAND_SPEECH_READINGS",
     defaultMode: "municipality",
-    enabledModes: ["municipality", "municipality_th", "confirm"],
+    enabledModes: ["municipality", "municipality_th", "municipality_th_abbr", "confirm"],
     center: [13.0, 101.0],
     initialView: { center: [13.0, 101.0], zoom: 6 },
     mapMinZoom: 4,
@@ -148,6 +148,7 @@ window.GEOQUIZ_DATASETS = [
     i18n: {
       municipality: "県",
       municipality_th: "タイ語",
+      municipality_th_abbr: "タイ語略称",
       areaCode: "Area Code"
     },
     version: "0.1.0"

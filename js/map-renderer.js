@@ -543,7 +543,7 @@
     municipalityLabelDisplayMode() {
       if (this.mode === "ma") return "subtle";
       if (!this.easyMode) return "answered";
-      if (this.mode === "municipality" || this.mode === "municipality_th") return "all";
+      if (this.mode === "municipality" || this.mode === "municipality_th" || this.mode === "municipality_th_abbr") return "all";
       return "answered";
     }
 

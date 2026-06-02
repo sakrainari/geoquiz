@@ -96,6 +96,31 @@
         return question.memberIds;
       }
     },
+    municipality_th_abbr: {
+      id: "municipality_th_abbr",
+      label: "タイ語略称モード",
+      buildQuestions(answers) {
+        return answers
+          .filter((item) => item.name_abbr_th)
+          .map((item) => ({
+            id: item.id,
+            answerId: item.id,
+            answerLabel: item.name_abbr_th,
+            nameEn: item.name,
+            nameTh: item.name_th,
+            memberIds: [item.id]
+          }));
+      },
+      questionText(question) {
+        return question.answerLabel;
+      },
+      isCorrect(question, featureProperties) {
+        return featureProperties.id === question.answerId;
+      },
+      correctMemberIds(question) {
+        return question.memberIds;
+      }
+    },
     confirm: {
       id: "confirm",
       label: "確認マップ",
