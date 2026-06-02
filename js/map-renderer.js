@@ -742,7 +742,8 @@
       const selected = this.labelEditSelectedId === id;
       const subtle = labelDisplayMode === "subtle";
       const pendingEasy = labelDisplayMode === "all" && !this.answeredIds.has(id);
-      const html = `<div class="answered-label municipality-label${subtle ? " is-subtle" : ""}${pendingEasy ? " is-pending-easy" : ""}${selected ? " is-selected" : ""}" style="font-size:${labelSize}px; transform: translate(-50%, -50%) rotate(${label.angle}deg);">${props.name}</div>`;
+      const labelText = (this.mode === "municipality_th" && props.name_th) ? props.name_th : props.name;
+      const html = `<div class="answered-label municipality-label${subtle ? " is-subtle" : ""}${pendingEasy ? " is-pending-easy" : ""}${selected ? " is-selected" : ""}" style="font-size:${labelSize}px; transform: translate(-50%, -50%) rotate(${label.angle}deg);">${labelText}</div>`;
       const markers = points.map((point) => {
         const marker = L.marker(point, {
           pane: "labelPane",
