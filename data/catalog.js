@@ -100,6 +100,32 @@ window.GEOQUIZ_DATASETS = [
     version: "0.1.0"
   },
   {
+    id: "nigeria",
+    name: "ナイジェリア",
+    shortName: "Nigeria",
+    title: "GeoQuiz",
+    subtitle: "Nigeria States Quiz",
+    description: "ナイジェリア36州 + FCTの位置を覚えるトレーニングツール。",
+    dataGlobal: "NIGERIA_MUNICIPALITIES",
+    labelOverridesGlobal: "NIGERIA_LABEL_OVERRIDES",
+    speechReadingsGlobal: "NIGERIA_SPEECH_READINGS",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [9.0, 8.0],
+    initialView: { center: [9.0, 8.0], zoom: 6 },
+    mapMinZoom: 4,
+    mapMaxZoom: 10,
+    regionLabel: "State",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: { ja: "州", en: "State" },
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  },
+  {
     id: "saitama",
     name: "埼玉県",
     shortName: "埼玉",
