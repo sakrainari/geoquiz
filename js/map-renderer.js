@@ -543,7 +543,7 @@
     municipalityLabelDisplayMode() {
       if (this.mode === "ma") return "subtle";
       if (!this.easyMode) return "answered";
-      if (this.mode === "municipality") return "all";
+      if (this.mode === "municipality" || this.mode === "municipality_th") return "all";
       return "answered";
     }
 
@@ -742,7 +742,7 @@
       const selected = this.labelEditSelectedId === id;
       const subtle = labelDisplayMode === "subtle";
       const pendingEasy = labelDisplayMode === "all" && !this.answeredIds.has(id);
-      const labelText = (this.mode === "municipality_th" && props.name_th) ? props.name_th : props.name;
+      const labelText = props.name;
       const html = `<div class="answered-label municipality-label${subtle ? " is-subtle" : ""}${pendingEasy ? " is-pending-easy" : ""}${selected ? " is-selected" : ""}" style="font-size:${labelSize}px; transform: translate(-50%, -50%) rotate(${label.angle}deg);">${labelText}</div>`;
       const markers = points.map((point) => {
         const marker = L.marker(point, {
