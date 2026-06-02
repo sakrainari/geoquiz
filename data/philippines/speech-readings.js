@@ -1,0 +1,1 @@
+window.PHILIPPINES_SPEECH_READINGS = {};

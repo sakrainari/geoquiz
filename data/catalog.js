@@ -126,6 +126,32 @@ window.GEOQUIZ_DATASETS = [
     version: "0.1.0"
   },
   {
+    id: "philippines",
+    name: "フィリピン",
+    shortName: "Philippines",
+    title: "GeoQuiz",
+    subtitle: "Philippines Province Quiz",
+    description: "フィリピンの州・独立市の位置を覚えるトレーニングツール。",
+    dataGlobal: "PHILIPPINES_MUNICIPALITIES",
+    labelOverridesGlobal: "PHILIPPINES_LABEL_OVERRIDES",
+    speechReadingsGlobal: "PHILIPPINES_SPEECH_READINGS",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [12.5, 122.0],
+    initialView: { center: [12.5, 122.0], zoom: 6 },
+    mapMinZoom: 4,
+    mapMaxZoom: 11,
+    regionLabel: "Province",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "州",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  },
+  {
     id: "saitama",
     name: "埼玉県",
     shortName: "埼玉",
