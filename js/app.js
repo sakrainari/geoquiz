@@ -1805,15 +1805,16 @@
     const areaCodeButton = document.querySelector('[data-start-mode="ma"] .mode-card-desc');
     const confirmButton = document.querySelector('[data-start-mode="confirm"] .mode-card-desc');
     const confirmAreaCodeButton = document.querySelector('[data-start-mode="confirm_ma"] .mode-card-desc');
+    const muniLabel = getI18n(appConfig, "municipality", "市区町村");
     const areaCodeCount = new Set(dataset.municipalities.map((item) => item.area_code).filter(Boolean)).size;
     if (municipalityButton) {
-      municipalityButton.textContent = `市町村名から場所を当てる · ${dataset.municipalities.length}問`;
+      municipalityButton.textContent = `${muniLabel}名から場所を当てる · ${dataset.municipalities.length}問`;
     }
     if (areaCodeButton) {
       areaCodeButton.textContent = `番号からエリアを当てる · ${areaCodeCount}問`;
     }
     if (confirmButton) {
-      confirmButton.textContent = `全${dataset.municipalities.length}市区町村を表示して確認`;
+      confirmButton.textContent = `全${dataset.municipalities.length}${muniLabel}を表示して確認`;
     }
     if (confirmAreaCodeButton) {
       confirmAreaCodeButton.textContent = `全${areaCodeCount}市外局番エリアを表示して確認`;
@@ -1821,11 +1822,15 @@
   }
 
   function applyAvailableModes() {
-    document.querySelectorAll("[data-start-mode]").forEach((button) => {
+    document.querySelectorAll(".mode-card[data-start-mode]").forEach((button) => {
       const mode = button.dataset.startMode;
       const enabled = appConfig.enabledModes.includes(mode);
-      button.disabled = !enabled;
-      button.classList.toggle("is-disabled", !enabled);
+      button.classList.toggle("is-hidden", !enabled);
+      button.setAttribute("aria-hidden", String(!enabled));
+      if (enabled) {
+        button.disabled = false;
+        button.classList.remove("is-disabled");
+      }
     });
   }
 
