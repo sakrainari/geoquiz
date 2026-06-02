@@ -147,6 +147,7 @@ window.GEOQUIZ_DATASETS = [
     },
     i18n: {
       municipality: "県",
+      municipality_th: "タイ語",
       areaCode: "Area Code"
     },
     version: "0.1.0"
