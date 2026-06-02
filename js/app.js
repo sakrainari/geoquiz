@@ -23,7 +23,7 @@
   let puzzleState = null;
   let previousPuzzleFixed = 0;
   let audioContext = null;
-  const QUIZ_START_MODES = ["municipality", "ma"];
+  const QUIZ_START_MODES = ["municipality", "ma", "municipality_th"];
   const DEFAULT_QUIZ_MODE = appConfig.enabledModes.includes("municipality")
     ? "municipality"
     : (QUIZ_START_MODES.find((mode) => appConfig.enabledModes.includes(mode)) || "municipality");
