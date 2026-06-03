@@ -1615,7 +1615,7 @@
     if (!els.mistakeSpeechToggle.checked || !("speechSynthesis" in window)) return;
     const label = currentMode === "ma"
       ? pronounceAreaCode(featureProperties.area_code)
-      : pronouncePlaceName(featureProperties.name);
+      : pronouncePlaceName(featureProperties);
     if (!label) return;
 
     window.speechSynthesis.cancel();
@@ -1641,9 +1641,11 @@
       .join(" ");
   }
 
-  function pronouncePlaceName(name) {
-    const raw = String(name || "");
-    return speechReadings[raw] || raw;
+  function pronouncePlaceName(properties) {
+    const props = properties || {};
+    const id = String(props.id || "");
+    const raw = String(props.name || "");
+    return speechReadings[id] || speechReadings[raw] || raw;
   }
 
   function ruleName(rule) {

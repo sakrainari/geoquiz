@@ -38,7 +38,7 @@ function stateNameToId(name) {
 // ─── メイン処理 ──────────────────────────────────────────────────
 async function main() {
   const URL =
-    'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_1_states_provinces.geojson';
+    'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_1_states_provinces.geojson';
 
   console.log('🌐 GeoJSON を取得中...');
   console.log('   ' + URL);
@@ -72,7 +72,7 @@ async function main() {
   usStates.sort((a, b) => a.properties.name.localeCompare(b.properties.name));
 
   // ─── 各州を変換 ───────────────────────────────────────────────
-  console.log('\n🔧 ジオメトリを簡略化中 (tolerance=0.1)...');
+  console.log('\n🔧 ジオメトリを簡略化中 (tolerance=0.02)...');
   const features = [];
   const municipalities = [];
 
@@ -83,7 +83,7 @@ async function main() {
     // turf.simplify でジオメトリを軽量化
     let simplified;
     try {
-      simplified = turf.simplify(state, { tolerance: 0.1, highQuality: false });
+      simplified = turf.simplify(state, { tolerance: 0.02, highQuality: false });
     } catch (e) {
       console.warn(`  ⚠️  simplify失敗 [${name}]: ${e.message} → 元データを使用`);
       simplified = state;
