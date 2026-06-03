@@ -1,0 +1,541 @@
+[
+  {
+    "name": "Amnat Charoen",
+    "name_local": "จังหวัดอำนาจเจริญ",
+    "name_ja": "アムナートチャルーン県",
+    "name_en": "Amnat Charoen",
+    "name_alt": null
+  },
+  {
+    "name": "Ang Thong",
+    "name_local": "จังหวัดอ่างทอง",
+    "name_ja": "アーントーン県",
+    "name_en": "Ang Thong",
+    "name_alt": null
+  },
+  {
+    "name": "Bangkok Metropolis",
+    "name_local": "จังหวัดเชียงใหม่",
+    "name_ja": "バンコク",
+    "name_en": "Bangkok",
+    "name_alt": "Bangkok|Krung Thep|Krung Thep Maha Nakhon|Phra Nakhon-Thonburi"
+  },
+  {
+    "name": "Bueng Kan",
+    "name_local": "จังหวัดหนองคาย",
+    "name_ja": "ブンカーン県",
+    "name_en": "Bueng Kan",
+    "name_alt": "บึงกาฬ"
+  },
+  {
+    "name": "Buri Ram",
+    "name_local": "จังหวัดบุรีรัมย์",
+    "name_ja": "ブリーラム県",
+    "name_en": "Buri Ram",
+    "name_alt": "Buri Rum"
+  },
+  {
+    "name": "Chachoengsao",
+    "name_local": "จังหวัดฉะเชิงเทรา",
+    "name_ja": "チャチューンサオ県",
+    "name_en": "Chachoengsao",
+    "name_alt": "Chaxerngsao|Pad Rew|Paed Riu|Petrieu|Shajeun Dhrao"
+  },
+  {
+    "name": "Chai Nat",
+    "name_local": "จังหวัดชัยนาท",
+    "name_ja": "チャイナート県",
+    "name_en": "Chai Nat",
+    "name_alt": "Chainat"
+  },
+  {
+    "name": "Chaiyaphum",
+    "name_local": "จังหวัดชัยนาท",
+    "name_ja": "チャイヤプーム県",
+    "name_en": "Chaiyaphum",
+    "name_alt": null
+  },
+  {
+    "name": "Chanthaburi",
+    "name_local": "จันทบุรี",
+    "name_ja": "チャンタブリー県",
+    "name_en": "Chanthaburi",
+    "name_alt": "Chantaburi|Muang Chan"
+  },
+  {
+    "name": "Chiang Mai",
+    "name_local": "จังหวัดเชียงใหม่",
+    "name_ja": "チエンマイ県",
+    "name_en": "Chiang Mai",
+    "name_alt": null
+  },
+  {
+    "name": "Chiang Rai",
+    "name_local": "จังหวัดเชียงราย",
+    "name_ja": "チエンラーイ県",
+    "name_en": "Chiang Rai",
+    "name_alt": null
+  },
+  {
+    "name": "Chon Buri",
+    "name_local": "จังหวัดชลบุรี",
+    "name_ja": "チョンブリー県",
+    "name_en": "Chon Buri",
+    "name_alt": null
+  },
+  {
+    "name": "Chumphon",
+    "name_local": "จังหวัดชุมพร",
+    "name_ja": "チュムポーン県",
+    "name_en": "Chumphon",
+    "name_alt": null
+  },
+  {
+    "name": "Kalasin",
+    "name_local": "จังหวัดกาฬสินธุ์",
+    "name_ja": "カーラシン県",
+    "name_en": "Kalasin",
+    "name_alt": null
+  },
+  {
+    "name": "Kamphaeng Phet",
+    "name_local": "จังหวัดกำแพงเพชร",
+    "name_ja": "カムペーンペット県",
+    "name_en": "Kamphaeng Phet",
+    "name_alt": "Gampheang Phet|Kambhengbhej"
+  },
+  {
+    "name": "Kanchanaburi",
+    "name_local": "อำเภอเมืองกาญจนบุรี",
+    "name_ja": "カーンチャナブリー県",
+    "name_en": "Kanchanaburi",
+    "name_alt": "Kan Buri|Park Prag"
+  },
+  {
+    "name": "Khon Kaen",
+    "name_local": "จังหวัดขอนแก่น",
+    "name_ja": "コーンケン県",
+    "name_en": "Khon Kaen",
+    "name_alt": null
+  },
+  {
+    "name": "Krabi",
+    "name_local": "จังหวัดกระบี่",
+    "name_ja": "クラビー県",
+    "name_en": "Krabi",
+    "name_alt": null
+  },
+  {
+    "name": "Lampang",
+    "name_local": "จังหวัดลำปาง",
+    "name_ja": "ラムパーン県",
+    "name_en": "Lampang",
+    "name_alt": null
+  },
+  {
+    "name": "Lamphun",
+    "name_local": "จังหวัดลำพูน",
+    "name_ja": "ラムプーン県",
+    "name_en": "Lamphun",
+    "name_alt": "Hariphunchai|Lampoon"
+  },
+  {
+    "name": "Loei",
+    "name_local": "จังหวัดเลย",
+    "name_ja": "ルーイ県",
+    "name_en": "Loei",
+    "name_alt": null
+  },
+  {
+    "name": "Lop Buri",
+    "name_local": "ลพบุรี",
+    "name_ja": "ロッブリー県",
+    "name_en": "Lopburi",
+    "name_alt": null
+  },
+  {
+    "name": "Mae Hong Son",
+    "name_local": "จังหวัดแม่ฮ่องสอน",
+    "name_ja": "メーホンソーン県",
+    "name_en": "Mae Hong Son",
+    "name_alt": null
+  },
+  {
+    "name": "Maha Sarakham",
+    "name_local": "จังหวัดมหาสารคาม",
+    "name_ja": "マハーサーラカーム県",
+    "name_en": "Maha Sarakham",
+    "name_alt": null
+  },
+  {
+    "name": "Mukdahan",
+    "name_local": "จังหวัดมุกดาหาร",
+    "name_ja": "ムックダーハーン県",
+    "name_en": "Mukdahan",
+    "name_alt": null
+  },
+  {
+    "name": "Nakhon Nayok",
+    "name_local": "จังหวัดนครนายก",
+    "name_ja": "ナコーンナーヨック県",
+    "name_en": "Nakhon Nayok",
+    "name_alt": "Nakon Nayok"
+  },
+  {
+    "name": "Nakhon Pathom",
+    "name_local": "อำเภอเมืองนครปฐม",
+    "name_ja": "ナコーンパトム県",
+    "name_en": "Nakhon Pathom",
+    "name_alt": null
+  },
+  {
+    "name": "Nakhon Phanom",
+    "name_local": "จังหวัดนครพนม",
+    "name_ja": "ナコーンパノム県",
+    "name_en": "Nakhon Phanom",
+    "name_alt": null
+  },
+  {
+    "name": "Nakhon Ratchasima",
+    "name_local": "จังหวัดนครราชสีมา",
+    "name_ja": "ナコーンラーチャシーマー県",
+    "name_en": "Nakhon Ratchasima",
+    "name_alt": "Khorat|Nagara Rajasima|Nakaun Rachasima"
+  },
+  {
+    "name": "Nakhon Sawan",
+    "name_local": "จังหวัดนครสวรรค์",
+    "name_ja": "ナコーンサワン県",
+    "name_en": "Nakhon Sawan",
+    "name_alt": null
+  },
+  {
+    "name": "Nakhon Si Thammarat",
+    "name_local": "จังหวัดนครศรีธรรมราช",
+    "name_ja": "ナコーンシータンマラート県",
+    "name_en": "Nakhon Si Thammarat",
+    "name_alt": "Nakhon Thammarat|Nagara Sridharmaraj|Nakhon Sri Thammarat|Nakhornsrithamrat|Nakornsrithamaraj"
+  },
+  {
+    "name": "Nan",
+    "name_local": "จังหวัดน่าน",
+    "name_ja": "ナーン県",
+    "name_en": "Nan",
+    "name_alt": null
+  },
+  {
+    "name": "Narathiwat",
+    "name_local": "จังหวัดนราธิวาส",
+    "name_ja": "ナラーティワート県",
+    "name_en": "Narathiwat",
+    "name_alt": null
+  },
+  {
+    "name": "Nong Bua Lam Phu",
+    "name_local": "จังหวัดหนองบัวลำภู",
+    "name_ja": "ノーンブワラムプー県",
+    "name_en": "Nong Bua Lam Phu",
+    "name_alt": "Nong Bua Lamphu"
+  },
+  {
+    "name": "Nong Khai",
+    "name_local": "จังหวัดหนองคาย",
+    "name_ja": "ノーンカーイ県",
+    "name_en": "Nong Khai",
+    "name_alt": null
+  },
+  {
+    "name": "Nonthaburi",
+    "name_local": "จังหวัดนนทบุรี",
+    "name_ja": "ノンタブリー県",
+    "name_en": "Nonthaburi",
+    "name_alt": null
+  },
+  {
+    "name": "Pathum Thani",
+    "name_local": "จังหวัดปทุมธานี",
+    "name_ja": "パトゥムターニー県",
+    "name_en": "Pathum Thani",
+    "name_alt": null
+  },
+  {
+    "name": "Pattani",
+    "name_local": "จังหวัดปัตตานี",
+    "name_ja": "パッターニー県",
+    "name_en": "Pattani",
+    "name_alt": null
+  },
+  {
+    "name": "Phangnga",
+    "name_local": "จังหวัดพังงา",
+    "name_ja": "パンガー県",
+    "name_en": "Phang Nga",
+    "name_alt": null
+  },
+  {
+    "name": "Phatthalung",
+    "name_local": "จังหวัดพัทลุง",
+    "name_ja": "パッタルン県",
+    "name_en": "Phatthalung",
+    "name_alt": null
+  },
+  {
+    "name": "Phayao",
+    "name_local": "จังหวัดพะเยา",
+    "name_ja": "パヤオ県",
+    "name_en": "Phayao",
+    "name_alt": null
+  },
+  {
+    "name": "Phetchabun",
+    "name_local": "อำเภอเมืองเพชรบูรณ์",
+    "name_ja": "ペッチャブーン県",
+    "name_en": "Phetchabun",
+    "name_alt": null
+  },
+  {
+    "name": "Phetchaburi",
+    "name_local": "จังหวัดเพชรบุรี",
+    "name_ja": "ペッチャブリー県",
+    "name_en": "Phetchaburi",
+    "name_alt": "Phetcha Buri|Bejraburi|Petchburi|Phet Buri|Tetchburit"
+  },
+  {
+    "name": "Phichit",
+    "name_local": "จังหวัดพิจิตร",
+    "name_ja": "ピチット県",
+    "name_en": "Phichit",
+    "name_alt": null
+  },
+  {
+    "name": "Phitsanulok",
+    "name_local": "จังหวัดพิษณุโลก",
+    "name_ja": "ピッサヌローク県",
+    "name_en": "Phitsanulok",
+    "name_alt": "Bisnulok|Phisanulauk|Phitsnulok|Pitsanuloke"
+  },
+  {
+    "name": "Phra Nakhon Si Ayutthaya",
+    "name_local": "จังหวัดพระนครศรีอยุธยา",
+    "name_ja": "アユタヤ県",
+    "name_en": "Phra Nakhon Si Ayutthaya",
+    "name_alt": "Phranakhon Si Ayutthaya|Ayudhya|Ayutthaya|Phranakhornsri-ayuthaya"
+  },
+  {
+    "name": "Phrae",
+    "name_local": "จังหวัดแพร่",
+    "name_ja": "プレー県",
+    "name_en": "Phrae",
+    "name_alt": null
+  },
+  {
+    "name": "Phuket",
+    "name_local": "จังหวัดภูเก็ต",
+    "name_ja": "プーケット県",
+    "name_en": "Phuket",
+    "name_alt": null
+  },
+  {
+    "name": "Prachin Buri",
+    "name_local": "จังหวัดปราจีนบุรี",
+    "name_ja": "プラーチーンブリー県",
+    "name_en": "Prachin Buri",
+    "name_alt": null
+  },
+  {
+    "name": "Prachuap Khiri Khan",
+    "name_local": "จังหวัดประจวบคีรีขันธ์",
+    "name_ja": "プラチュワップキーリーカン県",
+    "name_en": "Prachuap Khiri Khan",
+    "name_alt": "Korh Luxk|Prachuab Girikhand|Prachuapkirikhan|Prachut Khirikhan"
+  },
+  {
+    "name": "Ranong",
+    "name_local": "จังหวัดระนอง",
+    "name_ja": "ラノーン県",
+    "name_en": "Ranong",
+    "name_alt": null
+  },
+  {
+    "name": "Ratchaburi",
+    "name_local": "จังหวัดราชบุรี",
+    "name_ja": "ラーチャブリー県",
+    "name_en": "Ratchaburi",
+    "name_alt": null
+  },
+  {
+    "name": "Rayong",
+    "name_local": "จังหวัดระยอง",
+    "name_ja": "ラヨーン県",
+    "name_en": "Rayong",
+    "name_alt": null
+  },
+  {
+    "name": "Roi Et",
+    "name_local": "ร้อยเอ็ด",
+    "name_ja": "ローイエット県",
+    "name_en": "Roi Et",
+    "name_alt": null
+  },
+  {
+    "name": "Sa Kaeo",
+    "name_local": "จังหวัดสระแก้ว",
+    "name_ja": "サケーオ県",
+    "name_en": "Sa Kaeo",
+    "name_alt": "Srakaeo"
+  },
+  {
+    "name": "Sakon Nakhon",
+    "name_local": "จังหวัดสกลนคร",
+    "name_ja": "サコンナコーン県",
+    "name_en": "Sakon Nakhon",
+    "name_alt": null
+  },
+  {
+    "name": "Samut Prakan",
+    "name_local": "จังหวัดสมุทรปราการ",
+    "name_ja": "サムットプラーカーン県",
+    "name_en": "Samut Prakan",
+    "name_alt": "Pak Nam|Samudh Prakarn|Samudraprakar|Samut Phrakhan"
+  },
+  {
+    "name": "Samut Sakhon",
+    "name_local": "จังหวัดสมุทรสาคร",
+    "name_ja": "サムットサーコーン県",
+    "name_en": "Samut Sakhon",
+    "name_alt": "Krokkrak Maha Chai|Mahachai|Samudrasagara"
+  },
+  {
+    "name": "Samut Songkhram",
+    "name_local": "จังหวัดสมุทรสงคราม",
+    "name_ja": "サムットソンクラーム県",
+    "name_en": "Samut Songkhram",
+    "name_alt": "Mae Klong|Samudrasonggram"
+  },
+  {
+    "name": "Saraburi",
+    "name_local": "จังหวัดสระบุรี",
+    "name_ja": "サラブリー県",
+    "name_en": "Saraburi",
+    "name_alt": "Sara Buri"
+  },
+  {
+    "name": "Satun",
+    "name_local": "จังหวัดสตูล",
+    "name_ja": "サトゥーン県",
+    "name_en": "Satun",
+    "name_alt": null
+  },
+  {
+    "name": "Si Sa Ket",
+    "name_local": "จังหวัดศรีสะเกษ",
+    "name_ja": "シーサケート県",
+    "name_en": "Si Sa Ket",
+    "name_alt": "Sisaket|Khukhan|Khukhandh|Srisaket"
+  },
+  {
+    "name": "Sing Buri",
+    "name_local": "จังหวัดสิงห์บุรี",
+    "name_ja": "シンブリー県",
+    "name_en": "Sing Buri",
+    "name_alt": null
+  },
+  {
+    "name": "Songkhla",
+    "name_local": "จังหวัดสงขลา",
+    "name_ja": "ソンクラー県",
+    "name_en": "Songkhla",
+    "name_alt": null
+  },
+  {
+    "name": "Sukhothai",
+    "name_local": "จังหวัดสุโขทัย",
+    "name_ja": "スコータイ県",
+    "name_en": "Sukhothai",
+    "name_alt": "Sawankhalokt|Sukhotai|Sukothai|Svargalok"
+  },
+  {
+    "name": "Suphan Buri",
+    "name_local": "จังหวัดสุพรรณบุรี",
+    "name_ja": "スパンブリー県",
+    "name_en": "Suphan Buri",
+    "name_alt": null
+  },
+  {
+    "name": "Surat Thani",
+    "name_local": "จังหวัดสุราษฎร์ธานี",
+    "name_ja": "スラートターニー県",
+    "name_en": "Surat Thani",
+    "name_alt": null
+  },
+  {
+    "name": "Surin",
+    "name_local": "จังหวัดสุรินทร์",
+    "name_ja": "スリン県",
+    "name_en": "Surin",
+    "name_alt": null
+  },
+  {
+    "name": "Tak",
+    "name_local": "จังหวัดตาก",
+    "name_ja": "ターク県",
+    "name_en": "Tak",
+    "name_alt": null
+  },
+  {
+    "name": "Trang",
+    "name_local": "จังหวัดตรัง",
+    "name_ja": "トラン県",
+    "name_en": "Trang",
+    "name_alt": "Tab Tiang"
+  },
+  {
+    "name": "Trat",
+    "name_local": "จังหวัดตราด",
+    "name_ja": "トラート県",
+    "name_en": "Trat",
+    "name_alt": null
+  },
+  {
+    "name": "Ubon Ratchathani",
+    "name_local": "จังหวัดอุบลราชธานี",
+    "name_ja": "ウボンラーチャターニー県",
+    "name_en": "Ubon Ratchathani",
+    "name_alt": null
+  },
+  {
+    "name": "Udon Thani",
+    "name_local": "จังหวัดอุดรธานี",
+    "name_ja": "ウドーンターニー県",
+    "name_en": "Udon Thani",
+    "name_alt": null
+  },
+  {
+    "name": "Uthai Thani",
+    "name_local": "จังหวัดอุทัยธานี",
+    "name_ja": "ウタイターニー県",
+    "name_en": "Uthai Thani",
+    "name_alt": null
+  },
+  {
+    "name": "Uttaradit",
+    "name_local": "จังหวัดอุตรดิตถ์",
+    "name_ja": "ウッタラディット県",
+    "name_en": "Uttaradit",
+    "name_alt": null
+  },
+  {
+    "name": "Yala",
+    "name_local": "จังหวัดยะลา",
+    "name_ja": "ヤラー県",
+    "name_en": "Yala",
+    "name_alt": null
+  },
+  {
+    "name": "Yasothon",
+    "name_local": "จังหวัดยโสธร",
+    "name_ja": "ヤソートーン県",
+    "name_en": "Yasothon",
+    "name_alt": null
+  }
+]
