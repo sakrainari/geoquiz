@@ -1,6 +1,7 @@
 (function () {
   const appConfig = resolveAppConfig(resolveDatasetId());
   const dataset = appConfig.dataset;
+  const datasetDisplayName = dataset.prefecture?.name || appConfig.name || dataset.name || appConfig.shortName || appConfig.id;
   const ghostData = appConfig.ghostData;
   const baseLabelOverrides = normalizeLabelOverrideShape(appConfig.labelOverrides);
   const speechReadings = appConfig.speechReadings || {};
@@ -892,7 +893,7 @@
     const datasetProgress = savedProgress.progress.datasets[appConfig.id];
     const currentModeProgress = window.ProgressStore.getModeProgress(datasetProgress, result.mode);
     currentDatasetProgress = datasetProgress;
-    lastResultPayload = window.ResultAnalytics.buildWeakPointExport(result, dataset.prefecture);
+    lastResultPayload = window.ResultAnalytics.buildWeakPointExport(result, datasetDisplayName);
     completedResultState = {
       result,
       summary,
@@ -1072,7 +1073,7 @@
     const mistakes = summary?.mistakes ?? result?.mistakes ?? 0;
     const averageTimeMs = summary?.averageTimeMs ?? 0;
     const lines = [
-      `GeoQuiz ${dataset.prefecture.name} ${buildModeRuleLabel(result.mode, result.rule)} ${isClear ? "Clear" : "Game Over"}`
+      `GeoQuiz ${datasetDisplayName} ${buildModeRuleLabel(result.mode, result.rule)} ${isClear ? "Clear" : "Game Over"}`
     ];
     if (isClear) {
       lines.push(
@@ -1083,7 +1084,7 @@
         `到達問題数 ${reachedQuestions} / 一発正解 ${firstTryCount} / ミス ${mistakes} / 平均回答 ${formatSeconds(averageTimeMs)}`
       );
     }
-    lines.push(`#GeoQuiz #${dataset.prefecture.name}`);
+    lines.push(`#GeoQuiz #${datasetDisplayName}`);
     return lines.join("\n");
   }
 

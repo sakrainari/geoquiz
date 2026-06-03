@@ -180,6 +180,32 @@ window.GEOQUIZ_DATASETS = [
     version: "0.1.0"
   },
   {
+    id: "malaysia",
+    name: "マレーシア",
+    shortName: "Malaysia",
+    title: "GeoQuiz",
+    subtitle: "Malaysia States Quiz",
+    description: "マレーシアの州・連邦直轄領の位置を覚えるトレーニングツール。",
+    dataGlobal: "MALAYSIA_MUNICIPALITIES",
+    labelOverridesGlobal: "MALAYSIA_LABEL_OVERRIDES",
+    speechReadingsGlobal: "MALAYSIA_SPEECH_READINGS",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [4.5, 109.5],
+    initialView: { center: [4.5, 109.5], zoom: 5 },
+    mapMinZoom: 4,
+    mapMaxZoom: 11,
+    regionLabel: "State",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "州",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  },
+  {
     id: "saitama",
     name: "埼玉県",
     shortName: "埼玉",

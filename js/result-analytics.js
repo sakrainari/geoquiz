@@ -25,11 +25,14 @@
 
   function buildWeakPointExport(result, prefecture) {
     const summary = summarize(result);
+    const prefectureName = typeof prefecture === "string"
+      ? prefecture
+      : (prefecture && prefecture.name) || "Unknown";
     return {
       app: "Japan Area Code Map Quiz",
       version: "0.1.0",
       mode: result.mode,
-      prefecture: prefecture.name,
+      prefecture: prefectureName,
       playedAt: new Date().toISOString(),
       summary,
       weakPoints: result.stats

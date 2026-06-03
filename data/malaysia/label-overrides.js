@@ -1,0 +1,1 @@
+window.MALAYSIA_LABEL_OVERRIDES = {};
