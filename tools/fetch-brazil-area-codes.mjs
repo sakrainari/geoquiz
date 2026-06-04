@@ -1,8 +1,4 @@
-import { execFile as execFileCallback } from 'node:child_process';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
-import { promisify } from 'node:util';
 import {
   fetchJson,
   loadBundledTurf,
@@ -11,45 +7,11 @@ import {
   writeTextFile,
   writeWindowAssignment
 } from './lib/geoquiz-import.mjs';
-import { simplifyFeatureCollectionWithMapshaper } from './lib/simplify-with-mapshaper.mjs';
 
 const ROOT = resolveProjectRoot(import.meta.url);
-const MUNICIPALITIES_URL = 'https://raw.githubusercontent.com/tbrugz/geodata-br/master/geojson/geojs-100-mun.json';
-const MUNICIPALITY_DDD_URL = 'https://raw.githubusercontent.com/kelvins/Municipios-Brasileiros/main/csv/municipios.csv';
+const SOURCE_URL = 'https://super-duper.fr/geojson/brazil_areacodes.geojson';
 const DATASET_ID = 'brazil_area_codes';
 const DATASET_GLOBAL = 'BRAZIL_AREA_CODES_MUNICIPALITIES';
-const execFile = promisify(execFileCallback);
-const MAPSHAPER_BIN = resolve(ROOT, 'node_modules', 'mapshaper', 'bin', 'mapshaper');
-
-const UF_BY_CODE = {
-  '11': 'RO',
-  '12': 'AC',
-  '13': 'AM',
-  '14': 'RR',
-  '15': 'PA',
-  '16': 'AP',
-  '17': 'TO',
-  '21': 'MA',
-  '22': 'PI',
-  '23': 'CE',
-  '24': 'RN',
-  '25': 'PB',
-  '26': 'PE',
-  '27': 'AL',
-  '28': 'SE',
-  '29': 'BA',
-  '31': 'MG',
-  '32': 'ES',
-  '33': 'RJ',
-  '35': 'SP',
-  '41': 'PR',
-  '42': 'SC',
-  '43': 'RS',
-  '50': 'MS',
-  '51': 'MT',
-  '52': 'GO',
-  '53': 'DF'
-};
 
 const DIGIT_READINGS = {
   '0': 'ゼロ',
@@ -63,21 +25,6 @@ const DIGIT_READINGS = {
   '8': 'はち',
   '9': 'きゅう'
 };
-
-function parseMunicipalityRows(csvText) {
-  const lines = csvText.split(/\r?\n/).filter(Boolean);
-  const header = lines.shift();
-  if (!header) return [];
-  const columns = header.split(',');
-  return lines.map((line) => {
-    const values = line.split(',');
-    return Object.fromEntries(columns.map((column, index) => [column, values[index] ?? '']));
-  });
-}
-
-function uniqueStrings(values) {
-  return [...new Set(values.map((value) => String(value || '').trim()).filter(Boolean))];
-}
 
 function buildSpeechReading(ddd) {
   return String(ddd)
@@ -103,215 +50,70 @@ function fillGeometryHoles(geometry) {
   return geometry;
 }
 
-async function dissolveByDdd(features) {
-  const tempDir = await mkdtemp(resolve(tmpdir(), 'geoquiz-brazil-ddd-'));
-  const inputPath = resolve(tempDir, 'input.geojson');
-  const outputPath = resolve(tempDir, 'output.geojson');
-
-  try {
-    await writeFile(inputPath, JSON.stringify({
-      type: 'FeatureCollection',
-      features
-    }), 'utf8');
-
-    await execFile(
-      process.execPath,
-      [
-        MAPSHAPER_BIN,
-        inputPath,
-        '-dissolve', '_ddd',
-        '-clean',
-        '-o', 'format=geojson', outputPath
-      ],
-      { cwd: ROOT, maxBuffer: 1024 * 1024 * 100 }
-    );
-
-    const dissolved = JSON.parse(await readFile(outputPath, 'utf8'));
-    return Array.isArray(dissolved.features) ? dissolved.features : [];
-  } finally {
-    await rm(tempDir, { recursive: true, force: true });
-  }
-}
-
-async function cleanCoverageGaps(features) {
-  const tempDir = await mkdtemp(resolve(tmpdir(), 'geoquiz-brazil-ddd-clean-'));
-  const inputPath = resolve(tempDir, 'input.geojson');
-  const outputPath = resolve(tempDir, 'output.geojson');
-
-  try {
-    await writeFile(inputPath, JSON.stringify({
-      type: 'FeatureCollection',
-      features
-    }), 'utf8');
-
-    await execFile(
-      process.execPath,
-      [
-        MAPSHAPER_BIN,
-        inputPath,
-        '-clean', 'gap-fill-area=2500km2', 'sliver-control=1',
-        '-o', 'format=geojson', outputPath
-      ],
-      { cwd: ROOT, maxBuffer: 1024 * 1024 * 100 }
-    );
-
-    const cleaned = JSON.parse(await readFile(outputPath, 'utf8'));
-    return Array.isArray(cleaned.features) ? cleaned.features : [];
-  } finally {
-    await rm(tempDir, { recursive: true, force: true });
-  }
+function normalizeCode(value) {
+  return String(value || '').trim();
 }
 
 async function main() {
-  const [municipalityGeojson, municipalityCsv] = await Promise.all([
-    fetchJson(MUNICIPALITIES_URL, 'Brazil municipalities GeoJSON'),
-    fetch(MUNICIPALITY_DDD_URL).then(async (response) => {
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status} ${response.statusText}`);
-      }
-      return response.text();
-    })
-  ]);
+  const geojson = await fetchJson(SOURCE_URL, 'Brazil area codes GeoJSON');
+  const sourceFeatures = Array.isArray(geojson.features) ? geojson.features : [];
+  console.log(`   全フィーチャー数: ${sourceFeatures.length}`);
 
-  const municipalityFeatures = Array.isArray(municipalityGeojson.features)
-    ? municipalityGeojson.features
-    : [];
-  const municipalityRows = parseMunicipalityRows(municipalityCsv);
-  console.log(`   自治体境界: ${municipalityFeatures.length} 件`);
-  console.log(`   DDD 行数: ${municipalityRows.length} 件`);
-
-  const dddByMunicipalityId = new Map();
-  for (const row of municipalityRows) {
-    const municipalityId = String(row.codigo_ibge || '').trim();
-    const ddd = String(row.ddd || '').trim();
-    if (!municipalityId || !ddd) continue;
-    dddByMunicipalityId.set(municipalityId, {
-      ddd,
-      municipalityName: String(row.nome || '').trim(),
-      uf: UF_BY_CODE[String(row.codigo_uf || '').trim()] || ''
-    });
-  }
-
-  console.log('\n⚙️  turf をロード中...');
   const turf = loadBundledTurf(ROOT);
-  console.log('   turf ロード完了');
-
-  const grouped = new Map();
-  const dissolveInputFeatures = [];
-  let missingDddCount = 0;
-
-  for (const feature of municipalityFeatures) {
-    const properties = feature?.properties || {};
-    const municipalityId = String(properties.id || '').trim();
-    const municipalityName = String(properties.name || '').trim();
-    const dddInfo = dddByMunicipalityId.get(municipalityId);
-    if (!dddInfo) {
-      missingDddCount += 1;
-      continue;
-    }
-
-    const existing = grouped.get(dddInfo.ddd) || {
-      ddd: dddInfo.ddd,
-      ufs: new Set(),
-      municipalities: [],
-      polygons: []
-    };
-
-    if (dddInfo.uf) existing.ufs.add(dddInfo.uf);
-    existing.municipalities.push(dddInfo.municipalityName || municipalityName);
-    grouped.set(dddInfo.ddd, existing);
-
-    dissolveInputFeatures.push({
-      type: 'Feature',
-      properties: {
-        _ddd: dddInfo.ddd
-      },
-      geometry: feature.geometry
-    });
-  }
-
-  if (missingDddCount) {
-    console.log(`   DDD未対応自治体: ${missingDddCount} 件`);
-  }
-
-  const dddGroups = [...grouped.values()].sort((a, b) => Number(a.ddd) - Number(b.ddd));
-  console.log(`\n🧩 DDDごとに dissolve 中... (${dddGroups.length} groups)`);
-  const dissolvedFeatures = await dissolveByDdd(dissolveInputFeatures);
-  console.log(`   dissolve 後: ${dissolvedFeatures.length} features`);
-
-  console.log('\n🪶 dissolve 後ジオメトリを簡略化中...');
-  const simplifiedDissolved = await simplifyFeatureCollectionWithMapshaper({
-    type: 'FeatureCollection',
-    features: dissolvedFeatures
-  }, {
-    interval: '800m',
-    weighting: 0.78,
-    minIslandArea: '0m2',
-    minSliverArea: '0m2',
-    sliverControl: 0
-  });
-  console.log('\n🩹 DDD間の微小ギャップを補修中...');
-  const cleanedDissolved = await cleanCoverageGaps(simplifiedDissolved.features || []);
-  const dissolvedByDdd = new Map(
-    cleanedDissolved.map((feature) => [String(feature?.properties?._ddd || '').trim(), feature])
-  );
-
   const municipalities = [];
   const features = [];
   const speechReadings = {};
 
-  for (const group of dddGroups) {
-    const name = group.ddd;
-    const id = `brazil_area_codes_${name}`;
-    const region = [...group.ufs].sort().join(', ');
-    const cities = uniqueStrings(group.municipalities).sort((a, b) => a.localeCompare(b));
-    const dissolvedFeature = dissolvedByDdd.get(name);
-    if (!dissolvedFeature?.geometry) {
-      console.warn(`  ⚠️  dissolve結果が空です: DDD ${name}`);
-      continue;
-    }
+  const sortedFeatures = sourceFeatures
+    .filter((feature) => normalizeCode(feature?.properties?.AreaCode))
+    .sort((a, b) => Number(normalizeCode(a?.properties?.AreaCode)) - Number(normalizeCode(b?.properties?.AreaCode)));
 
-    const mergedFeature = {
+  for (const sourceFeature of sortedFeatures) {
+    const properties = sourceFeature?.properties || {};
+    const code = normalizeCode(properties.AreaCode);
+    const id = `brazil_area_codes_${code}`;
+    const city = String(properties.City || '').trim();
+    const baseName = String(properties.name || '').trim();
+    const region = city || null;
+    const tags = [baseName, city].filter(Boolean);
+    const { geometry, labelPoint } = simplifyFeatureWithLabel(turf, {
       type: 'Feature',
-      properties: { id, name },
-      geometry: fillGeometryHoles(dissolvedFeature.geometry)
-    };
-    const { geometry, labelPoint } = simplifyFeatureWithLabel(turf, mergedFeature, {
+      properties,
+      geometry: fillGeometryHoles(sourceFeature.geometry)
+    }, {
       tolerance: 0,
-      name
+      name: code
     });
 
     municipalities.push({
       id,
-      name,
+      name: code,
       region,
-      tags: cities.slice(0, 8)
+      tags
     });
 
     features.push({
       type: 'Feature',
       properties: {
         id,
-        name,
+        name: code,
         area_code: null,
         region,
-        cities,
-        tags: [...group.ufs, ...cities].slice(0, 12),
+        city,
+        source_name: baseName,
+        tags,
         labelPoint
       },
       geometry
     });
 
-    speechReadings[id] = buildSpeechReading(name);
-    speechReadings[name] = buildSpeechReading(name);
+    speechReadings[id] = buildSpeechReading(code);
+    speechReadings[code] = buildSpeechReading(code);
   }
 
   const dataset = {
     id: DATASET_ID,
-    source: {
-      municipalities: MUNICIPALITIES_URL,
-      ddd: MUNICIPALITY_DDD_URL
-    },
+    source: SOURCE_URL,
     generatedAt: new Date().toISOString(),
     municipalities,
     features
