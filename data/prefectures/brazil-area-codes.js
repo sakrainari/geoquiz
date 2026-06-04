@@ -1,7 +1,7 @@
 window.BRAZIL_AREA_CODES_MUNICIPALITIES = {
   "id": "brazil_area_codes",
   "source": "https://super-duper.fr/geojson/brazil_areacodes.geojson",
-  "generatedAt": "2026-06-04T15:23:18.879Z",
+  "generatedAt": "2026-06-04T15:28:25.615Z",
   "municipalities": [
     {
       "id": "brazil_area_codes_11",

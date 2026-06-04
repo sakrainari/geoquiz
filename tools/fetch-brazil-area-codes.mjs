@@ -27,10 +27,27 @@ const DIGIT_READINGS = {
 };
 
 function buildSpeechReading(ddd) {
-  return String(ddd)
-    .split('')
-    .map((char) => DIGIT_READINGS[char] || char)
-    .join(' ');
+  const value = Number.parseInt(String(ddd), 10);
+  if (!Number.isFinite(value)) {
+    return String(ddd)
+      .split('')
+      .map((char) => DIGIT_READINGS[char] || char)
+      .join(' ');
+  }
+
+  if (value < 10) return DIGIT_READINGS[String(value)] || String(value);
+  if (value === 10) return 'じゅう';
+
+  if (value < 20) {
+    const ones = value % 10;
+    return `じゅう${DIGIT_READINGS[String(ones)] || ones}`;
+  }
+
+  const tens = Math.floor(value / 10);
+  const ones = value % 10;
+  const tensReading = `${DIGIT_READINGS[String(tens)] || tens}じゅう`;
+  if (ones === 0) return tensReading;
+  return `${tensReading}${DIGIT_READINGS[String(ones)] || ones}`;
 }
 
 function fillGeometryHoles(geometry) {
