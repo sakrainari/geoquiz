@@ -256,6 +256,58 @@ window.GEOQUIZ_DATASETS = [
     version: "0.1.0"
   },
   {
+    id: "brazil",
+    name: "ブラジル",
+    shortName: "Brazil",
+    title: "GeoQuiz",
+    subtitle: "Brazil States Quiz",
+    description: "ブラジル26州 + 連邦直轄区の位置を覚えるトレーニングツール。",
+    dataGlobal: "BRAZIL_MUNICIPALITIES",
+    labelOverridesGlobal: "BRAZIL_LABEL_OVERRIDES",
+    speechReadingsGlobal: "BRAZIL_SPEECH_READINGS",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [-14.235, -51.925],
+    initialView: { center: [-14.235, -51.925], zoom: 4 },
+    mapMinZoom: 3,
+    mapMaxZoom: 9,
+    regionLabel: "State",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "州",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  },
+  {
+    id: "brazil_area_codes",
+    name: "ブラジル市外局番",
+    shortName: "Brazil DDD",
+    title: "GeoQuiz",
+    subtitle: "Brazil Area Codes Quiz",
+    description: "ブラジルのDDD市外局番エリアを覚えるトレーニングツール。",
+    dataGlobal: "BRAZIL_AREA_CODES_MUNICIPALITIES",
+    labelOverridesGlobal: "BRAZIL_AREA_CODES_LABEL_OVERRIDES",
+    speechReadingsGlobal: "BRAZIL_AREA_CODES_SPEECH_READINGS",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [-14.235, -51.925],
+    initialView: { center: [-14.235, -51.925], zoom: 4 },
+    mapMinZoom: 3,
+    mapMaxZoom: 9,
+    regionLabel: "Area Code",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "市外局番",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  },
+  {
     id: "nigeria",
     name: "ナイジェリア",
     shortName: "Nigeria",

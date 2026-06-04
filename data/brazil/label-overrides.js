@@ -1,0 +1,1 @@
+window.BRAZIL_LABEL_OVERRIDES = {};
