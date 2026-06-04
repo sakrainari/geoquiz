@@ -1751,8 +1751,12 @@
     const maLabel   = getI18n(appConfig, "areaCode", "市外局番");
     const modeCardMuniTitle = document.getElementById("modeCardMuniTitle");
     if (modeCardMuniTitle) modeCardMuniTitle.textContent = muniLabel;
+    const modeCardMuniTag = document.getElementById("modeCardMuniTag");
+    if (modeCardMuniTag) modeCardMuniTag.textContent = getPrimaryModeTagLabel();
     const modeCardMaTitle = document.getElementById("modeCardMaTitle");
     if (modeCardMaTitle) modeCardMaTitle.textContent = maLabel;
+    const modeCardMaTag = document.getElementById("modeCardMaTag");
+    if (modeCardMaTag) modeCardMaTag.textContent = formatModeTagLabel(maLabel);
     const rankingTabMuni = document.getElementById("rankingTabMuni");
     if (rankingTabMuni) rankingTabMuni.textContent = muniLabel;
     const rankingTabMa = document.getElementById("rankingTabMa");
@@ -1801,6 +1805,21 @@
     url.searchParams.set("dataset", datasetId);
     url.searchParams.delete("id");
     window.location.href = url.toString();
+  }
+
+  function formatModeTagLabel(label) {
+    const text = String(label || "").trim();
+    if (!text) return "";
+    if (/^[\x00-\x7F]+$/.test(text)) return text.toUpperCase();
+    return text;
+  }
+
+  function getPrimaryModeTagLabel() {
+    const muniLabel = getI18n(appConfig, "municipality", "市区町村");
+    const regionLabel = String(appConfig.regionLabel || "").trim();
+    if (muniLabel === "Area Code") return "AREA CODE";
+    if (regionLabel) return formatModeTagLabel(regionLabel);
+    return formatModeTagLabel(muniLabel);
   }
 
   function applyDatasetModeDescriptions() {

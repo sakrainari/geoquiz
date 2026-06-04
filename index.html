@@ -52,7 +52,7 @@
             <button class="mode-card" data-start-mode="municipality">
               <div class="mode-card-icon">▣</div>
               <div class="mode-card-body">
-                <div class="mode-card-tag">MUNICIPALITY</div>
+                <div class="mode-card-tag" id="modeCardMuniTag">MUNICIPALITY</div>
                 <div class="mode-card-title" id="modeCardMuniTitle">市区町村</div>
                 <div class="mode-card-desc">市町村名から場所を当てる · 63問</div>
               </div>
@@ -62,7 +62,7 @@
             <button class="mode-card" data-start-mode="ma">
               <div class="mode-card-icon">#</div>
               <div class="mode-card-body">
-                <div class="mode-card-tag">AREA CODE</div>
+                <div class="mode-card-tag" id="modeCardMaTag">AREA CODE</div>
                 <div class="mode-card-title" id="modeCardMaTitle">市外局番</div>
                 <div class="mode-card-desc">番号からエリアを当てる · 8問</div>
               </div>
@@ -597,6 +597,7 @@
     <script src="vendor/leaflet/leaflet.js"></script>
     <script src="vendor/turf/turf.min.js"></script>
     <script src="data/catalog.js"></script>
+    <script src="data/catalog-v2.js"></script>
     <script src="js/ma-union.js"></script>
     <script src="js/quiz-modes.js"></script>
     <script src="js/quiz-engine.js"></script>
@@ -1198,6 +1199,7 @@
 
   var params = new URLSearchParams(location.search);
   var currentDsId = params.get('dataset') || '';
+  var catalogV2 = window.GEOQUIZ_CATALOG_V2 || null;
 
   function findRegionForDataset(dsId) {
     for (var i = 0; i < REGIONS.length; i++) {
@@ -1280,6 +1282,141 @@
     if (ds && ds.regionLabel) return ds.regionLabel;
     if (ds && ds.i18n && ds.i18n.municipality) return ds.i18n.municipality;
     return '市区町村';
+  }
+
+  function findRegionV2ForActiveRegion() {
+    if (!catalogV2 || !catalogV2.regions || !activeRegion) return null;
+    var regionMap = {
+      americas: 'north_america',
+      south_america: 'south_america',
+      africa: 'africa',
+      east_asia: 'east_asia'
+    };
+    var targetId = regionMap[activeRegion.id];
+    if (!targetId) return null;
+    for (var i = 0; i < catalogV2.regions.length; i++) {
+      if (catalogV2.regions[i].id === targetId) return catalogV2.regions[i];
+    }
+    return null;
+  }
+
+  function getCountryDefinitions(regionV2) {
+    if (!regionV2 || !catalogV2 || !catalogV2.countries) return [];
+    return regionV2.countries
+      .map(function (countryId) {
+        return catalogV2.countries.find(function (item) { return item.id === countryId; });
+      })
+      .filter(Boolean);
+  }
+
+  function getLayerDatasetIds(layer) {
+    if (!layer) return [];
+    if (layer.datasets && layer.datasets.length) {
+      return layer.datasets.map(function (item) { return item.id; });
+    }
+    if (layer.defaultDatasetId) return [layer.defaultDatasetId];
+    if (layer.datasetId) return [layer.datasetId];
+    return [];
+  }
+
+  function getPrimaryLayerDataset(layer) {
+    var ids = getLayerDatasetIds(layer);
+    return ids.length ? dsMap[ids[0]] : null;
+  }
+
+  function layerKindLabel(layer) {
+    if (!layer) return '';
+    if (layer.kindLabel) return layer.kindLabel;
+    if (layer.kind === 'area_code') return 'Area Code';
+    if (layer.kind === 'admin') return '地名';
+    return layer.kind || '';
+  }
+
+  function layerDescriptionText(layer, ds, stats) {
+    var base = statsText(ds, stats, false);
+    if (!base) return '';
+    if (layer && layer.datasets && layer.datasets.length > 1) {
+      var primary = layer.datasets[0];
+      if (primary && primary.label) {
+        return primary.label + ' ' + base;
+      }
+    }
+    return base;
+  }
+
+  function renderCountryThemePrototype() {
+    var regionV2 = findRegionV2ForActiveRegion();
+    if (!regionV2) return false;
+    var countries = getCountryDefinitions(regionV2);
+    if (!countries.length) return false;
+
+    var secLabel = document.createElement('p');
+    secLabel.className = 'section-label';
+    secLabel.textContent = '国とテーマ';
+    grid.appendChild(secLabel);
+
+    var stack = document.createElement('div');
+    stack.className = 'country-picker-stack';
+
+    countries.forEach(function (country) {
+      var group = document.createElement('section');
+      group.className = 'country-group';
+
+      var head = document.createElement('div');
+      head.className = 'country-group-head';
+      head.innerHTML =
+        '<h3 class="country-group-title">' + esc(country.label) + '</h3>' +
+        '<span class="country-group-meta">' + esc((country.layers || []).length + 'テーマ') + '</span>';
+      group.appendChild(head);
+
+      var themeGrid = document.createElement('div');
+      themeGrid.className = 'country-theme-grid';
+
+      (country.layers || []).forEach(function (layer) {
+        var ds = getPrimaryLayerDataset(layer);
+        if (!ds) return;
+        var stats = getDsStats(ds);
+        var card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'country-theme-card' + (currentDsId === ds.id ? ' is-active' : '');
+        card.dataset.datasetId = ds.id;
+        card.innerHTML =
+          '<div class="country-theme-topline">' +
+            '<span class="country-theme-label">' + esc(layer.label || ds.shortName || ds.name) + '</span>' +
+            '<span class="country-theme-kind">' + esc(layerKindLabel(layer)) + '</span>' +
+          '</div>' +
+          '<div class="country-theme-desc">' + esc(layerDescriptionText(layer, ds, stats)) + '</div>';
+        card.addEventListener('click', function () {
+          location.href = '?dataset=' + ds.id;
+        });
+        themeGrid.appendChild(card);
+
+        if (layer.datasets && layer.datasets.length > 1) {
+          var subsets = document.createElement('div');
+          subsets.className = 'country-theme-subsets';
+          layer.datasets.forEach(function (item) {
+            var subsetDs = dsMap[item.id];
+            if (!subsetDs) return;
+            var subset = document.createElement('button');
+            subset.type = 'button';
+            subset.className = 'country-theme-subset' + (currentDsId === subsetDs.id ? ' is-active' : '');
+            subset.textContent = item.label || subsetDs.shortName || subsetDs.name;
+            subset.addEventListener('click', function (e) {
+              e.stopPropagation();
+              location.href = '?dataset=' + subsetDs.id;
+            });
+            subsets.appendChild(subset);
+          });
+          themeGrid.appendChild(subsets);
+        }
+      });
+
+      group.appendChild(themeGrid);
+      stack.appendChild(group);
+    });
+
+    grid.appendChild(stack);
+    return true;
   }
 
   function statsText(ds, stats, long) {
@@ -1400,6 +1537,10 @@
   function renderGrid() {
     grid.innerHTML = '';
     if (!activeRegion || activeRegion.coming) return;
+
+    if (renderCountryThemePrototype()) {
+      return;
+    }
 
     /* 全域カード */
     if (activeRegion.allId) {
