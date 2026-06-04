@@ -1,7 +1,7 @@
 window.USA_AREA_CODES_CALIFORNIA_MUNICIPALITIES = {
   "id": "usa_area_codes_california",
   "source": "https://super-duper.fr/geojson/usa_areacodes.geojson",
-  "generatedAt": "2026-06-04T14:05:27.687Z",
+  "generatedAt": "2026-06-04T15:39:20.103Z",
   "municipalities": [
     {
       "id": "usa_area_codes_209",

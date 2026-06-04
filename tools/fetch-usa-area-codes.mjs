@@ -10,12 +10,12 @@ const ROOT = resolveProjectRoot(import.meta.url);
 const SOURCE_URL = 'https://super-duper.fr/geojson/usa_areacodes.geojson';
 const EXCLUDED_STATES = new Set(['AS', 'GU', 'MP', 'PR', 'VI']);
 const DIGIT_READINGS = {
-  '0': 'ゼロ',
+  '0': 'まる',
   '1': 'いち',
-  '2': 'に',
+  '2': 'にー',
   '3': 'さん',
   '4': 'よん',
-  '5': 'ご',
+  '5': 'ごー',
   '6': 'ろく',
   '7': 'なな',
   '8': 'はち',
