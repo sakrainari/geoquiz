@@ -1276,9 +1276,15 @@
   }
 
   /* 統計をテキストに整形 */
-  function statsText(stats, long) {
+  function datasetUnitLabel(ds) {
+    if (ds && ds.regionLabel) return ds.regionLabel;
+    if (ds && ds.i18n && ds.i18n.municipality) return ds.i18n.municipality;
+    return '市区町村';
+  }
+
+  function statsText(ds, stats, long) {
     var parts = [];
-    if (stats.muniCount != null) parts.push('市区町村 ' + stats.muniCount + '問');
+    if (stats.muniCount != null) parts.push(datasetUnitLabel(ds) + ' ' + stats.muniCount + '問');
     if (stats.maCount   != null) parts.push('MA ' + stats.maCount + (long ? 'エリア' : ''));
     return parts.join(' · ');
   }
@@ -1408,7 +1414,7 @@
           '<div class="ds-card-body">' +
             '<div class="ds-card-name">' + esc(allDs.shortName || allDs.name) + '</div>' +
             (allStats.muniCount != null
-              ? '<div class="ds-card-meta">' + esc(statsText(allStats, true)) + '</div>'
+              ? '<div class="ds-card-meta">' + esc(statsText(allDs, allStats, true)) + '</div>'
               : '') +
           '</div>' +
           '<span class="ds-card-badge">全域まとめて練習</span>';
@@ -1423,7 +1429,7 @@
     if (activeRegion.prefIds && activeRegion.prefIds.length) {
       var secLabel = document.createElement('p');
       secLabel.className = 'section-label';
-      secLabel.textContent = activeRegion.sectionLabel || '都道府県別';
+      secLabel.textContent = activeRegion.sectionLabel || 'データセット一覧';
       grid.appendChild(secLabel);
 
       var prefGrid = document.createElement('div');
@@ -1453,7 +1459,7 @@
           '<div class="ds-card-pref-info">' +
             '<div class="ds-card-name">' + esc(ds.shortName || ds.name) + '</div>' +
             (stats.muniCount != null
-              ? '<div class="ds-card-meta">' + esc(statsText(stats, false)) + '</div>'
+              ? '<div class="ds-card-meta">' + esc(statsText(ds, stats, false)) + '</div>'
               : '') +
           '</div>' +
           buildProgressBars(rd, stats.muniCount, stats.maCount, hasMa) +

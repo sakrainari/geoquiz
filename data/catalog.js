@@ -120,7 +120,7 @@ window.GEOQUIZ_DATASETS = [
       easyMunicipalityNameSuffixes: [""]
     },
     i18n: {
-      municipality: "市外局番",
+      municipality: "Area Code",
       areaCode: "Area Code"
     },
     version: "0.1.0"
@@ -146,7 +146,7 @@ window.GEOQUIZ_DATASETS = [
       easyMunicipalityNameSuffixes: [""]
     },
     i18n: {
-      municipality: "市外局番",
+      municipality: "Area Code",
       areaCode: "Area Code"
     },
     version: "0.1.0"
@@ -172,7 +172,7 @@ window.GEOQUIZ_DATASETS = [
       easyMunicipalityNameSuffixes: [""]
     },
     i18n: {
-      municipality: "市外局番",
+      municipality: "Area Code",
       areaCode: "Area Code"
     },
     version: "0.1.0"
@@ -198,7 +198,7 @@ window.GEOQUIZ_DATASETS = [
       easyMunicipalityNameSuffixes: [""]
     },
     i18n: {
-      municipality: "市外局番",
+      municipality: "Area Code",
       areaCode: "Area Code"
     },
     version: "0.1.0"
@@ -224,7 +224,7 @@ window.GEOQUIZ_DATASETS = [
       easyMunicipalityNameSuffixes: [""]
     },
     i18n: {
-      municipality: "市外局番",
+      municipality: "Area Code",
       areaCode: "Area Code"
     },
     version: "0.1.0"
@@ -250,7 +250,7 @@ window.GEOQUIZ_DATASETS = [
       easyMunicipalityNameSuffixes: [""]
     },
     i18n: {
-      municipality: "市外局番",
+      municipality: "Area Code",
       areaCode: "Area Code"
     },
     version: "0.1.0"
@@ -302,7 +302,7 @@ window.GEOQUIZ_DATASETS = [
       easyMunicipalityNameSuffixes: [""]
     },
     i18n: {
-      municipality: "市外局番",
+      municipality: "Area Code",
       areaCode: "Area Code"
     },
     version: "0.1.0"
