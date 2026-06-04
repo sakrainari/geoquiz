@@ -1,4 +1,8 @@
+import { execFile as execFileCallback } from 'node:child_process';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
+import { promisify } from 'node:util';
 import {
   fetchJson,
   loadBundledTurf,
@@ -7,12 +11,15 @@ import {
   writeTextFile,
   writeWindowAssignment
 } from './lib/geoquiz-import.mjs';
+import { simplifyFeatureCollectionWithMapshaper } from './lib/simplify-with-mapshaper.mjs';
 
 const ROOT = resolveProjectRoot(import.meta.url);
 const MUNICIPALITIES_URL = 'https://raw.githubusercontent.com/tbrugz/geodata-br/master/geojson/geojs-100-mun.json';
 const MUNICIPALITY_DDD_URL = 'https://raw.githubusercontent.com/kelvins/Municipios-Brasileiros/main/csv/municipios.csv';
 const DATASET_ID = 'brazil_area_codes';
 const DATASET_GLOBAL = 'BRAZIL_AREA_CODES_MUNICIPALITIES';
+const execFile = promisify(execFileCallback);
+const MAPSHAPER_BIN = resolve(ROOT, 'node_modules', 'mapshaper', 'bin', 'mapshaper');
 
 const UF_BY_CODE = {
   '11': 'RO',
@@ -68,13 +75,6 @@ function parseMunicipalityRows(csvText) {
   });
 }
 
-function geometryToPolygons(geometry) {
-  if (!geometry || !geometry.type) return [];
-  if (geometry.type === 'Polygon') return [geometry.coordinates];
-  if (geometry.type === 'MultiPolygon') return geometry.coordinates.slice();
-  return [];
-}
-
 function uniqueStrings(values) {
   return [...new Set(values.map((value) => String(value || '').trim()).filter(Boolean))];
 }
@@ -84,6 +84,38 @@ function buildSpeechReading(ddd) {
     .split('')
     .map((char) => DIGIT_READINGS[char] || char)
     .join(' ');
+}
+
+async function dissolveByDdd(features) {
+  const tempDir = await mkdtemp(resolve(tmpdir(), 'geoquiz-brazil-ddd-'));
+  const inputPath = resolve(tempDir, 'input.geojson');
+  const outputPath = resolve(tempDir, 'output.geojson');
+
+  try {
+    await writeFile(inputPath, JSON.stringify({
+      type: 'FeatureCollection',
+      features
+    }), 'utf8');
+
+    await execFile(
+      process.execPath,
+      [
+        MAPSHAPER_BIN,
+        inputPath,
+        '-dissolve', '_ddd',
+        '-filter-islands', 'min-area=25000m2', 'remove-empty',
+        '-filter-slivers', 'min-area=25000m2', 'sliver-control=0.85', 'remove-empty',
+        '-clean',
+        '-o', 'format=geojson', outputPath
+      ],
+      { cwd: ROOT, maxBuffer: 1024 * 1024 * 100 }
+    );
+
+    const dissolved = JSON.parse(await readFile(outputPath, 'utf8'));
+    return Array.isArray(dissolved.features) ? dissolved.features : [];
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
 }
 
 async function main() {
@@ -121,6 +153,7 @@ async function main() {
   console.log('   turf ロード完了');
 
   const grouped = new Map();
+  const dissolveInputFeatures = [];
   let missingDddCount = 0;
 
   for (const feature of municipalityFeatures) {
@@ -133,11 +166,6 @@ async function main() {
       continue;
     }
 
-    const { geometry } = simplifyFeatureWithLabel(turf, feature, {
-      tolerance: 0.02,
-      name: municipalityName
-    });
-
     const existing = grouped.get(dddInfo.ddd) || {
       ddd: dddInfo.ddd,
       ufs: new Set(),
@@ -147,8 +175,15 @@ async function main() {
 
     if (dddInfo.uf) existing.ufs.add(dddInfo.uf);
     existing.municipalities.push(dddInfo.municipalityName || municipalityName);
-    existing.polygons.push(...geometryToPolygons(geometry));
     grouped.set(dddInfo.ddd, existing);
+
+    dissolveInputFeatures.push({
+      type: 'Feature',
+      properties: {
+        _ddd: dddInfo.ddd
+      },
+      geometry: feature.geometry
+    });
   }
 
   if (missingDddCount) {
@@ -156,6 +191,25 @@ async function main() {
   }
 
   const dddGroups = [...grouped.values()].sort((a, b) => Number(a.ddd) - Number(b.ddd));
+  console.log(`\n🧩 DDDごとに dissolve 中... (${dddGroups.length} groups)`);
+  const dissolvedFeatures = await dissolveByDdd(dissolveInputFeatures);
+  console.log(`   dissolve 後: ${dissolvedFeatures.length} features`);
+
+  console.log('\n🪶 dissolve 後ジオメトリを簡略化中...');
+  const simplifiedDissolved = await simplifyFeatureCollectionWithMapshaper({
+    type: 'FeatureCollection',
+    features: dissolvedFeatures
+  }, {
+    interval: '800m',
+    weighting: 0.78,
+    minIslandArea: '80000m2',
+    minSliverArea: '80000m2',
+    sliverControl: 0.9
+  });
+  const dissolvedByDdd = new Map(
+    (simplifiedDissolved.features || []).map((feature) => [String(feature?.properties?._ddd || '').trim(), feature])
+  );
+
   const municipalities = [];
   const features = [];
   const speechReadings = {};
@@ -165,15 +219,18 @@ async function main() {
     const id = `brazil_area_codes_${name}`;
     const region = [...group.ufs].sort().join(', ');
     const cities = uniqueStrings(group.municipalities).sort((a, b) => a.localeCompare(b));
+    const dissolvedFeature = dissolvedByDdd.get(name);
+    if (!dissolvedFeature?.geometry) {
+      console.warn(`  ⚠️  dissolve結果が空です: DDD ${name}`);
+      continue;
+    }
+
     const mergedFeature = {
       type: 'Feature',
       properties: { id, name },
-      geometry: {
-        type: 'MultiPolygon',
-        coordinates: group.polygons
-      }
+      geometry: dissolvedFeature.geometry
     };
-    const { labelPoint } = simplifyFeatureWithLabel(turf, mergedFeature, {
+    const { geometry, labelPoint } = simplifyFeatureWithLabel(turf, mergedFeature, {
       tolerance: 0,
       name
     });
@@ -196,7 +253,7 @@ async function main() {
         tags: [...group.ufs, ...cities].slice(0, 12),
         labelPoint
       },
-      geometry: mergedFeature.geometry
+      geometry
     });
 
     speechReadings[id] = buildSpeechReading(name);
