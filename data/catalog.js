@@ -100,6 +100,32 @@ window.GEOQUIZ_DATASETS = [
     version: "0.1.0"
   },
   {
+    id: "usa_area_codes",
+    name: "アメリカ市外局番",
+    shortName: "USA Area",
+    title: "GeoQuiz",
+    subtitle: "US Area Codes Quiz",
+    description: "アメリカの市外局番エリアを覚えるトレーニングツール。重複区画は1問にまとめています。",
+    dataGlobal: "USA_AREA_CODES_MUNICIPALITIES",
+    labelOverridesGlobal: "USA_AREA_CODES_LABEL_OVERRIDES",
+    speechReadingsGlobal: "USA_AREA_CODES_SPEECH_READINGS",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [39.5, -98.35],
+    initialView: { center: [39.5, -98.35], zoom: 4 },
+    mapMinZoom: 3,
+    mapMaxZoom: 10,
+    regionLabel: "Area Code",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "市外局番",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  },
+  {
     id: "nigeria",
     name: "ナイジェリア",
     shortName: "Nigeria",

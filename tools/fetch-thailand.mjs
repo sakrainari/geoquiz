@@ -8,173 +8,77 @@
  *   node tools/fetch-thailand.mjs
  */
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { generateAdminDataset, resolveProjectRoot, slugifyName } from './lib/geoquiz-import.mjs';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = resolve(__dirname, '..');
+const ROOT = resolveProjectRoot(import.meta.url);
 
-// ─── turf をロード（vendor からそのまま読む）───────────────────────
-function loadTurf() {
-  const turfPath = resolve(ROOT, 'vendor/turf/turf.min.js');
-  if (!existsSync(turfPath)) {
-    throw new Error(`turf.min.js が見つかりません: ${turfPath}`);
-  }
-  const code = readFileSync(turfPath, 'utf-8');
-  const fakeWindow = {};
-  // eslint-disable-next-line no-new-func
-  new Function('window', code)(fakeWindow);
-  const turf = fakeWindow.turf || globalThis.turf;
-  if (!turf) throw new Error('turf のロードに失敗しました');
-  return turf;
-}
-
-// ─── 県名 → id 変換 ──────────────────────────────────────────────
-function provinceNameToId(name) {
-  return 'thailand_' + name.toLowerCase()
-    .replace(/\s+/g, '_')
-    .replace(/[^a-z0-9_]/g, '');
-}
-
-// ─── タイ語名の正規化 ─────────────────────────────────────────────
 // Natural Earth の name_local は一部誤りがあるため手動で補正する。
 // また "จังหวัด"（県）・"อำเภอเมือง"（市）プレフィックスを除去する。
 const NAME_TH_OVERRIDES = {
-  'Bangkok Metropolis': 'กรุงเทพมหานคร', // name_local が Chiang Mai を誤指定
-  'Bueng Kan':          'บึงกาฬ',        // name_local が Nong Khai を誤指定（name_alt が正しい）
-  'Chaiyaphum':         'ชัยภูมิ',       // name_local が Chai Nat を誤指定
+  'Bangkok Metropolis': 'กรุงเทพมหานคร',
+  'Bueng Kan': 'บึงกาฬ',
+  'Chaiyaphum': 'ชัยภูมิ'
 };
 
 function normalizeNameTh(englishName, rawNameTh) {
   if (NAME_TH_OVERRIDES[englishName]) return NAME_TH_OVERRIDES[englishName];
   if (!rawNameTh) return null;
   return rawNameTh
-    .replace(/^จังหวัด/, '')    // 「県」プレフィックスを除去
-    .replace(/^อำเภอเมือง/, '') // 「市」プレフィックスを除去
+    .replace(/^จังหวัด/, '')
+    .replace(/^อำเภอเมือง/, '')
     .trim() || null;
 }
 
-// ─── メイン処理 ──────────────────────────────────────────────────
-async function main() {
-  const URL =
-    'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_1_states_provinces.geojson';
-
-  console.log('🌐 GeoJSON を取得中 (ne_10m_admin_1_states_provinces)...');
-  console.log('   ' + URL);
-  const resp = await fetch(URL);
-  if (!resp.ok) throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
-  const geojson = await resp.json();
-  console.log(`   全フィーチャー数: ${geojson.features.length}`);
-
-  // ─── タイの県をフィルタ ────────────────────────────────────────
-  const thProvinces = geojson.features.filter((f) => {
-    return f.properties.adm0_a3 === 'THA';
+function logDuplicateNames(features) {
+  const counts = new Map();
+  features.forEach((feature) => {
+    const name = feature?.properties?.name;
+    counts.set(name, (counts.get(name) || 0) + 1);
   });
+  const duplicates = [...counts.entries()].filter(([, count]) => count > 1).map(([name]) => name);
+  if (!duplicates.length) return;
 
-  console.log(`\n🗺️  Thailand Provinces 抽出: ${thProvinces.length} 件`);
-  if (thProvinces.length === 0) {
-    const sample = geojson.features.find((f) => f.properties.adm0_a3 === 'THA');
-    if (sample) console.log('  サンプルプロパティ:', JSON.stringify(sample.properties, null, 2));
-    throw new Error('タイの県データが見つかりませんでした。');
-  }
-
-  // ─── 重複名チェック ────────────────────────────────────────────
-  const nameCounts = new Map();
-  thProvinces.forEach((f) => {
-    const n = f.properties.name;
-    nameCounts.set(n, (nameCounts.get(n) || 0) + 1);
-  });
-  const dupeNames = [...nameCounts.entries()].filter(([, c]) => c > 1).map(([n]) => n);
-  if (dupeNames.length) {
-    console.log(`  ⚠️  重複名: ${dupeNames.join(', ')}`);
-    dupeNames.forEach((n) => {
-      thProvinces.filter((f) => f.properties.name === n).forEach((f) => {
-        console.log(`    name="${f.properties.name}" type_en=${f.properties.type_en}`);
+  console.log(`  ⚠️  重複名: ${duplicates.join(', ')}`);
+  duplicates.forEach((name) => {
+    features
+      .filter((feature) => feature?.properties?.name === name)
+      .forEach((feature) => {
+        console.log(`    name="${feature.properties.name}" type_en=${feature.properties.type_en}`);
       });
-    });
-  }
+  });
+}
 
-  // ─── turf ロード ──────────────────────────────────────────────
-  console.log('\n⚙️  turf をロード中...');
-  const turf = loadTurf();
-  console.log('   turf ロード完了');
-
-  // ─── 県をアルファベット順に並び替え ──────────────────────────
-  thProvinces.sort((a, b) => a.properties.name.localeCompare(b.properties.name));
-
-  // ─── 各県を変換 ───────────────────────────────────────────────
-  console.log('\n🔧 ジオメトリを簡略化中 (tolerance=0.02)...');
-  const features = [];
-  const municipalities = [];
-
-  for (const province of thProvinces) {
-    const name = province.properties.name;
-    const id = provinceNameToId(name);
-    const nameTh = normalizeNameTh(name, province.properties.name_local || null);
-    const nameJa = province.properties.name_ja || null;
-
-    // turf.simplify でジオメトリを軽量化
-    let simplified;
-    try {
-      simplified = turf.simplify(province, { tolerance: 0.02, highQuality: false });
-    } catch (e) {
-      console.warn(`  ⚠️  simplify失敗 [${name}]: ${e.message} → 元データを使用`);
-      simplified = province;
-    }
-
-    // 重心を計算（labelPoint）
-    let lp = null;
-    try {
-      const centroid = turf.centerOfMass(simplified);
-      const [lng, lat] = centroid.geometry.coordinates;
-      lp = [+lat.toFixed(6), +lng.toFixed(6)];
-    } catch (e) {
-      console.warn(`  ⚠️  centerOfMass失敗 [${name}]: ${e.message}`);
-    }
-
-    features.push({
-      type: 'Feature',
-      properties: {
-        id,
-        name,
+async function main() {
+  const { payload } = await generateAdminDataset({
+    root: ROOT,
+    datasetId: 'thailand',
+    datasetGlobal: 'THAILAND_MUNICIPALITIES',
+    featureFilter: (feature) => feature?.properties?.adm0_a3 === 'THA',
+    emptyMessage: 'タイの県データが見つかりませんでした。',
+    sampleFilter: (feature) => feature?.properties?.adm0_a3 === 'THA',
+    idFromName: (name) => slugifyName('thailand_', name),
+    extraPropertiesFromFeature: (feature, name) => {
+      const nameTh = normalizeNameTh(name, feature?.properties?.name_local || null);
+      return nameTh ? { name_th: nameTh } : {};
+    },
+    municipalityExtraFromFeature: (feature, name) => {
+      const nameTh = normalizeNameTh(name, feature?.properties?.name_local || null);
+      const nameJa = feature?.properties?.name_ja || null;
+      return {
         ...(nameTh ? { name_th: nameTh } : {}),
-        area_code: null,
-        tags: [],
-        labelPoint: lp
-      },
-      geometry: simplified.geometry
-    });
+        ...(nameJa ? { name_ja: nameJa } : {})
+      };
+    },
+    progressLabel: (name, feature) => {
+      const nameTh = normalizeNameTh(name, feature?.properties?.name_local || null);
+      return nameTh ? `${name} (${nameTh})` : name;
+    },
+    onFeaturesLoaded: logDuplicateNames,
+    logLabel: 'Thailand Provinces'
+  });
 
-    municipalities.push({
-      id,
-      name,
-      ...(nameTh ? { name_th: nameTh } : {}),
-      ...(nameJa ? { name_ja: nameJa } : {})
-    });
-    process.stdout.write(`  ✅ ${name}${nameTh ? ` (${nameTh})` : ''}\n`);
-  }
-
-  console.log(`\n📦 ${features.length} 県のデータを生成しました`);
-
-  // ─── 出力 ─────────────────────────────────────────────────────
-  const outputData = {
-    id: 'thailand',
-    features,
-    municipalities
-  };
-
-  const outDir = resolve(ROOT, 'data/prefectures');
-  mkdirSync(outDir, { recursive: true });
-  const outPath = resolve(outDir, 'thailand.js');
-  const content = `window.THAILAND_MUNICIPALITIES = ${JSON.stringify(outputData)};\n`;
-  writeFileSync(outPath, content, 'utf-8');
-  console.log(`\n✅ 書き出し完了: ${outPath}`);
-  console.log(`   ファイルサイズ: ${(content.length / 1024).toFixed(1)} KB`);
-
-  // ─── 県名一覧を表示 ────────────────────────────────────────────
   console.log('\n県一覧:');
-  municipalities.forEach((m, i) => {
+  payload.municipalities.forEach((m, i) => {
     console.log(`  ${String(i + 1).padStart(2, ' ')}. [${m.id}] ${m.name}`);
   });
 }
