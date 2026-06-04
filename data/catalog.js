@@ -126,6 +126,136 @@ window.GEOQUIZ_DATASETS = [
     version: "0.1.0"
   },
   {
+    id: "usa_area_codes_west",
+    name: "アメリカ市外局番 西部",
+    shortName: "USA West",
+    title: "GeoQuiz",
+    subtitle: "US Area Codes West",
+    description: "アラスカ・ハワイを除くアメリカ西部の市外局番エリアを覚えるトレーニングツール。",
+    dataGlobal: "USA_AREA_CODES_WEST_MUNICIPALITIES",
+    labelOverridesGlobal: "USA_AREA_CODES_WEST_LABEL_OVERRIDES",
+    speechReadingsGlobal: "USA_AREA_CODES_WEST_SPEECH_READINGS",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [40.167, -113.388],
+    initialView: { center: [40.167, -113.388], zoom: 5 },
+    mapMinZoom: 4,
+    mapMaxZoom: 10,
+    regionLabel: "Area Code",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "市外局番",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  },
+  {
+    id: "usa_area_codes_midwest",
+    name: "アメリカ市外局番 中西部",
+    shortName: "USA Midwest",
+    title: "GeoQuiz",
+    subtitle: "US Area Codes Midwest",
+    description: "アラスカ・ハワイを除くアメリカ中西部の市外局番エリアを覚えるトレーニングツール。",
+    dataGlobal: "USA_AREA_CODES_MIDWEST_MUNICIPALITIES",
+    labelOverridesGlobal: "USA_AREA_CODES_MIDWEST_LABEL_OVERRIDES",
+    speechReadingsGlobal: "USA_AREA_CODES_MIDWEST_SPEECH_READINGS",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [42.69, -92.288],
+    initialView: { center: [42.69, -92.288], zoom: 5 },
+    mapMinZoom: 4,
+    mapMaxZoom: 10,
+    regionLabel: "Area Code",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "市外局番",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  },
+  {
+    id: "usa_area_codes_south",
+    name: "アメリカ市外局番 南部",
+    shortName: "USA South",
+    title: "GeoQuiz",
+    subtitle: "US Area Codes South",
+    description: "アラスカ・ハワイを除くアメリカ南部の市外局番エリアを覚えるトレーニングツール。",
+    dataGlobal: "USA_AREA_CODES_SOUTH_MUNICIPALITIES",
+    labelOverridesGlobal: "USA_AREA_CODES_SOUTH_LABEL_OVERRIDES",
+    speechReadingsGlobal: "USA_AREA_CODES_SOUTH_SPEECH_READINGS",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [32.592, -90.847],
+    initialView: { center: [32.592, -90.847], zoom: 5 },
+    mapMinZoom: 4,
+    mapMaxZoom: 10,
+    regionLabel: "Area Code",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "市外局番",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  },
+  {
+    id: "usa_area_codes_northeast",
+    name: "アメリカ市外局番 北東部",
+    shortName: "USA NE",
+    title: "GeoQuiz",
+    subtitle: "US Area Codes Northeast",
+    description: "アラスカ・ハワイを除くアメリカ北東部の市外局番エリアを覚えるトレーニングツール。",
+    dataGlobal: "USA_AREA_CODES_NORTHEAST_MUNICIPALITIES",
+    labelOverridesGlobal: "USA_AREA_CODES_NORTHEAST_LABEL_OVERRIDES",
+    speechReadingsGlobal: "USA_AREA_CODES_NORTHEAST_SPEECH_READINGS",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [43.194, -73.735],
+    initialView: { center: [43.194, -73.735], zoom: 6 },
+    mapMinZoom: 5,
+    mapMaxZoom: 10,
+    regionLabel: "Area Code",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "市外局番",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  },
+  {
+    id: "usa_area_codes_california",
+    name: "カリフォルニア市外局番",
+    shortName: "CA Area",
+    title: "GeoQuiz",
+    subtitle: "California Area Codes",
+    description: "カリフォルニア州の市外局番エリアを覚えるトレーニングツール。",
+    dataGlobal: "USA_AREA_CODES_CALIFORNIA_MUNICIPALITIES",
+    labelOverridesGlobal: "USA_AREA_CODES_CALIFORNIA_LABEL_OVERRIDES",
+    speechReadingsGlobal: "USA_AREA_CODES_CALIFORNIA_SPEECH_READINGS",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [37.272, -119.27],
+    initialView: { center: [37.272, -119.27], zoom: 6 },
+    mapMinZoom: 5,
+    mapMaxZoom: 11,
+    regionLabel: "Area Code",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "市外局番",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  },
+  {
     id: "nigeria",
     name: "ナイジェリア",
     shortName: "Nigeria",

@@ -6,7 +6,7 @@ export const NATURAL_EARTH_ADMIN1_URL =
   'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_1_states_provinces.geojson';
 
 export function resolveProjectRoot(importMetaUrl) {
-  return resolve(dirname(fileURLToPath(importMetaUrl)), '..', '..');
+  return resolve(dirname(fileURLToPath(importMetaUrl)), '..');
 }
 
 export function loadBundledTurf(root) {
