@@ -86,6 +86,23 @@ function buildSpeechReading(ddd) {
     .join(' ');
 }
 
+function fillGeometryHoles(geometry) {
+  if (!geometry || !geometry.type) return geometry;
+  if (geometry.type === 'Polygon') {
+    return {
+      type: 'Polygon',
+      coordinates: geometry.coordinates.length ? [geometry.coordinates[0]] : []
+    };
+  }
+  if (geometry.type === 'MultiPolygon') {
+    return {
+      type: 'MultiPolygon',
+      coordinates: geometry.coordinates.map((polygon) => (polygon.length ? [polygon[0]] : []))
+    };
+  }
+  return geometry;
+}
+
 async function dissolveByDdd(features) {
   const tempDir = await mkdtemp(resolve(tmpdir(), 'geoquiz-brazil-ddd-'));
   const inputPath = resolve(tempDir, 'input.geojson');
@@ -228,7 +245,7 @@ async function main() {
     const mergedFeature = {
       type: 'Feature',
       properties: { id, name },
-      geometry: dissolvedFeature.geometry
+      geometry: fillGeometryHoles(dissolvedFeature.geometry)
     };
     const { geometry, labelPoint } = simplifyFeatureWithLabel(turf, mergedFeature, {
       tolerance: 0,
