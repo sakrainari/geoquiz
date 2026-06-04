@@ -120,8 +120,6 @@ async function dissolveByDdd(features) {
         MAPSHAPER_BIN,
         inputPath,
         '-dissolve', '_ddd',
-        '-filter-islands', 'min-area=25000m2', 'remove-empty',
-        '-filter-slivers', 'min-area=25000m2', 'sliver-control=0.85', 'remove-empty',
         '-clean',
         '-o', 'format=geojson', outputPath
       ],
@@ -130,6 +128,35 @@ async function dissolveByDdd(features) {
 
     const dissolved = JSON.parse(await readFile(outputPath, 'utf8'));
     return Array.isArray(dissolved.features) ? dissolved.features : [];
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+}
+
+async function cleanCoverageGaps(features) {
+  const tempDir = await mkdtemp(resolve(tmpdir(), 'geoquiz-brazil-ddd-clean-'));
+  const inputPath = resolve(tempDir, 'input.geojson');
+  const outputPath = resolve(tempDir, 'output.geojson');
+
+  try {
+    await writeFile(inputPath, JSON.stringify({
+      type: 'FeatureCollection',
+      features
+    }), 'utf8');
+
+    await execFile(
+      process.execPath,
+      [
+        MAPSHAPER_BIN,
+        inputPath,
+        '-clean', 'gap-fill-area=2500km2', 'sliver-control=1',
+        '-o', 'format=geojson', outputPath
+      ],
+      { cwd: ROOT, maxBuffer: 1024 * 1024 * 100 }
+    );
+
+    const cleaned = JSON.parse(await readFile(outputPath, 'utf8'));
+    return Array.isArray(cleaned.features) ? cleaned.features : [];
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
@@ -219,12 +246,14 @@ async function main() {
   }, {
     interval: '800m',
     weighting: 0.78,
-    minIslandArea: '80000m2',
-    minSliverArea: '80000m2',
-    sliverControl: 0.9
+    minIslandArea: '0m2',
+    minSliverArea: '0m2',
+    sliverControl: 0
   });
+  console.log('\n🩹 DDD間の微小ギャップを補修中...');
+  const cleanedDissolved = await cleanCoverageGaps(simplifiedDissolved.features || []);
   const dissolvedByDdd = new Map(
-    (simplifiedDissolved.features || []).map((feature) => [String(feature?.properties?._ddd || '').trim(), feature])
+    cleanedDissolved.map((feature) => [String(feature?.properties?._ddd || '').trim(), feature])
   );
 
   const municipalities = [];
