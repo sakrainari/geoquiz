@@ -412,6 +412,82 @@ window.GEOQUIZ_DATASETS = [
     version: "0.1.0"
   },
   {
+    id: "poland_area_codes",
+    name: "ポーランド市外局番",
+    shortName: "Poland Area",
+    title: "GeoQuiz",
+    subtitle: "Poland Area Codes Quiz",
+    description: "ポーランドの市外局番エリアを覚えるトレーニングツール。",
+    dataGlobal: "POLAND_AREA_CODES_MUNICIPALITIES",
+    labelOverridesGlobal: "POLAND_AREA_CODES_LABEL_OVERRIDES",
+    speechReadingsGlobal: "POLAND_AREA_CODES_SPEECH_READINGS",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [52.0, 19.2],
+    initialView: { center: [52.0, 19.2], zoom: 6 },
+    mapMinZoom: 4,
+    mapMaxZoom: 10,
+    regionLabel: "Area Code",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "Area Code",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  },
+  {
+    id: "ukraine_area_codes",
+    name: "ウクライナ市外局番",
+    shortName: "Ukraine Area",
+    title: "GeoQuiz",
+    subtitle: "Ukraine Area Codes Quiz",
+    description: "ウクライナの市外局番エリアを覚えるトレーニングツール。",
+    dataGlobal: "UKRAINE_AREA_CODES_MUNICIPALITIES",
+    labelOverridesGlobal: "UKRAINE_AREA_CODES_LABEL_OVERRIDES",
+    speechReadingsGlobal: "UKRAINE_AREA_CODES_SPEECH_READINGS",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [49.0, 31.3],
+    initialView: { center: [49.0, 31.3], zoom: 6 },
+    mapMinZoom: 4,
+    mapMaxZoom: 10,
+    regionLabel: "Area Code",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "Area Code",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  },
+  {
+    id: "indonesia",
+    name: "インドネシア",
+    shortName: "Indonesia",
+    title: "GeoQuiz",
+    subtitle: "Indonesia Provinces Quiz",
+    description: "インドネシアの州を覚えるトレーニングツール。",
+    dataGlobal: "INDONESIA_MUNICIPALITIES",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [-2.5, 118.0],
+    initialView: { center: [-2.5, 118.0], zoom: 5 },
+    mapMinZoom: 3,
+    mapMaxZoom: 10,
+    regionLabel: "州",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "州",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  },
+  {
     id: "nigeria",
     name: "ナイジェリア",
     shortName: "Nigeria",

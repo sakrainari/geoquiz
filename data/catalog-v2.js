@@ -14,8 +14,8 @@ window.GEOQUIZ_CATALOG_V2 = {
     { id: "north_america", label: "北米", countries: ["usa"] },
     { id: "south_america", label: "南米", countries: ["brazil"] },
     { id: "africa", label: "アフリカ", countries: ["nigeria"] },
-    { id: "east_asia", label: "東アジア", countries: ["thailand", "philippines", "malaysia"] },
-    { id: "europe", label: "欧州", countries: ["spain", "france"] }
+    { id: "east_asia", label: "東アジア", countries: ["thailand", "philippines", "malaysia", "indonesia"] },
+    { id: "europe", label: "欧州", countries: ["spain", "france", "poland", "ukraine"] }
   ],
   countries: [
     {
@@ -281,6 +281,57 @@ window.GEOQUIZ_CATALOG_V2 = {
           kind: "area_code",
           kindLabel: "Area Code",
           datasetId: "france_area_codes",
+          enabledQuizModes: ["municipality", "confirm"]
+        }
+      ]
+    },
+    {
+      id: "poland",
+      label: "Poland",
+      summary: "Area Code",
+      region: "europe",
+      defaultDatasetId: "poland_area_codes",
+      layers: [
+        {
+          id: "area_code",
+          label: "Area Code",
+          kind: "area_code",
+          kindLabel: "Area Code",
+          datasetId: "poland_area_codes",
+          enabledQuizModes: ["municipality", "confirm"]
+        }
+      ]
+    },
+    {
+      id: "ukraine",
+      label: "Ukraine",
+      summary: "Area Code",
+      region: "europe",
+      defaultDatasetId: "ukraine_area_codes",
+      layers: [
+        {
+          id: "area_code",
+          label: "Area Code",
+          kind: "area_code",
+          kindLabel: "Area Code",
+          datasetId: "ukraine_area_codes",
+          enabledQuizModes: ["municipality", "confirm"]
+        }
+      ]
+    },
+    {
+      id: "indonesia",
+      label: "Indonesia",
+      summary: "State",
+      region: "east_asia",
+      defaultDatasetId: "indonesia",
+      layers: [
+        {
+          id: "admin1",
+          label: "State",
+          kind: "admin",
+          kindLabel: "州",
+          datasetId: "indonesia",
           enabledQuizModes: ["municipality", "confirm"]
         }
       ]
