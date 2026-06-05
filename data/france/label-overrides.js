@@ -1,0 +1,1 @@
+window.FRANCE_LABEL_OVERRIDES = {};

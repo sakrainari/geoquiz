@@ -1,0 +1,21 @@
+window.SPAIN_SPEECH_READINGS = {
+  "spain_andalucia": "アンダルシア州",
+  "spain_aragon": "アラゴン州",
+  "spain_canarias": "カナリア諸島州",
+  "spain_cantabria": "カンタブリア州",
+  "spain_castilla_y_leon": "カスティーリャ・イ・レオン州",
+  "spain_castilla_la_mancha": "カスティーリャ・ラ・マンチャ州",
+  "spain_cataluna": "カタルーニャ州",
+  "spain_ciudad_autonoma_de_ceuta": "セウタ自治市",
+  "spain_ciudad_autonoma_de_melilla": "メリリャ自治市",
+  "spain_comunidad_de_madrid": "マドリード州",
+  "spain_comunidad_foral_de_navarra": "ナバラ州",
+  "spain_comunitat_valenciana": "バレンシア州",
+  "spain_extremadura": "エストレマドゥーラ州",
+  "spain_galicia": "ガリシア州",
+  "spain_illes_balears": "バレアレス諸島州",
+  "spain_la_rioja": "ラ・リオハ州",
+  "spain_pais_vasco": "バスク州",
+  "spain_principado_de_asturias": "アストゥリアス州",
+  "spain_region_de_murcia": "ムルシア州"
+};

@@ -14,7 +14,8 @@ window.GEOQUIZ_CATALOG_V2 = {
     { id: "north_america", label: "北米", countries: ["usa"] },
     { id: "south_america", label: "南米", countries: ["brazil"] },
     { id: "africa", label: "アフリカ", countries: ["nigeria"] },
-    { id: "east_asia", label: "東アジア", countries: ["thailand", "philippines", "malaysia"] }
+    { id: "east_asia", label: "東アジア", countries: ["thailand", "philippines", "malaysia"] },
+    { id: "europe", label: "欧州", countries: ["spain", "france"] }
   ],
   countries: [
     {
@@ -230,6 +231,56 @@ window.GEOQUIZ_CATALOG_V2 = {
           kind: "area_code",
           kindLabel: "Area Code",
           datasetId: "brazil_area_codes",
+          enabledQuizModes: ["municipality", "confirm"]
+        }
+      ]
+    },
+    {
+      id: "spain",
+      label: "Spain",
+      summary: "自治州 / Area Code",
+      region: "europe",
+      defaultDatasetId: "spain",
+      layers: [
+        {
+          id: "admin1",
+          label: "自治州",
+          kind: "admin",
+          kindLabel: "自治州",
+          datasetId: "spain",
+          enabledQuizModes: ["municipality", "confirm"]
+        },
+        {
+          id: "area_code",
+          label: "Area Code",
+          kind: "area_code",
+          kindLabel: "Area Code",
+          datasetId: "spain_area_codes",
+          enabledQuizModes: ["municipality", "confirm"]
+        }
+      ]
+    },
+    {
+      id: "france",
+      label: "France",
+      summary: "地域圏 / Area Code",
+      region: "europe",
+      defaultDatasetId: "france",
+      layers: [
+        {
+          id: "admin1",
+          label: "地域圏",
+          kind: "admin",
+          kindLabel: "地域圏",
+          datasetId: "france",
+          enabledQuizModes: ["municipality", "confirm"]
+        },
+        {
+          id: "area_code",
+          label: "Area Code",
+          kind: "area_code",
+          kindLabel: "Area Code",
+          datasetId: "france_area_codes",
           enabledQuizModes: ["municipality", "confirm"]
         }
       ]

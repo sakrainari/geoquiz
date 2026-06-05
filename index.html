@@ -1056,7 +1056,7 @@
     },
     {
       id: 'europe', label: '欧州',
-      prefIds: []
+      prefIds: ['spain', 'spain_area_codes', 'france', 'france_area_codes']
     },
     {
       id: 'special', label: '特集',
@@ -1248,6 +1248,11 @@
         btn.title = '準備中';
       } else {
         btn.addEventListener('click', function () {
+          var targetIds = getDatasetIdsForRegion(region);
+          if (targetIds.length && targetIds.indexOf(currentDsId) === -1) {
+            location.href = '?dataset=' + targetIds[0];
+            return;
+          }
           activeRegion = region;
           renderTabs();
           renderGrid();
@@ -1290,7 +1295,8 @@
       americas: 'north_america',
       south_america: 'south_america',
       africa: 'africa',
-      east_asia: 'east_asia'
+      east_asia: 'east_asia',
+      europe: 'europe'
     };
     return regionMap[activeRegion.id] || null;
   }
@@ -1328,16 +1334,20 @@
     return japan.layers.find(function (layer) { return layer.id === regionId; }) || null;
   }
 
-  function getDatasetIdsForActiveRegion() {
-    if (!activeRegion) return [];
-    var regionSet = findJapanRegionSet(activeRegion.id);
+  function getDatasetIdsForRegion(region) {
+    if (!region) return [];
+    var regionSet = findJapanRegionSet(region.id);
     if (regionSet && regionSet.datasets && regionSet.datasets.length) {
       return regionSet.datasets.map(function (item) { return item.id; });
     }
     var ids = [];
-    if (activeRegion.allId) ids.push(activeRegion.allId);
-    if (activeRegion.prefIds && activeRegion.prefIds.length) ids = ids.concat(activeRegion.prefIds);
+    if (region.allId) ids.push(region.allId);
+    if (region.prefIds && region.prefIds.length) ids = ids.concat(region.prefIds);
     return ids;
+  }
+
+  function getDatasetIdsForActiveRegion() {
+    return getDatasetIdsForRegion(activeRegion);
   }
 
   function getAllDatasetForActiveRegion() {

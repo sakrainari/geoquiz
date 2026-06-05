@@ -1,0 +1,1 @@
+window.SPAIN_LABEL_OVERRIDES = {};

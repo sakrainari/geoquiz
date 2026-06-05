@@ -308,6 +308,110 @@ window.GEOQUIZ_DATASETS = [
     version: "0.1.0"
   },
   {
+    id: "spain",
+    name: "スペイン",
+    shortName: "Spain",
+    title: "GeoQuiz",
+    subtitle: "Spain Autonomous Communities Quiz",
+    description: "スペインの自治州と自治市の位置を覚えるトレーニングツール。",
+    dataGlobal: "SPAIN_MUNICIPALITIES",
+    labelOverridesGlobal: "SPAIN_LABEL_OVERRIDES",
+    speechReadingsGlobal: "SPAIN_SPEECH_READINGS",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [40.2, -3.7],
+    initialView: { center: [40.2, -3.7], zoom: 6 },
+    mapMinZoom: 4,
+    mapMaxZoom: 10,
+    regionLabel: "自治州",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "自治州",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  },
+  {
+    id: "spain_area_codes",
+    name: "スペイン市外局番",
+    shortName: "Spain Area",
+    title: "GeoQuiz",
+    subtitle: "Spain Area Codes Quiz",
+    description: "スペインの市外局番エリアを覚えるトレーニングツール。",
+    dataGlobal: "SPAIN_AREA_CODES_MUNICIPALITIES",
+    labelOverridesGlobal: "SPAIN_AREA_CODES_LABEL_OVERRIDES",
+    speechReadingsGlobal: "SPAIN_AREA_CODES_SPEECH_READINGS",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [40.2, -3.7],
+    initialView: { center: [40.2, -3.7], zoom: 6 },
+    mapMinZoom: 4,
+    mapMaxZoom: 10,
+    regionLabel: "Area Code",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "Area Code",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  },
+  {
+    id: "france",
+    name: "フランス",
+    shortName: "France",
+    title: "GeoQuiz",
+    subtitle: "France Regions Quiz",
+    description: "フランスの地域圏を覚えるトレーニングツール。",
+    dataGlobal: "FRANCE_MUNICIPALITIES",
+    labelOverridesGlobal: "FRANCE_LABEL_OVERRIDES",
+    speechReadingsGlobal: "FRANCE_SPEECH_READINGS",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [46.4, 2.4],
+    initialView: { center: [46.4, 2.4], zoom: 5 },
+    mapMinZoom: 3,
+    mapMaxZoom: 10,
+    regionLabel: "地域圏",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "地域圏",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  },
+  {
+    id: "france_area_codes",
+    name: "フランス市外局番",
+    shortName: "France Area",
+    title: "GeoQuiz",
+    subtitle: "France Area Codes Quiz",
+    description: "フランスの市外局番エリアを覚えるトレーニングツール。",
+    dataGlobal: "FRANCE_AREA_CODES_MUNICIPALITIES",
+    labelOverridesGlobal: "FRANCE_AREA_CODES_LABEL_OVERRIDES",
+    speechReadingsGlobal: "FRANCE_AREA_CODES_SPEECH_READINGS",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [46.4, 2.4],
+    initialView: { center: [46.4, 2.4], zoom: 6 },
+    mapMinZoom: 4,
+    mapMaxZoom: 10,
+    regionLabel: "Area Code",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "Area Code",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  },
+  {
     id: "nigeria",
     name: "ナイジェリア",
     shortName: "Nigeria",
