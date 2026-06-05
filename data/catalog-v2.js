@@ -29,6 +29,7 @@ window.GEOQUIZ_CATALOG_V2 = {
           label: "北海道",
           kind: "region_set",
           kindLabel: "地域セット",
+          enabledQuizModes: ["municipality", "ma", "confirm", "confirm_ma"],
           defaultDatasetId: "hokkaido_all",
           datasets: [
             { id: "hokkaido_all", label: "全域", coverage: "region" },
@@ -43,6 +44,7 @@ window.GEOQUIZ_CATALOG_V2 = {
           label: "東北",
           kind: "region_set",
           kindLabel: "地域セット",
+          enabledQuizModes: ["municipality", "ma", "confirm", "confirm_ma"],
           defaultDatasetId: "tohoku_all",
           datasets: [
             { id: "tohoku_all", label: "全域", coverage: "region" },
@@ -59,6 +61,7 @@ window.GEOQUIZ_CATALOG_V2 = {
           label: "関東",
           kind: "region_set",
           kindLabel: "地域セット",
+          enabledQuizModes: ["municipality", "ma", "confirm", "confirm_ma"],
           defaultDatasetId: "kanto_all",
           datasets: [
             { id: "kanto_all", label: "全域", coverage: "region" },
@@ -78,6 +81,7 @@ window.GEOQUIZ_CATALOG_V2 = {
           label: "中部",
           kind: "region_set",
           kindLabel: "地域セット",
+          enabledQuizModes: ["municipality", "ma", "confirm", "confirm_ma"],
           defaultDatasetId: "chubu_all",
           datasets: [
             { id: "chubu_all", label: "全域", coverage: "region" },
@@ -97,6 +101,7 @@ window.GEOQUIZ_CATALOG_V2 = {
           label: "近畿",
           kind: "region_set",
           kindLabel: "地域セット",
+          enabledQuizModes: ["municipality", "ma", "confirm", "confirm_ma"],
           defaultDatasetId: "kinki_all",
           datasets: [
             { id: "kinki_all", label: "全域", coverage: "region" },
@@ -114,6 +119,7 @@ window.GEOQUIZ_CATALOG_V2 = {
           label: "中国",
           kind: "region_set",
           kindLabel: "地域セット",
+          enabledQuizModes: ["municipality", "ma", "confirm", "confirm_ma"],
           defaultDatasetId: "chugoku_all",
           datasets: [
             { id: "chugoku_all", label: "全域", coverage: "region" },
@@ -129,6 +135,7 @@ window.GEOQUIZ_CATALOG_V2 = {
           label: "四国",
           kind: "region_set",
           kindLabel: "地域セット",
+          enabledQuizModes: ["municipality", "ma", "confirm", "confirm_ma"],
           defaultDatasetId: "shikoku_all",
           datasets: [
             { id: "shikoku_all", label: "全域", coverage: "region" },
@@ -143,6 +150,7 @@ window.GEOQUIZ_CATALOG_V2 = {
           label: "九州",
           kind: "region_set",
           kindLabel: "地域セット",
+          enabledQuizModes: ["municipality", "ma", "confirm", "confirm_ma"],
           defaultDatasetId: "kyushu_all",
           datasets: [
             { id: "kyushu_all", label: "全域", coverage: "region" },
@@ -160,6 +168,7 @@ window.GEOQUIZ_CATALOG_V2 = {
           label: "沖縄",
           kind: "region_set",
           kindLabel: "地域セット",
+          enabledQuizModes: ["municipality", "ma", "confirm", "confirm_ma"],
           datasetId: "okinawa",
           datasets: [
             { id: "okinawa", label: "沖縄", coverage: "prefecture" }

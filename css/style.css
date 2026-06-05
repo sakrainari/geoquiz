@@ -132,6 +132,12 @@ h3 {
   margin-bottom: 16px;
 }
 
+.device-note {
+  max-width: 540px;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
 .top-stat-value:empty::after {
   content: '-';
   color: var(--line);
@@ -243,6 +249,17 @@ h3 {
 
 .start-right {
   padding-top: 24px;
+}
+
+@media (min-width: 901px) {
+  .start-right {
+    position: sticky;
+    top: 16px;
+    align-self: start;
+    max-height: calc(100vh - 32px);
+    overflow: auto;
+    padding-right: 4px;
+  }
 }
 
 .start-header {
@@ -885,6 +902,25 @@ h3 {
   background: var(--line);
 }
 
+.section-label-with-badge {
+  gap: 8px;
+}
+
+.section-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+}
+
 /* ── モードカード内部 ── */
 .mode-card-icon {
   display: flex;
@@ -996,6 +1032,133 @@ h3 {
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+.rule-gauge-panel {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+  margin-bottom: 16px;
+}
+
+.rule-gauge-tabs {
+  display: inline-flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.rule-gauge-tab {
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #141a1f;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rule-gauge-tab:hover {
+  border-color: var(--accent);
+  color: #dffbf5;
+}
+
+.rule-gauge-tab.is-active {
+  border-color: var(--accent);
+  background: rgba(79, 183, 165, 0.14);
+  color: #dffbf5;
+}
+
+.rule-gauge-tabs.is-hidden {
+  display: none;
+}
+
+.rule-gauge-card {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 10px 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.rule-gauge-title {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+}
+
+.rule-gauge-body {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 92px;
+}
+
+.rule-gauge-chart {
+  width: 92px;
+  height: 92px;
+  display: grid;
+  place-items: center;
+}
+
+.rule-gauge-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.rule-gauge-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 10;
+}
+
+.rule-gauge-progress {
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  transition: stroke-dashoffset 180ms ease;
+}
+
+.rule-gauge-center {
+  fill: rgba(255, 255, 255, 0.02);
+}
+
+.rule-gauge-value {
+  fill: var(--text);
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  text-anchor: middle;
+}
+
+.rule-gauge-note {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  min-width: 36px;
+  max-width: 44px;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.35;
+  text-align: left;
+  word-break: break-word;
+}
+
+.rule-gauge-note:empty {
+  display: none;
+}
+
+.start-screen .top-stats-panel {
+  display: none;
 }
 
 .top-mini-heatmap {

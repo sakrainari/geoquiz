@@ -38,6 +38,7 @@
   let currentRunConfig = null;
   let completedResultState = null;
   let lastFailureHighlight = null;
+  let ruleGaugeQuizType = DEFAULT_QUIZ_MODE === "ma" ? "ma" : "municipality";
   const currentSessionSettings = {
     rule: "normal",
     audio: true,
@@ -77,6 +78,7 @@
     appTitle: document.getElementById("appTitle"),
     appDescription: document.getElementById("appDescription"),
     regionSelector: document.getElementById("regionSelector"),
+    quizDatasetBadge: document.getElementById("quizDatasetBadge"),
     regionMenu: document.getElementById("regionMenu"),
     quizModeButtons: [...document.querySelectorAll(".mode-grid [data-start-mode]")],
     confirmModeButtons: [...document.querySelectorAll(".mode-grid-confirm [data-start-mode]")],
@@ -157,6 +159,15 @@
     practiceLowAccuracyButton: document.getElementById("practiceLowAccuracyButton"),
     rankingTitle: document.getElementById("rankingTitle"),
     rankingTabs: [...document.querySelectorAll("[data-ranking-type]")],
+    ruleGaugeTabs: document.getElementById("ruleGaugeTabs"),
+    ruleGaugeMunicipalityTab: document.getElementById("ruleGaugeMunicipalityTab"),
+    ruleGaugeAreaCodeTab: document.getElementById("ruleGaugeAreaCodeTab"),
+    ruleGaugeEasy: document.getElementById("ruleGaugeEasy"),
+    ruleGaugeNormal: document.getElementById("ruleGaugeNormal"),
+    ruleGaugeSudden: document.getElementById("ruleGaugeSudden"),
+    ruleGaugeEasyNote: document.getElementById("ruleGaugeEasyNote"),
+    ruleGaugeNormalNote: document.getElementById("ruleGaugeNormalNote"),
+    ruleGaugeSuddenNote: document.getElementById("ruleGaugeSuddenNote"),
     topStatSessions: document.getElementById("topStatSessions"),
     topStatAccuracy: document.getElementById("topStatAccuracy"),
     topStatWeak: document.getElementById("topStatWeak"),
@@ -196,6 +207,21 @@
     if (!appConfig.enabledModes.includes(button.dataset.startMode)) return;
     button.addEventListener("click", () => start(button.dataset.startMode));
   });
+  if (els.ruleGaugeMunicipalityTab) {
+    els.ruleGaugeMunicipalityTab.addEventListener("click", () => {
+      ruleGaugeQuizType = "municipality";
+      syncRuleGaugeTabs();
+      renderRuleGaugePanel();
+    });
+  }
+  if (els.ruleGaugeAreaCodeTab) {
+    els.ruleGaugeAreaCodeTab.addEventListener("click", () => {
+      if (!hasAreaCodeGauge()) return;
+      ruleGaugeQuizType = "ma";
+      syncRuleGaugeTabs();
+      renderRuleGaugePanel();
+    });
+  }
   els.startQuizButton.addEventListener("click", () => {
     beginSelectedQuizMode();
   });
@@ -355,6 +381,7 @@
     if (els.prepModeCopy) {
       els.prepModeCopy.textContent = "地図と設定を確認してから開始できます。";
     }
+    renderRuleGaugePanel();
   }
 
   function syncStartSettingsUI() {
@@ -372,6 +399,34 @@
     if (els.layoutOverlayButton) els.layoutOverlayButton.classList.toggle("is-active", currentSessionSettings.layout === "overlay");
     if (els.startSelectionNote) {
       els.startSelectionNote.textContent = `${modeName(selectedQuizMode || DEFAULT_QUIZ_MODE)} / ${ruleName(currentSessionSettings.rule)}で開始`;
+    }
+    renderRuleGaugePanel();
+  }
+
+  function hasAreaCodeGauge() {
+    return !!(appConfig.enabledModes.includes("ma") && new Set(dataset.municipalities.map((item) => item.area_code).filter(Boolean)).size > 0);
+  }
+
+  function syncRuleGaugeTabs() {
+    const hasAreaCode = hasAreaCodeGauge();
+    if (ruleGaugeQuizType === "ma" && !hasAreaCode) {
+      ruleGaugeQuizType = "municipality";
+    }
+    if (els.ruleGaugeTabs) {
+      els.ruleGaugeTabs.classList.toggle("is-hidden", !hasAreaCode);
+    }
+    if (els.ruleGaugeMunicipalityTab) {
+      const active = ruleGaugeQuizType !== "ma";
+      els.ruleGaugeMunicipalityTab.classList.toggle("is-active", active);
+      els.ruleGaugeMunicipalityTab.setAttribute("aria-selected", active ? "true" : "false");
+      els.ruleGaugeMunicipalityTab.textContent = primaryModeLabel();
+    }
+    if (els.ruleGaugeAreaCodeTab) {
+      const active = ruleGaugeQuizType === "ma";
+      els.ruleGaugeAreaCodeTab.classList.toggle("is-active", active);
+      els.ruleGaugeAreaCodeTab.setAttribute("aria-selected", active ? "true" : "false");
+      els.ruleGaugeAreaCodeTab.disabled = !hasAreaCode;
+      els.ruleGaugeAreaCodeTab.textContent = getI18n(appConfig, "areaCode", "市外局番");
     }
   }
 
@@ -888,6 +943,13 @@
     hidePreparationOverlay();
     const result = engine.result();
     const summary = window.ResultAnalytics.summarize(result);
+    if (window.ProgressBarStore && typeof window.ProgressBarStore.saveSession === "function") {
+      window.ProgressBarStore.saveSession(appConfig.id, result.mode, result.rule, {
+        firstTryCorrect: summary.firstTryCount,
+        cleared: result.correct >= result.totalQuestions,
+        streak: result.correct
+      });
+    }
     const previousDatasetProgress = window.ProgressStore.getDatasetProgress(appConfig.id);
     const previousModeProgress = window.ProgressStore.getModeProgress(previousDatasetProgress, result.mode);
     const savedProgress = window.ProgressStore.saveSession(appConfig.id, dataset, result);
@@ -1694,9 +1756,21 @@
   }
 
   function layerEnabledModes() {
-    const layer = findCurrentCatalogLayer();
-    if (layer && Array.isArray(layer.enabledQuizModes) && layer.enabledQuizModes.length) {
-      return layer.enabledQuizModes;
+    const directLayer = findCurrentCatalogLayer();
+    if (directLayer && Array.isArray(directLayer.enabledQuizModes) && directLayer.enabledQuizModes.length) {
+      return directLayer.enabledQuizModes;
+    }
+    if (catalogV2 && Array.isArray(catalogV2.countries)) {
+      for (const country of catalogV2.countries) {
+        if (!country || !Array.isArray(country.layers)) continue;
+        for (const layer of country.layers) {
+          if (!layer || !Array.isArray(layer.enabledQuizModes) || !layer.enabledQuizModes.length) continue;
+          if (layer.datasetId === appConfig.id || layer.defaultDatasetId === appConfig.id) return layer.enabledQuizModes;
+          if (Array.isArray(layer.datasets) && layer.datasets.some((item) => item && item.id === appConfig.id)) {
+            return layer.enabledQuizModes;
+          }
+        }
+      }
     }
     return appConfig.enabledModes || [];
   }
@@ -1782,6 +1856,7 @@
     els.appTitle.textContent = appConfig.title || "日本市外局番マップクイズ";
     els.appDescription.textContent = appConfig.description || `${appConfig.name} の地域認識トレーニング。`;
     if (els.regionSelector) els.regionSelector.textContent = `${appConfig.name} ▾`;
+    if (els.quizDatasetBadge) els.quizDatasetBadge.textContent = appConfig.name;
     if (els.map) els.map.setAttribute("aria-label", `${appConfig.name}クイズ地図`);
     applyDatasetModeDescriptions();
     // Apply i18n display names
@@ -2055,6 +2130,7 @@
   function updateTopStats() {
     const dp = window.ProgressStore.getDatasetProgress(appConfig.id);
     if (!dp) {
+      renderRuleGaugePanel();
       els.topStatSessions.textContent = "";
       els.topStatAccuracy.textContent = "";
       els.topStatWeak.textContent = "";
@@ -2097,6 +2173,68 @@
     }
 
     renderMiniHeatmap(dp);
+    renderRuleGaugePanel();
+  }
+
+  function currentGaugeQuizType() {
+    return ruleGaugeQuizType === "ma" ? "ma" : "municipality";
+  }
+
+  function buildRuleGaugeMetric(ruleKey, qtData, denom) {
+    const data = (qtData && qtData[ruleKey]) || {};
+    if (ruleKey === "sudden_death") {
+      const best = Math.max(0, data.best_streak || 0);
+      const max = Math.max(1, denom || 1);
+      const percent = Math.max(0, Math.min(100, Math.round((best / max) * 100)));
+      return {
+        percent,
+        valueText: data.plays ? `${percent}%` : "--",
+        note: ""
+      };
+    }
+    const plays = Math.max(0, data.plays || 0);
+    const firstTry = Math.max(0, data.first_try_correct || 0);
+    const percent = plays > 0 ? Math.max(0, Math.min(100, Math.round((firstTry / plays) * 100))) : 0;
+    return {
+      percent,
+      valueText: plays > 0 ? `${percent}%` : "--",
+      note: ""
+    };
+  }
+
+  function renderRuleGauge(target, noteEl, color, metric) {
+    if (!target || !noteEl) return;
+    const radius = 30;
+    const circumference = 2 * Math.PI * radius;
+    const clampedPercent = Math.max(0, Math.min(100, metric.percent || 0));
+    const dashOffset = circumference * (1 - clampedPercent / 100);
+    target.innerHTML =
+      `<svg class="rule-gauge-svg" viewBox="0 0 84 84" aria-hidden="true">
+        <circle class="rule-gauge-track" cx="42" cy="42" r="${radius}"></circle>
+        <circle class="rule-gauge-progress" cx="42" cy="42" r="${radius}" stroke="${color}"
+          stroke-dasharray="${circumference.toFixed(2)}" stroke-dashoffset="${dashOffset.toFixed(2)}"></circle>
+        <circle class="rule-gauge-center" cx="42" cy="42" r="22"></circle>
+        <text class="rule-gauge-value" x="42" y="47">${metric.valueText}</text>
+      </svg>`;
+    noteEl.textContent = metric.note;
+  }
+
+  function renderRuleGaugePanel() {
+    const pbs = window.ProgressBarStore;
+    if (!pbs) return;
+    syncRuleGaugeTabs();
+    const regionData = pbs.getRegion(appConfig.id) || { municipality: {}, ma: {} };
+    const quizType = currentGaugeQuizType();
+    const qtData = regionData[quizType] || {};
+    const denom = quizType === "ma"
+      ? new Set(dataset.municipalities.map((item) => item.area_code).filter(Boolean)).size
+      : dataset.municipalities.length;
+    const easyMetric = buildRuleGaugeMetric("easy", qtData, denom);
+    const normalMetric = buildRuleGaugeMetric("normal", qtData, denom);
+    const suddenMetric = buildRuleGaugeMetric("sudden_death", qtData, denom);
+    renderRuleGauge(els.ruleGaugeEasy, els.ruleGaugeEasyNote, "#8ec5ff", easyMetric);
+    renderRuleGauge(els.ruleGaugeNormal, els.ruleGaugeNormalNote, "#f2a38b", normalMetric);
+    renderRuleGauge(els.ruleGaugeSudden, els.ruleGaugeSuddenNote, "#f3c45c", suddenMetric);
   }
 
   function renderMiniHeatmap(dp) {

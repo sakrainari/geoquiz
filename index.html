@@ -26,6 +26,7 @@
             <div class="brand-block">
               <p class="eyebrow" id="appSubtitle" hidden>GeoGuessr training</p>
               <h1 id="appTitle">GeoQuiz</h1>
+              <p class="device-note">※スマホやタブレットでも遊べますが、現在のモード選択UIはPC環境を想定して作成しています。</p>
               <p id="appDescription" hidden>地図から、知識を叩き込むトレーニングツール。</p>
             </div>
             <span id="regionInfoBadge" class="region-info-badge" aria-live="polite">—</span>
@@ -46,7 +47,7 @@
 
         <!-- 右カラム：クイズモード + 確認マップ + 統計 -->
         <div class="start-right">
-          <p class="section-label">クイズ</p>
+          <p class="section-label section-label-with-badge">クイズ <span id="quizDatasetBadge" class="section-chip">-</span></p>
           <div class="mode-grid" aria-label="モード選択">
 
             <button class="mode-card" data-start-mode="municipality">
@@ -109,6 +110,35 @@
               <span class="mode-card-arrow">›</span>
             </button>
 
+          </div>
+
+          <p class="section-label">ルール進捗</p>
+          <div id="ruleGaugeTabs" class="rule-gauge-tabs" role="tablist" aria-label="進捗の表示切替">
+            <button id="ruleGaugeMunicipalityTab" class="rule-gauge-tab is-active" type="button" role="tab" aria-selected="true">地名</button>
+            <button id="ruleGaugeAreaCodeTab" class="rule-gauge-tab" type="button" role="tab" aria-selected="false">局番</button>
+          </div>
+          <div id="ruleGaugePanel" class="rule-gauge-panel">
+            <div class="rule-gauge-card">
+              <div class="rule-gauge-title">Easy</div>
+              <div class="rule-gauge-body">
+                <div class="rule-gauge-chart" id="ruleGaugeEasy"></div>
+                <div class="rule-gauge-note" id="ruleGaugeEasyNote"></div>
+              </div>
+            </div>
+            <div class="rule-gauge-card">
+              <div class="rule-gauge-title">Normal</div>
+              <div class="rule-gauge-body">
+                <div class="rule-gauge-chart" id="ruleGaugeNormal"></div>
+                <div class="rule-gauge-note" id="ruleGaugeNormalNote"></div>
+              </div>
+            </div>
+            <div class="rule-gauge-card">
+              <div class="rule-gauge-title">Sudden Death</div>
+              <div class="rule-gauge-body">
+                <div class="rule-gauge-chart" id="ruleGaugeSudden"></div>
+                <div class="rule-gauge-note" id="ruleGaugeSuddenNote"></div>
+              </div>
+            </div>
           </div>
 
           <p class="section-label">グローバルランキング</p>
@@ -995,48 +1025,18 @@
 (function () {
   var REGIONS = [
     {
-      id: 'hokkaido', label: '北海道',
-      allId: 'hokkaido_all',
-      prefIds: ['hokkaido_doo', 'hokkaido_donan', 'hokkaido_dohoku', 'hokkaido_doto']
-    },
-    {
-      id: 'kanto', label: '関東',
-      allId: 'kanto_all',
-      prefIds: ['tokyo', 'tokyo_all', 'tokyo_islands', 'saitama', 'chiba', 'kanagawa', 'ibaraki', 'gunma', 'tochigi']
-    },
-    {
-      id: 'tohoku', label: '東北',
-      allId: 'tohoku_all',
-      prefIds: ['aomori', 'iwate', 'miyagi', 'akita', 'yamagata', 'fukushima']
-    },
-    {
-      id: 'chubu', label: '中部',
-      allId: 'chubu_all',
-      prefIds: ['niigata', 'toyama', 'ishikawa', 'fukui', 'yamanashi', 'nagano', 'gifu', 'shizuoka', 'aichi']
-    },
-    {
-      id: 'kinki',  label: '近畿',
-      allId: 'kinki_all',
-      prefIds: ['mie', 'shiga', 'kyoto', 'osaka', 'hyogo', 'nara', 'wakayama']
-    },
-    {
-      id: 'chugoku', label: '中国',
-      allId: 'chugoku_all',
-      prefIds: ['tottori', 'shimane', 'okayama', 'hiroshima', 'yamaguchi']
-    },
-    {
-      id: 'shikoku', label: '四国',
-      allId: 'shikoku_all',
-      prefIds: ['tokushima', 'kagawa', 'ehime', 'kochi']
-    },
-    {
-      id: 'kyushu', label: '九州',
-      allId: 'kyushu_all',
-      prefIds: ['fukuoka', 'saga', 'nagasaki', 'kumamoto', 'oita', 'miyazaki', 'kagoshima']
-    },
-    {
-      id: 'okinawa', label: '沖縄',
-      prefIds: ['okinawa']
+      id: 'japan', label: '日本',
+      prefIds: [
+        'hokkaido_all', 'hokkaido_doo', 'hokkaido_donan', 'hokkaido_dohoku', 'hokkaido_doto',
+        'tohoku_all', 'aomori', 'iwate', 'miyagi', 'akita', 'yamagata', 'fukushima',
+        'kanto_all', 'tokyo', 'tokyo_all', 'tokyo_islands', 'saitama', 'chiba', 'kanagawa', 'ibaraki', 'gunma', 'tochigi',
+        'chubu_all', 'niigata', 'toyama', 'ishikawa', 'fukui', 'yamanashi', 'nagano', 'gifu', 'shizuoka', 'aichi',
+        'kinki_all', 'mie', 'shiga', 'kyoto', 'osaka', 'hyogo', 'nara', 'wakayama',
+        'chugoku_all', 'tottori', 'shimane', 'okayama', 'hiroshima', 'yamaguchi',
+        'shikoku_all', 'tokushima', 'kagawa', 'ehime', 'kochi',
+        'kyushu_all', 'fukuoka', 'saga', 'nagasaki', 'kumamoto', 'oita', 'miyazaki', 'kagoshima',
+        'okinawa'
+      ]
     },
     {
       id: 'americas', label: '北米',
@@ -1286,15 +1286,7 @@
   function getCatalogRegionIdForActiveRegion() {
     if (!activeRegion) return null;
     var regionMap = {
-      hokkaido: 'japan',
-      kanto: 'japan',
-      tohoku: 'japan',
-      chubu: 'japan',
-      kinki: 'japan',
-      chugoku: 'japan',
-      shikoku: 'japan',
-      kyushu: 'japan',
-      okinawa: 'japan',
+      japan: 'japan',
       americas: 'north_america',
       south_america: 'south_america',
       africa: 'africa',
