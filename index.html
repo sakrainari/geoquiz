@@ -1326,15 +1326,17 @@
 
   function layerKindLabel(layer) {
     if (!layer) return '';
+    if (layer.kind === 'admin') return '';
     if (layer.kindLabel) return layer.kindLabel;
     if (layer.kind === 'area_code') return 'Area Code';
-    if (layer.kind === 'admin') return '地名';
     return layer.kind || '';
   }
 
   function layerDescriptionText(layer, ds, stats) {
-    var base = statsText(ds, stats, false);
-    if (!base) return '';
+    if (!layer || !ds || !Array.isArray(ds.municipalities)) return '';
+    var count = ds.municipalities.length;
+    var label = layer.label || ds.shortName || ds.name;
+    var base = label + ' ' + count + '問';
     if (layer && layer.datasets && layer.datasets.length > 1) {
       var primary = layer.datasets[0];
       if (primary && primary.label) {
@@ -1398,10 +1400,11 @@
         node.type = 'button';
         node.className = 'country-tree-node' + (currentDsId === ds.id ? ' is-active' : '');
         node.dataset.datasetId = ds.id;
+        var kindLabel = layerKindLabel(layer);
         node.innerHTML =
           '<div class="country-tree-node-top">' +
             '<span class="country-tree-node-label">' + esc(layer.label || ds.shortName || ds.name) + '</span>' +
-            '<span class="country-tree-node-kind">' + esc(layerKindLabel(layer)) + '</span>' +
+            (kindLabel ? '<span class="country-tree-node-kind">' + esc(kindLabel) + '</span>' : '') +
           '</div>' +
           '<div class="country-tree-node-desc">' + esc(layerDescriptionText(layer, ds, stats)) + '</div>';
         node.addEventListener('click', function () {
