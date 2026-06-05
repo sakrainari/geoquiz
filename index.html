@@ -1056,7 +1056,7 @@
     },
     {
       id: 'europe', label: '欧州',
-      prefIds: ['spain', 'spain_area_codes', 'france', 'france_area_codes', 'poland_area_codes', 'ukraine_area_codes', 'germany']
+      prefIds: ['spain', 'spain_provinces', 'spain_area_codes', 'france', 'france_departments', 'france_area_codes', 'poland', 'poland_area_codes', 'ukraine_area_codes', 'germany']
     },
     {
       id: 'special', label: '特集',
@@ -1429,6 +1429,15 @@
     return base;
   }
 
+  function coverageGroupLabel(entry) {
+    if (!entry) return '';
+    if (entry.groupLabel) return entry.groupLabel;
+    if (entry.coverage === 'subregion') return '島グループ';
+    if (entry.coverage === 'state') return '州別';
+    if (entry.coverage === 'country') return '全域';
+    return 'セット';
+  }
+
   function countryQuestionCount(country) {
     if (!country || !country.layers) return 0;
     return country.layers.reduce(function (sum, layer) {
@@ -1498,10 +1507,19 @@
         if (layer.datasets && layer.datasets.length > 1) {
           var sublist = document.createElement('ul');
           sublist.className = 'country-tree-sublist';
+          var lastCoverageLabel = null;
           layer.datasets.forEach(function (entry) {
             var subsetDs = dsMap[entry.id];
             if (!subsetDs) return;
             if (subsetDs.id === ds.id) return;
+            var coverageLabel = coverageGroupLabel(entry);
+            if (coverageLabel !== lastCoverageLabel) {
+              var heading = document.createElement('li');
+              heading.className = 'country-tree-subgroup-label';
+              heading.textContent = coverageLabel;
+              sublist.appendChild(heading);
+              lastCoverageLabel = coverageLabel;
+            }
             var subitem = document.createElement('li');
             subitem.className = 'country-tree-subitem';
             var subset = document.createElement('button');

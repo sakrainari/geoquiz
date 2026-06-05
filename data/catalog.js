@@ -334,6 +334,38 @@ window.GEOQUIZ_DATASETS = [
     version: "0.1.0"
   },
   {
+    id: "spain_provinces",
+    name: "スペイン 県",
+    shortName: "Spain Provinces",
+    title: "GeoQuiz",
+    subtitle: "Spain Provinces Quiz",
+    description: "スペインの県と自治市を覚えるトレーニングツール。",
+    dataGlobal: "SPAIN_PROVINCES_MUNICIPALITIES",
+    labelOverridesGlobal: "SPAIN_PROVINCES_LABEL_OVERRIDES",
+    speechReadingsGlobal: "SPAIN_PROVINCES_SPEECH_READINGS",
+    remoteGeoJsonUrl: "https://super-duper.fr/geojson/prov/gadm41_ESP_2.json",
+    remoteDataFormat: "gadm-admin",
+    remoteNameProperty: "NAME_2",
+    remoteAliasProperty: "VARNAME_2",
+    remoteRegionProperty: "NAME_1",
+    remoteItemIdPrefix: "spain_province_",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [40.2, -3.7],
+    initialView: { center: [40.2, -3.7], zoom: 6 },
+    mapMinZoom: 4,
+    mapMaxZoom: 10,
+    regionLabel: "県",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "県",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  },
+  {
     id: "spain_area_codes",
     name: "スペイン市外局番",
     shortName: "Spain Area",
@@ -386,6 +418,38 @@ window.GEOQUIZ_DATASETS = [
     version: "0.1.0"
   },
   {
+    id: "france_departments",
+    name: "フランス 県",
+    shortName: "France Departments",
+    title: "GeoQuiz",
+    subtitle: "France Departments Quiz",
+    description: "フランスの県を覚えるトレーニングツール。",
+    dataGlobal: "FRANCE_DEPARTMENTS_MUNICIPALITIES",
+    labelOverridesGlobal: "FRANCE_DEPARTMENTS_LABEL_OVERRIDES",
+    speechReadingsGlobal: "FRANCE_DEPARTMENTS_SPEECH_READINGS",
+    remoteGeoJsonUrl: "https://super-duper.fr/geojson/prov/gadm41_FRA_2.json",
+    remoteDataFormat: "gadm-admin",
+    remoteNameProperty: "NAME_2",
+    remoteAliasProperty: "VARNAME_2",
+    remoteRegionProperty: "NAME_1",
+    remoteItemIdPrefix: "france_department_",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [46.4, 2.4],
+    initialView: { center: [46.4, 2.4], zoom: 6 },
+    mapMinZoom: 4,
+    mapMaxZoom: 10,
+    regionLabel: "県",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "県",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  },
+  {
     id: "france_area_codes",
     name: "フランス市外局番",
     shortName: "France Area",
@@ -407,6 +471,37 @@ window.GEOQUIZ_DATASETS = [
     },
     i18n: {
       municipality: "Area Code",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  },
+  {
+    id: "poland",
+    name: "ポーランド",
+    shortName: "Poland",
+    title: "GeoQuiz",
+    subtitle: "Poland States Quiz",
+    description: "ポーランドのヴォイヴォデシップを覚えるトレーニングツール。",
+    dataGlobal: "POLAND_MUNICIPALITIES",
+    labelOverridesGlobal: "POLAND_LABEL_OVERRIDES",
+    speechReadingsGlobal: "POLAND_SPEECH_READINGS",
+    remoteGeoJsonUrl: "https://super-duper.fr/geojson/prov/gadm41_POL_1.json",
+    remoteDataFormat: "gadm-admin",
+    remoteNameProperty: "NAME_1",
+    remoteAliasProperty: "VARNAME_1",
+    remoteItemIdPrefix: "poland_",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [52.0, 19.2],
+    initialView: { center: [52.0, 19.2], zoom: 6 },
+    mapMinZoom: 4,
+    mapMaxZoom: 10,
+    regionLabel: "州",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "州",
       areaCode: "Area Code"
     },
     version: "0.1.0"
@@ -1604,7 +1699,6 @@ window.GEOQUIZ_DATASETS = [
 ];
 
 const GERMANY_LANDKREISE_REMOTE_DEFS = [
-  ["germany_landkreise_all", "Germany", null],
   ["germany_landkreise_baden_wurttemberg", "Baden-Württemberg", "Baden-Württemberg"],
   ["germany_landkreise_bayern", "Bayern", "Bayern"],
   ["germany_landkreise_berlin", "Berlin", "Berlin"],
@@ -1630,13 +1724,11 @@ window.GEOQUIZ_DATASETS.push(...GERMANY_LANDKREISE_REMOTE_DEFS.map(function (ent
   var upperKey = id.toUpperCase().replace(/[^A-Z0-9]+/g, "_");
   return {
     id: id,
-    name: filterValue ? "ドイツ ランドクライス " + label : "ドイツ ランドクライス 全域",
-    shortName: filterValue ? label : "Germany All",
+    name: "ドイツ ランドクライス " + label,
+    shortName: label,
     title: "GeoQuiz",
-    subtitle: filterValue ? label + " Landkreise Quiz" : "Germany Landkreise Quiz",
-    description: filterValue
-      ? label + " のランドクライス / 郡独立市を覚えるトレーニングツール。"
-      : "ドイツ全域のランドクライス / 郡独立市を覚えるトレーニングツール。",
+    subtitle: label + " Landkreise Quiz",
+    description: label + " のランドクライス / 郡独立市を覚えるトレーニングツール。",
     dataGlobal: upperKey + "_MUNICIPALITIES",
     labelOverridesGlobal: upperKey + "_LABEL_OVERRIDES",
     speechReadingsGlobal: upperKey + "_SPEECH_READINGS",
@@ -1646,13 +1738,13 @@ window.GEOQUIZ_DATASETS.push(...GERMANY_LANDKREISE_REMOTE_DEFS.map(function (ent
     remoteAliasProperty: "VARNAME_2",
     remoteRegionProperty: "NAME_1",
     remoteItemIdPrefix: id + "_",
-    remoteFilterProperty: filterValue ? "NAME_1" : null,
-    remoteFilterValue: filterValue || null,
+    remoteFilterProperty: "NAME_1",
+    remoteFilterValue: filterValue,
     defaultMode: "municipality",
     enabledModes: ["municipality", "confirm"],
     center: [51.0, 10.2],
-    initialView: filterValue ? null : { center: [51.0, 10.2], zoom: 6 },
-    mapMinZoom: filterValue ? 5 : 4,
+    initialView: null,
+    mapMinZoom: 5,
     mapMaxZoom: 11,
     regionLabel: "Landkreis",
     labelBehavior: {
@@ -1666,8 +1758,56 @@ window.GEOQUIZ_DATASETS.push(...GERMANY_LANDKREISE_REMOTE_DEFS.map(function (ent
   };
 }));
 
+const INDONESIA_KABUPATEN_GROUP_DEFS = [
+  ["indonesia_kabupaten_sumatra", "Sumatra", ["Aceh", "Sumatera Utara", "Sumatera Barat", "Riau", "Jambi", "Sumatera Selatan", "Bengkulu", "Lampung", "Kepulauan Riau", "Bangka-Belitung"]],
+  ["indonesia_kabupaten_java", "Java", ["Banten", "Jakarta Raya", "Jawa Barat", "Jawa Tengah", "Jawa Timur", "Yogyakarta"]],
+  ["indonesia_kabupaten_kalimantan", "Kalimantan", ["Kalimantan Barat", "Kalimantan Tengah", "Kalimantan Selatan", "Kalimantan Timur", "Kalimantan Utara"]],
+  ["indonesia_kabupaten_sulawesi", "Sulawesi", ["Sulawesi Utara", "Gorontalo", "Sulawesi Tengah", "Sulawesi Barat", "Sulawesi Selatan", "Sulawesi Tenggara"]],
+  ["indonesia_kabupaten_nusa_tenggara", "Nusa Tenggara", ["Bali", "Nusa Tenggara Barat", "Nusa Tenggara Timur"]],
+  ["indonesia_kabupaten_maluku", "Maluku", ["Maluku", "Maluku Utara"]],
+  ["indonesia_kabupaten_papua", "Papua", ["Papua", "Irian Jaya Barat"]]
+];
+
+window.GEOQUIZ_DATASETS.push(...INDONESIA_KABUPATEN_GROUP_DEFS.map(function (entry) {
+  var id = entry[0];
+  var groupLabel = entry[1];
+  var filterValues = entry[2];
+  var upperKey = id.toUpperCase().replace(/[^A-Z0-9]+/g, "_");
+  return {
+    id: id,
+    name: "インドネシア カブパテン " + groupLabel,
+    shortName: groupLabel,
+    title: "GeoQuiz",
+    subtitle: groupLabel + " Kabupaten Quiz",
+    description: groupLabel + " のカブパテン / コタを覚えるトレーニングツール。",
+    dataGlobal: upperKey + "_MUNICIPALITIES",
+    labelOverridesGlobal: upperKey + "_LABEL_OVERRIDES",
+    speechReadingsGlobal: upperKey + "_SPEECH_READINGS",
+    remoteGeoJsonUrl: "https://super-duper.fr/geojson/indonesia/indonesia_kabupaten.geojson",
+    remoteDataFormat: "gadm-admin",
+    remoteNameProperty: "province",
+    remoteAliasProperty: "VARNAME_2",
+    remoteRegionProperty: "NAME_1",
+    remoteItemIdPrefix: id + "_",
+    remoteFilterProperty: "NAME_1",
+    remoteFilterValues: filterValues,
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    mapMinZoom: 4,
+    mapMaxZoom: 10,
+    regionLabel: "Kabupaten",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "Kabupaten",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  };
+}));
+
 const INDONESIA_KABUPATEN_REMOTE_DEFS = [
-  ["indonesia_kabupaten_all", "Indonesia", "indonesia_kabupaten.geojson"],
   ["indonesia_kabupaten_aceh", "Aceh", "indonesia_aceh.geojson"],
   ["indonesia_kabupaten_bali", "Bali", "indonesia_bali.geojson"],
   ["indonesia_kabupaten_bangka_belitung", "Bangka-Belitung", "indonesia_bangka.geojson"],
@@ -1711,23 +1851,21 @@ window.GEOQUIZ_DATASETS.push(...INDONESIA_KABUPATEN_REMOTE_DEFS.map(function (en
   var upperKey = id.toUpperCase().replace(/[^A-Z0-9]+/g, "_");
   return {
     id: id,
-    name: provinceLabel === "Indonesia" ? "インドネシア カブパテン 全域" : "インドネシア カブパテン " + provinceLabel,
-    shortName: provinceLabel === "Indonesia" ? "Indonesia All" : provinceLabel,
+    name: "インドネシア カブパテン " + provinceLabel,
+    shortName: provinceLabel,
     title: "GeoQuiz",
-    subtitle: provinceLabel === "Indonesia" ? "Indonesia Kabupaten Quiz" : provinceLabel + " Kabupaten Quiz",
-    description: provinceLabel === "Indonesia"
-      ? "インドネシア全域のカブパテン / コタを覚えるトレーニングツール。"
-      : provinceLabel + " のカブパテン / コタを覚えるトレーニングツール。",
+    subtitle: provinceLabel + " Kabupaten Quiz",
+    description: provinceLabel + " のカブパテン / コタを覚えるトレーニングツール。",
     dataGlobal: upperKey + "_MUNICIPALITIES",
     labelOverridesGlobal: upperKey + "_LABEL_OVERRIDES",
     speechReadingsGlobal: upperKey + "_SPEECH_READINGS",
     remoteGeoJsonUrl: "https://super-duper.fr/geojson/indonesia/" + fileName,
     remoteDataFormat: "indonesia-kabupaten",
-    remoteParentLabel: provinceLabel === "Indonesia" ? null : provinceLabel,
+    remoteParentLabel: provinceLabel,
     defaultMode: "municipality",
     enabledModes: ["municipality", "confirm"],
-    mapMinZoom: provinceLabel === "Indonesia" ? 3 : 4,
-    mapMaxZoom: provinceLabel === "Indonesia" ? 10 : 11,
+    mapMinZoom: 4,
+    mapMaxZoom: 11,
     regionLabel: "Kabupaten",
     labelBehavior: {
       easyMunicipalityNameSuffixes: [""]

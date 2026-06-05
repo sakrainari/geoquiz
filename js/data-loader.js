@@ -214,8 +214,17 @@
     var idPrefix = remoteConfig.remoteItemIdPrefix || (remoteConfig.id + '_');
     var filterProp = remoteConfig.remoteFilterProperty || '';
     var filterValue = remoteConfig.remoteFilterValue;
+    var filterValues = Array.isArray(remoteConfig.remoteFilterValues) ? remoteConfig.remoteFilterValues : null;
 
-    if (filterProp && filterValue != null) {
+    if (filterProp && filterValues && filterValues.length) {
+      sourceFeatures = sourceFeatures.filter(function (feature) {
+        var props = feature && feature.properties ? feature.properties : {};
+        var value = String(props[filterProp] || '').trim();
+        return filterValues.some(function (item) {
+          return value === String(item).trim();
+        });
+      });
+    } else if (filterProp && filterValue != null) {
       sourceFeatures = sourceFeatures.filter(function (feature) {
         var props = feature && feature.properties ? feature.properties : {};
         return String(props[filterProp] || '').trim() === String(filterValue).trim();
@@ -224,32 +233,55 @@
 
     var features = [];
     var municipalities = [];
+    var nameCounts = {};
+    var prepared = [];
 
     sourceFeatures.forEach(function (feature) {
       var props = feature && feature.properties ? feature.properties : {};
       var name = String(props[nameProp] || '').trim();
       if (!name) return;
       var aliases = aliasProp ? parseRemoteAliases(props[aliasProp]) : [];
-      var labelPoint = geometryLabelPoint(feature.geometry);
-      var id = slugifyRemotePart(idPrefix + name);
+      var regionName = regionProp ? String(props[regionProp] || '').trim() || null : null;
+      nameCounts[name] = (nameCounts[name] || 0) + 1;
+      prepared.push({
+        feature: feature,
+        name: name,
+        aliases: aliases,
+        regionName: regionName
+      });
+    });
+
+    var duplicateIndexes = {};
+    prepared.forEach(function (entry) {
+      var uniqueName = entry.name;
+      if (nameCounts[entry.name] > 1) {
+        duplicateIndexes[entry.name] = (duplicateIndexes[entry.name] || 0) + 1;
+        if (entry.regionName) {
+          uniqueName = entry.name + " (" + entry.regionName + ")";
+        } else {
+          uniqueName = entry.name + " " + duplicateIndexes[entry.name];
+        }
+      }
+      var labelPoint = geometryLabelPoint(entry.feature.geometry);
+      var id = slugifyRemotePart(idPrefix + uniqueName);
 
       features.push({
         type: 'Feature',
         properties: {
           id: id,
-          name: name,
+          name: uniqueName,
           area_code: null,
-          tags: aliases,
+          tags: entry.aliases,
           labelPoint: labelPoint,
-          region: regionProp ? String(props[regionProp] || '').trim() || null : null
+          region: entry.regionName
         },
-        geometry: feature.geometry
+        geometry: entry.feature.geometry
       });
 
       municipalities.push({
         id: id,
-        name: name,
-        region: regionProp ? String(props[regionProp] || '').trim() || null : null
+        name: uniqueName,
+        region: entry.regionName
       });
     });
 
@@ -305,12 +337,17 @@
   var hyphenId = toHyphen(config.id);
 
   // ─── 読み込むファイルリストを構築 ───────────────────────────────
-  var files = config.remoteGeoJsonUrl ? [] : [
-    'data/prefectures/' + hyphenId + '.js',
-    'data/' + hyphenId + '/precomputed.js',
-    'data/' + hyphenId + '/label-overrides.js',
-    'data/' + hyphenId + '/speech-readings.js'
-  ];
+  var files = config.remoteGeoJsonUrl
+    ? [
+        'data/' + hyphenId + '/label-overrides.js',
+        'data/' + hyphenId + '/speech-readings.js'
+      ]
+    : [
+        'data/prefectures/' + hyphenId + '.js',
+        'data/' + hyphenId + '/precomputed.js',
+        'data/' + hyphenId + '/label-overrides.js',
+        'data/' + hyphenId + '/speech-readings.js'
+      ];
 
   if (config.ghostGlobal) {
     files.push('data/ghost/kanto-ghost.js');

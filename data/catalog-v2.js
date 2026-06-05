@@ -238,7 +238,7 @@ window.GEOQUIZ_CATALOG_V2 = {
     {
       id: "spain",
       label: "Spain",
-      summary: "自治州 / Area Code",
+      summary: "自治州 / 県 / Area Code",
       region: "europe",
       defaultDatasetId: "spain",
       layers: [
@@ -248,6 +248,14 @@ window.GEOQUIZ_CATALOG_V2 = {
           kind: "admin",
           kindLabel: "自治州",
           datasetId: "spain",
+          enabledQuizModes: ["municipality", "confirm"]
+        },
+        {
+          id: "admin2",
+          label: "Province",
+          kind: "admin",
+          kindLabel: "県",
+          datasetId: "spain_provinces",
           enabledQuizModes: ["municipality", "confirm"]
         },
         {
@@ -263,7 +271,7 @@ window.GEOQUIZ_CATALOG_V2 = {
     {
       id: "france",
       label: "France",
-      summary: "地域圏 / Area Code",
+      summary: "地域圏 / 県 / Area Code",
       region: "europe",
       defaultDatasetId: "france",
       layers: [
@@ -273,6 +281,14 @@ window.GEOQUIZ_CATALOG_V2 = {
           kind: "admin",
           kindLabel: "地域圏",
           datasetId: "france",
+          enabledQuizModes: ["municipality", "confirm"]
+        },
+        {
+          id: "admin2",
+          label: "Department",
+          kind: "admin",
+          kindLabel: "県",
+          datasetId: "france_departments",
           enabledQuizModes: ["municipality", "confirm"]
         },
         {
@@ -288,10 +304,18 @@ window.GEOQUIZ_CATALOG_V2 = {
     {
       id: "poland",
       label: "Poland",
-      summary: "Area Code",
+      summary: "State / Area Code",
       region: "europe",
-      defaultDatasetId: "poland_area_codes",
+      defaultDatasetId: "poland",
       layers: [
+        {
+          id: "admin1",
+          label: "State",
+          kind: "admin",
+          kindLabel: "州",
+          datasetId: "poland",
+          enabledQuizModes: ["municipality", "confirm"]
+        },
         {
           id: "area_code",
           label: "Area Code",
@@ -339,10 +363,9 @@ window.GEOQUIZ_CATALOG_V2 = {
           label: "Landkreis",
           kind: "admin",
           kindLabel: "Landkreis",
-          defaultDatasetId: "germany_landkreise_all",
+          defaultDatasetId: "germany_landkreise_baden_wurttemberg",
           enabledQuizModes: ["municipality", "confirm"],
           datasets: [
-            { id: "germany_landkreise_all", label: "全域", coverage: "country" },
             { id: "germany_landkreise_baden_wurttemberg", label: "Baden-Württemberg", coverage: "state" },
             { id: "germany_landkreise_bayern", label: "Bayern", coverage: "state" },
             { id: "germany_landkreise_berlin", label: "Berlin", coverage: "state" },
@@ -383,10 +406,16 @@ window.GEOQUIZ_CATALOG_V2 = {
           label: "Kabupaten",
           kind: "admin",
           kindLabel: "Kabupaten",
-          defaultDatasetId: "indonesia_kabupaten_all",
+          defaultDatasetId: "indonesia_kabupaten_java",
           enabledQuizModes: ["municipality", "confirm"],
           datasets: [
-            { id: "indonesia_kabupaten_all", label: "全域", coverage: "country" },
+            { id: "indonesia_kabupaten_java", label: "Java", coverage: "subregion" },
+            { id: "indonesia_kabupaten_sumatra", label: "Sumatra", coverage: "subregion" },
+            { id: "indonesia_kabupaten_kalimantan", label: "Kalimantan", coverage: "subregion" },
+            { id: "indonesia_kabupaten_sulawesi", label: "Sulawesi", coverage: "subregion" },
+            { id: "indonesia_kabupaten_nusa_tenggara", label: "Nusa Tenggara", coverage: "subregion" },
+            { id: "indonesia_kabupaten_maluku", label: "Maluku", coverage: "subregion" },
+            { id: "indonesia_kabupaten_papua", label: "Papua", coverage: "subregion" },
             { id: "indonesia_kabupaten_aceh", label: "Aceh", coverage: "state" },
             { id: "indonesia_kabupaten_bali", label: "Bali", coverage: "state" },
             { id: "indonesia_kabupaten_bangka_belitung", label: "Bangka-Belitung", coverage: "state" },

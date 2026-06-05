@@ -1,0 +1,1 @@
+window.POLAND_LABEL_OVERRIDES = {};
