@@ -15,7 +15,7 @@ window.GEOQUIZ_CATALOG_V2 = {
     { id: "south_america", label: "南米", countries: ["brazil"] },
     { id: "africa", label: "アフリカ", countries: ["nigeria"] },
     { id: "east_asia", label: "東アジア", countries: ["thailand", "philippines", "malaysia", "indonesia"] },
-    { id: "europe", label: "欧州", countries: ["spain", "france", "poland", "ukraine"] }
+    { id: "europe", label: "欧州", countries: ["spain", "france", "poland", "ukraine", "germany"] }
   ],
   countries: [
     {
@@ -320,9 +320,53 @@ window.GEOQUIZ_CATALOG_V2 = {
       ]
     },
     {
+      id: "germany",
+      label: "Germany",
+      summary: "State / Landkreis",
+      region: "europe",
+      defaultDatasetId: "germany",
+      layers: [
+        {
+          id: "admin1",
+          label: "State",
+          kind: "admin",
+          kindLabel: "州",
+          datasetId: "germany",
+          enabledQuizModes: ["municipality", "confirm"]
+        },
+        {
+          id: "landkreise",
+          label: "Landkreis",
+          kind: "admin",
+          kindLabel: "Landkreis",
+          defaultDatasetId: "germany_landkreise_all",
+          enabledQuizModes: ["municipality", "confirm"],
+          datasets: [
+            { id: "germany_landkreise_all", label: "全域", coverage: "country" },
+            { id: "germany_landkreise_baden_wurttemberg", label: "Baden-Württemberg", coverage: "state" },
+            { id: "germany_landkreise_bayern", label: "Bayern", coverage: "state" },
+            { id: "germany_landkreise_berlin", label: "Berlin", coverage: "state" },
+            { id: "germany_landkreise_brandenburg", label: "Brandenburg", coverage: "state" },
+            { id: "germany_landkreise_bremen", label: "Bremen", coverage: "state" },
+            { id: "germany_landkreise_hamburg", label: "Hamburg", coverage: "state" },
+            { id: "germany_landkreise_hessen", label: "Hessen", coverage: "state" },
+            { id: "germany_landkreise_mecklenburg_vorpommern", label: "Mecklenburg-Vorpommern", coverage: "state" },
+            { id: "germany_landkreise_niedersachsen", label: "Niedersachsen", coverage: "state" },
+            { id: "germany_landkreise_nordrhein_westfalen", label: "Nordrhein-Westfalen", coverage: "state" },
+            { id: "germany_landkreise_rheinland_pfalz", label: "Rheinland-Pfalz", coverage: "state" },
+            { id: "germany_landkreise_saarland", label: "Saarland", coverage: "state" },
+            { id: "germany_landkreise_sachsen", label: "Sachsen", coverage: "state" },
+            { id: "germany_landkreise_sachsen_anhalt", label: "Sachsen-Anhalt", coverage: "state" },
+            { id: "germany_landkreise_schleswig_holstein", label: "Schleswig-Holstein", coverage: "state" },
+            { id: "germany_landkreise_thuringen", label: "Thüringen", coverage: "state" }
+          ]
+        }
+      ]
+    },
+    {
       id: "indonesia",
       label: "Indonesia",
-      summary: "State",
+      summary: "State / Kabupaten",
       region: "east_asia",
       defaultDatasetId: "indonesia",
       layers: [
@@ -333,6 +377,51 @@ window.GEOQUIZ_CATALOG_V2 = {
           kindLabel: "州",
           datasetId: "indonesia",
           enabledQuizModes: ["municipality", "confirm"]
+        },
+        {
+          id: "kabupaten",
+          label: "Kabupaten",
+          kind: "admin",
+          kindLabel: "Kabupaten",
+          defaultDatasetId: "indonesia_kabupaten_all",
+          enabledQuizModes: ["municipality", "confirm"],
+          datasets: [
+            { id: "indonesia_kabupaten_all", label: "全域", coverage: "country" },
+            { id: "indonesia_kabupaten_aceh", label: "Aceh", coverage: "state" },
+            { id: "indonesia_kabupaten_bali", label: "Bali", coverage: "state" },
+            { id: "indonesia_kabupaten_bangka_belitung", label: "Bangka-Belitung", coverage: "state" },
+            { id: "indonesia_kabupaten_banten", label: "Banten", coverage: "state" },
+            { id: "indonesia_kabupaten_bengkulu", label: "Bengkulu", coverage: "state" },
+            { id: "indonesia_kabupaten_gorontalo", label: "Gorontalo", coverage: "state" },
+            { id: "indonesia_kabupaten_papua_barat", label: "Papua Barat", coverage: "state" },
+            { id: "indonesia_kabupaten_jakarta_raya", label: "Jakarta Raya", coverage: "state" },
+            { id: "indonesia_kabupaten_jambi", label: "Jambi", coverage: "state" },
+            { id: "indonesia_kabupaten_jawa_barat", label: "Jawa Barat", coverage: "state" },
+            { id: "indonesia_kabupaten_jawa_tengah", label: "Jawa Tengah", coverage: "state" },
+            { id: "indonesia_kabupaten_jawa_timur", label: "Jawa Timur", coverage: "state" },
+            { id: "indonesia_kabupaten_kalimantan_barat", label: "Kalimantan Barat", coverage: "state" },
+            { id: "indonesia_kabupaten_kalimantan_selatan", label: "Kalimantan Selatan", coverage: "state" },
+            { id: "indonesia_kabupaten_kalimantan_tengah", label: "Kalimantan Tengah", coverage: "state" },
+            { id: "indonesia_kabupaten_kalimantan_timur", label: "Kalimantan Timur", coverage: "state" },
+            { id: "indonesia_kabupaten_kalimantan_utara", label: "Kalimantan Utara", coverage: "state" },
+            { id: "indonesia_kabupaten_kepulauan_riau", label: "Kepulauan Riau", coverage: "state" },
+            { id: "indonesia_kabupaten_lampung", label: "Lampung", coverage: "state" },
+            { id: "indonesia_kabupaten_maluku", label: "Maluku", coverage: "state" },
+            { id: "indonesia_kabupaten_maluku_utara", label: "Maluku Utara", coverage: "state" },
+            { id: "indonesia_kabupaten_nusa_tenggara_barat", label: "Nusa Tenggara Barat", coverage: "state" },
+            { id: "indonesia_kabupaten_nusa_tenggara_timur", label: "Nusa Tenggara Timur", coverage: "state" },
+            { id: "indonesia_kabupaten_papua", label: "Papua", coverage: "state" },
+            { id: "indonesia_kabupaten_riau", label: "Riau", coverage: "state" },
+            { id: "indonesia_kabupaten_sulawesi_barat", label: "Sulawesi Barat", coverage: "state" },
+            { id: "indonesia_kabupaten_sulawesi_selatan", label: "Sulawesi Selatan", coverage: "state" },
+            { id: "indonesia_kabupaten_sulawesi_tengah", label: "Sulawesi Tengah", coverage: "state" },
+            { id: "indonesia_kabupaten_sulawesi_tenggara", label: "Sulawesi Tenggara", coverage: "state" },
+            { id: "indonesia_kabupaten_sulawesi_utara", label: "Sulawesi Utara", coverage: "state" },
+            { id: "indonesia_kabupaten_sumatera_barat", label: "Sumatera Barat", coverage: "state" },
+            { id: "indonesia_kabupaten_sumatera_selatan", label: "Sumatera Selatan", coverage: "state" },
+            { id: "indonesia_kabupaten_sumatera_utara", label: "Sumatera Utara", coverage: "state" },
+            { id: "indonesia_kabupaten_yogyakarta", label: "Yogyakarta", coverage: "state" }
+          ]
         }
       ]
     },

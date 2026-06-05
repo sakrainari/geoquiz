@@ -80,10 +80,232 @@
     return id.replace(/_/g, '-');
   }
 
+  function slugifyRemotePart(value) {
+    return String(value || '')
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '');
+  }
+
+  function parseRemoteAliases(value) {
+    return String(value || '')
+      .split('|')
+      .map(function (item) { return item.trim(); })
+      .filter(Boolean);
+  }
+
+  function readGeometryPoints(geometry, visit) {
+    if (!geometry || !geometry.type || !geometry.coordinates) return;
+    if (geometry.type === 'Polygon') {
+      geometry.coordinates.forEach(function (ring) {
+        ring.forEach(function (pt) { visit(pt[0], pt[1]); });
+      });
+      return;
+    }
+    if (geometry.type === 'MultiPolygon') {
+      geometry.coordinates.forEach(function (polygon) {
+        polygon.forEach(function (ring) {
+          ring.forEach(function (pt) { visit(pt[0], pt[1]); });
+        });
+      });
+    }
+  }
+
+  function geometryLabelPoint(geometry) {
+    var minLng = Infinity;
+    var maxLng = -Infinity;
+    var minLat = Infinity;
+    var maxLat = -Infinity;
+
+    readGeometryPoints(geometry, function (lng, lat) {
+      if (lng < minLng) minLng = lng;
+      if (lng > maxLng) maxLng = lng;
+      if (lat < minLat) minLat = lat;
+      if (lat > maxLat) maxLat = lat;
+    });
+
+    if (!isFinite(minLng) || !isFinite(minLat)) return null;
+    return [
+      +(((minLat + maxLat) / 2).toFixed(6)),
+      +(((minLng + maxLng) / 2).toFixed(6))
+    ];
+  }
+
+  function buildIndonesiaKabupatenDataset(remoteConfig, geojson) {
+    var sourceFeatures = Array.isArray(geojson && geojson.features) ? geojson.features.slice() : [];
+    var nameCounts = {};
+    var namedFeatures = sourceFeatures.map(function (feature) {
+      var props = feature && feature.properties ? feature.properties : {};
+      var aliases = parseRemoteAliases(props.VARNAME_2);
+      var preferredAlias = aliases.find(function (alias) {
+        return /^(Kabupaten|Kota)\s+/i.test(alias);
+      });
+      var displayName = preferredAlias || String(props.province || '').trim();
+      nameCounts[displayName] = (nameCounts[displayName] || 0) + 1;
+      return {
+        feature: feature,
+        aliases: aliases,
+        displayName: displayName
+      };
+    });
+
+    var duplicateIndexes = {};
+    var features = [];
+    var municipalities = [];
+
+    namedFeatures.forEach(function (entry) {
+      var feature = entry.feature;
+      var displayName = entry.displayName;
+      if (!displayName) return;
+
+      var uniqueName = displayName;
+      if (nameCounts[displayName] > 1) {
+        duplicateIndexes[displayName] = (duplicateIndexes[displayName] || 0) + 1;
+        uniqueName = displayName + ' ' + duplicateIndexes[displayName];
+      }
+
+      var id = remoteConfig.id + '_' + slugifyRemotePart(uniqueName);
+      var labelPoint = geometryLabelPoint(feature.geometry);
+
+      features.push({
+        type: 'Feature',
+        properties: {
+          id: id,
+          name: uniqueName,
+          area_code: null,
+          tags: entry.aliases,
+          labelPoint: labelPoint,
+          region: remoteConfig.remoteParentLabel || null
+        },
+        geometry: feature.geometry
+      });
+
+      municipalities.push({
+        id: id,
+        name: uniqueName,
+        region: remoteConfig.remoteParentLabel || null
+      });
+    });
+
+    municipalities.sort(function (a, b) {
+      return a.name.localeCompare(b.name, 'ja');
+    });
+    features.sort(function (a, b) {
+      return String(a.properties && a.properties.name || '').localeCompare(
+        String(b.properties && b.properties.name || ''),
+        'ja'
+      );
+    });
+
+    return {
+      id: remoteConfig.id,
+      features: features,
+      municipalities: municipalities
+    };
+  }
+
+  function buildGenericAdminDataset(remoteConfig, geojson) {
+    var sourceFeatures = Array.isArray(geojson && geojson.features) ? geojson.features.slice() : [];
+    var nameProp = remoteConfig.remoteNameProperty || 'NAME_1';
+    var aliasProp = remoteConfig.remoteAliasProperty || '';
+    var regionProp = remoteConfig.remoteRegionProperty || '';
+    var idPrefix = remoteConfig.remoteItemIdPrefix || (remoteConfig.id + '_');
+    var filterProp = remoteConfig.remoteFilterProperty || '';
+    var filterValue = remoteConfig.remoteFilterValue;
+
+    if (filterProp && filterValue != null) {
+      sourceFeatures = sourceFeatures.filter(function (feature) {
+        var props = feature && feature.properties ? feature.properties : {};
+        return String(props[filterProp] || '').trim() === String(filterValue).trim();
+      });
+    }
+
+    var features = [];
+    var municipalities = [];
+
+    sourceFeatures.forEach(function (feature) {
+      var props = feature && feature.properties ? feature.properties : {};
+      var name = String(props[nameProp] || '').trim();
+      if (!name) return;
+      var aliases = aliasProp ? parseRemoteAliases(props[aliasProp]) : [];
+      var labelPoint = geometryLabelPoint(feature.geometry);
+      var id = slugifyRemotePart(idPrefix + name);
+
+      features.push({
+        type: 'Feature',
+        properties: {
+          id: id,
+          name: name,
+          area_code: null,
+          tags: aliases,
+          labelPoint: labelPoint,
+          region: regionProp ? String(props[regionProp] || '').trim() || null : null
+        },
+        geometry: feature.geometry
+      });
+
+      municipalities.push({
+        id: id,
+        name: name,
+        region: regionProp ? String(props[regionProp] || '').trim() || null : null
+      });
+    });
+
+    municipalities.sort(function (a, b) {
+      return a.name.localeCompare(b.name, 'ja');
+    });
+    features.sort(function (a, b) {
+      return String(a.properties && a.properties.name || '').localeCompare(
+        String(b.properties && b.properties.name || ''),
+        'ja'
+      );
+    });
+
+    return {
+      id: remoteConfig.id,
+      features: features,
+      municipalities: municipalities
+    };
+  }
+
+  function buildRemoteDataset(remoteConfig, geojson) {
+    if (remoteConfig.remoteDataFormat === 'indonesia-kabupaten') {
+      return buildIndonesiaKabupatenDataset(remoteConfig, geojson);
+    }
+    if (remoteConfig.remoteDataFormat === 'gadm-admin') {
+      return buildGenericAdminDataset(remoteConfig, geojson);
+    }
+    throw new Error('未対応の remoteDataFormat: ' + remoteConfig.remoteDataFormat);
+  }
+
+  function ensureRemoteDatasetLoaded(remoteConfig) {
+    if (!remoteConfig.remoteGeoJsonUrl) return Promise.resolve();
+
+    label.textContent = 'リモートデータを取得しています…';
+    return fetch(remoteConfig.remoteGeoJsonUrl)
+      .then(function (response) {
+        if (!response.ok) throw new Error('HTTP ' + response.status + ' ' + response.statusText);
+        return response.json();
+      })
+      .then(function (geojson) {
+        var payload = buildRemoteDataset(remoteConfig, geojson);
+        window[remoteConfig.dataGlobal] = payload;
+        if (remoteConfig.labelOverridesGlobal && !window[remoteConfig.labelOverridesGlobal]) {
+          window[remoteConfig.labelOverridesGlobal] = {};
+        }
+        if (remoteConfig.speechReadingsGlobal && !window[remoteConfig.speechReadingsGlobal]) {
+          window[remoteConfig.speechReadingsGlobal] = {};
+        }
+        label.textContent = 'アプリを起動しています…';
+      });
+  }
+
   var hyphenId = toHyphen(config.id);
 
   // ─── 読み込むファイルリストを構築 ───────────────────────────────
-  var files = [
+  var files = config.remoteGeoJsonUrl ? [] : [
     'data/prefectures/' + hyphenId + '.js',
     'data/' + hyphenId + '/precomputed.js',
     'data/' + hyphenId + '/label-overrides.js',
@@ -126,5 +348,12 @@
     document.head.appendChild(script);
   }
 
-  loadNext(0);
+  ensureRemoteDatasetLoaded(config)
+    .then(function () {
+      loadNext(0);
+    })
+    .catch(function (error) {
+      console.error('[data-loader] リモートデータ取得失敗:', error);
+      label.textContent = 'リモートデータ取得に失敗しました。通信状況を確認して再読み込みしてください。';
+    });
 })();

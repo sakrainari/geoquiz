@@ -464,6 +464,37 @@ window.GEOQUIZ_DATASETS = [
     version: "0.1.0"
   },
   {
+    id: "germany",
+    name: "ドイツ",
+    shortName: "Germany",
+    title: "GeoQuiz",
+    subtitle: "Germany States Quiz",
+    description: "ドイツの州を覚えるトレーニングツール。",
+    dataGlobal: "GERMANY_MUNICIPALITIES",
+    labelOverridesGlobal: "GERMANY_LABEL_OVERRIDES",
+    speechReadingsGlobal: "GERMANY_SPEECH_READINGS",
+    remoteGeoJsonUrl: "https://super-duper.fr/geojson/prov/gadm41_DEU_1.json",
+    remoteDataFormat: "gadm-admin",
+    remoteNameProperty: "NAME_1",
+    remoteAliasProperty: "VARNAME_1",
+    remoteItemIdPrefix: "germany_",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [51.0, 10.2],
+    initialView: { center: [51.0, 10.2], zoom: 6 },
+    mapMinZoom: 4,
+    mapMaxZoom: 10,
+    regionLabel: "州",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "州",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  },
+  {
     id: "indonesia",
     name: "インドネシア",
     shortName: "Indonesia",
@@ -1571,3 +1602,140 @@ window.GEOQUIZ_DATASETS = [
     version: "0.1.0"
   }
 ];
+
+const GERMANY_LANDKREISE_REMOTE_DEFS = [
+  ["germany_landkreise_all", "Germany", null],
+  ["germany_landkreise_baden_wurttemberg", "Baden-Württemberg", "Baden-Württemberg"],
+  ["germany_landkreise_bayern", "Bayern", "Bayern"],
+  ["germany_landkreise_berlin", "Berlin", "Berlin"],
+  ["germany_landkreise_brandenburg", "Brandenburg", "Brandenburg"],
+  ["germany_landkreise_bremen", "Bremen", "Bremen"],
+  ["germany_landkreise_hamburg", "Hamburg", "Hamburg"],
+  ["germany_landkreise_hessen", "Hessen", "Hessen"],
+  ["germany_landkreise_mecklenburg_vorpommern", "Mecklenburg-Vorpommern", "Mecklenburg-Vorpommern"],
+  ["germany_landkreise_niedersachsen", "Niedersachsen", "Niedersachsen"],
+  ["germany_landkreise_nordrhein_westfalen", "Nordrhein-Westfalen", "Nordrhein-Westfalen"],
+  ["germany_landkreise_rheinland_pfalz", "Rheinland-Pfalz", "Rheinland-Pfalz"],
+  ["germany_landkreise_saarland", "Saarland", "Saarland"],
+  ["germany_landkreise_sachsen", "Sachsen", "Sachsen"],
+  ["germany_landkreise_sachsen_anhalt", "Sachsen-Anhalt", "Sachsen-Anhalt"],
+  ["germany_landkreise_schleswig_holstein", "Schleswig-Holstein", "Schleswig-Holstein"],
+  ["germany_landkreise_thuringen", "Thüringen", "Thüringen"]
+];
+
+window.GEOQUIZ_DATASETS.push(...GERMANY_LANDKREISE_REMOTE_DEFS.map(function (entry) {
+  var id = entry[0];
+  var label = entry[1];
+  var filterValue = entry[2];
+  var upperKey = id.toUpperCase().replace(/[^A-Z0-9]+/g, "_");
+  return {
+    id: id,
+    name: filterValue ? "ドイツ ランドクライス " + label : "ドイツ ランドクライス 全域",
+    shortName: filterValue ? label : "Germany All",
+    title: "GeoQuiz",
+    subtitle: filterValue ? label + " Landkreise Quiz" : "Germany Landkreise Quiz",
+    description: filterValue
+      ? label + " のランドクライス / 郡独立市を覚えるトレーニングツール。"
+      : "ドイツ全域のランドクライス / 郡独立市を覚えるトレーニングツール。",
+    dataGlobal: upperKey + "_MUNICIPALITIES",
+    labelOverridesGlobal: upperKey + "_LABEL_OVERRIDES",
+    speechReadingsGlobal: upperKey + "_SPEECH_READINGS",
+    remoteGeoJsonUrl: "https://super-duper.fr/geojson/prov/gadm41_DEU_2.json",
+    remoteDataFormat: "gadm-admin",
+    remoteNameProperty: "NAME_2",
+    remoteAliasProperty: "VARNAME_2",
+    remoteRegionProperty: "NAME_1",
+    remoteItemIdPrefix: id + "_",
+    remoteFilterProperty: filterValue ? "NAME_1" : null,
+    remoteFilterValue: filterValue || null,
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    center: [51.0, 10.2],
+    initialView: filterValue ? null : { center: [51.0, 10.2], zoom: 6 },
+    mapMinZoom: filterValue ? 5 : 4,
+    mapMaxZoom: 11,
+    regionLabel: "Landkreis",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "Landkreis",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  };
+}));
+
+const INDONESIA_KABUPATEN_REMOTE_DEFS = [
+  ["indonesia_kabupaten_all", "Indonesia", "indonesia_kabupaten.geojson"],
+  ["indonesia_kabupaten_aceh", "Aceh", "indonesia_aceh.geojson"],
+  ["indonesia_kabupaten_bali", "Bali", "indonesia_bali.geojson"],
+  ["indonesia_kabupaten_bangka_belitung", "Bangka-Belitung", "indonesia_bangka.geojson"],
+  ["indonesia_kabupaten_banten", "Banten", "indonesia_banten.geojson"],
+  ["indonesia_kabupaten_bengkulu", "Bengkulu", "indonesia_bengkulu.geojson"],
+  ["indonesia_kabupaten_gorontalo", "Gorontalo", "indonesia_gorontalo.geojson"],
+  ["indonesia_kabupaten_papua_barat", "Papua Barat", "indonesia_irian.geojson"],
+  ["indonesia_kabupaten_jakarta_raya", "Jakarta Raya", "indonesia_jakarta.geojson"],
+  ["indonesia_kabupaten_jambi", "Jambi", "indonesia_jambi.geojson"],
+  ["indonesia_kabupaten_jawa_barat", "Jawa Barat", "indonesia_jawabarat.geojson"],
+  ["indonesia_kabupaten_jawa_tengah", "Jawa Tengah", "indonesia_jawatengah.geojson"],
+  ["indonesia_kabupaten_jawa_timur", "Jawa Timur", "indonesia_jawatimur.geojson"],
+  ["indonesia_kabupaten_kalimantan_barat", "Kalimantan Barat", "indonesia_kalimantanbarat.geojson"],
+  ["indonesia_kabupaten_kalimantan_selatan", "Kalimantan Selatan", "indonesia_kalimantanselatan.geojson"],
+  ["indonesia_kabupaten_kalimantan_tengah", "Kalimantan Tengah", "indonesia_kalimantantengah.geojson"],
+  ["indonesia_kabupaten_kalimantan_timur", "Kalimantan Timur", "indonesia_kalimantantimur.geojson"],
+  ["indonesia_kabupaten_kalimantan_utara", "Kalimantan Utara", "indonesia_kalimantanutara.geojson"],
+  ["indonesia_kabupaten_kepulauan_riau", "Kepulauan Riau", "indonesia_kepriau.geojson"],
+  ["indonesia_kabupaten_lampung", "Lampung", "indonesia_lampung.geojson"],
+  ["indonesia_kabupaten_maluku", "Maluku", "indonesia_maluku.geojson"],
+  ["indonesia_kabupaten_maluku_utara", "Maluku Utara", "indonesia_malukuutara.geojson"],
+  ["indonesia_kabupaten_nusa_tenggara_barat", "Nusa Tenggara Barat", "indonesia_nusabarat.geojson"],
+  ["indonesia_kabupaten_nusa_tenggara_timur", "Nusa Tenggara Timur", "indonesia_nusatimur.geojson"],
+  ["indonesia_kabupaten_papua", "Papua", "indonesia_papua.geojson"],
+  ["indonesia_kabupaten_riau", "Riau", "indonesia_riau.geojson"],
+  ["indonesia_kabupaten_sulawesi_barat", "Sulawesi Barat", "indonesia_sulawesibarat.geojson"],
+  ["indonesia_kabupaten_sulawesi_selatan", "Sulawesi Selatan", "indonesia_sulawesiselatan.geojson"],
+  ["indonesia_kabupaten_sulawesi_tengah", "Sulawesi Tengah", "indonesia_sulawesitengah.geojson"],
+  ["indonesia_kabupaten_sulawesi_tenggara", "Sulawesi Tenggara", "indonesia_sulawesitenggara.geojson"],
+  ["indonesia_kabupaten_sulawesi_utara", "Sulawesi Utara", "indonesia_sulawesiutara.geojson"],
+  ["indonesia_kabupaten_sumatera_barat", "Sumatera Barat", "indonesia_sumaterabarat.geojson"],
+  ["indonesia_kabupaten_sumatera_selatan", "Sumatera Selatan", "indonesia_sumateraselatan.geojson"],
+  ["indonesia_kabupaten_sumatera_utara", "Sumatera Utara", "indonesia_sumaterautara.geojson"],
+  ["indonesia_kabupaten_yogyakarta", "Yogyakarta", "indonesia_yogyakarta.geojson"]
+];
+
+window.GEOQUIZ_DATASETS.push(...INDONESIA_KABUPATEN_REMOTE_DEFS.map(function (entry) {
+  var id = entry[0];
+  var provinceLabel = entry[1];
+  var fileName = entry[2];
+  var upperKey = id.toUpperCase().replace(/[^A-Z0-9]+/g, "_");
+  return {
+    id: id,
+    name: provinceLabel === "Indonesia" ? "インドネシア カブパテン 全域" : "インドネシア カブパテン " + provinceLabel,
+    shortName: provinceLabel === "Indonesia" ? "Indonesia All" : provinceLabel,
+    title: "GeoQuiz",
+    subtitle: provinceLabel === "Indonesia" ? "Indonesia Kabupaten Quiz" : provinceLabel + " Kabupaten Quiz",
+    description: provinceLabel === "Indonesia"
+      ? "インドネシア全域のカブパテン / コタを覚えるトレーニングツール。"
+      : provinceLabel + " のカブパテン / コタを覚えるトレーニングツール。",
+    dataGlobal: upperKey + "_MUNICIPALITIES",
+    labelOverridesGlobal: upperKey + "_LABEL_OVERRIDES",
+    speechReadingsGlobal: upperKey + "_SPEECH_READINGS",
+    remoteGeoJsonUrl: "https://super-duper.fr/geojson/indonesia/" + fileName,
+    remoteDataFormat: "indonesia-kabupaten",
+    remoteParentLabel: provinceLabel === "Indonesia" ? null : provinceLabel,
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "confirm"],
+    mapMinZoom: provinceLabel === "Indonesia" ? 3 : 4,
+    mapMaxZoom: provinceLabel === "Indonesia" ? 10 : 11,
+    regionLabel: "Kabupaten",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "Kabupaten",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  };
+}));

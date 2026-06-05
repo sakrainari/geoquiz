@@ -1056,7 +1056,7 @@
     },
     {
       id: 'europe', label: '欧州',
-      prefIds: ['spain', 'spain_area_codes', 'france', 'france_area_codes', 'poland_area_codes', 'ukraine_area_codes']
+      prefIds: ['spain', 'spain_area_codes', 'france', 'france_area_codes', 'poland_area_codes', 'ukraine_area_codes', 'germany']
     },
     {
       id: 'special', label: '特集',
@@ -1202,6 +1202,16 @@
   var catalogV2 = window.GEOQUIZ_CATALOG_V2 || null;
 
   function findRegionForDataset(dsId) {
+    if (/^indonesia_kabupaten_/.test(dsId)) {
+      for (var j = 0; j < REGIONS.length; j++) {
+        if (REGIONS[j].id === 'east_asia') return REGIONS[j];
+      }
+    }
+    if (/^germany_landkreise_/.test(dsId)) {
+      for (var k = 0; k < REGIONS.length; k++) {
+        if (REGIONS[k].id === 'europe') return REGIONS[k];
+      }
+    }
     for (var i = 0; i < REGIONS.length; i++) {
       var r = REGIONS[i];
       if (r.coming) continue;
@@ -1343,6 +1353,16 @@
     var ids = [];
     if (region.allId) ids.push(region.allId);
     if (region.prefIds && region.prefIds.length) ids = ids.concat(region.prefIds);
+    if (region.id === 'east_asia') {
+      ids = ids.concat(Object.keys(dsMap).filter(function (id) {
+        return /^indonesia_kabupaten_/.test(id);
+      }));
+    }
+    if (region.id === 'europe') {
+      ids = ids.concat(Object.keys(dsMap).filter(function (id) {
+        return /^germany_landkreise_/.test(id);
+      }));
+    }
     return ids;
   }
 
