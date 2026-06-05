@@ -1225,8 +1225,7 @@
     if (ds) {
       badge.textContent = ds.shortName || ds.name;
     } else if (activeRegion) {
-      var cnt = (activeRegion.prefIds ? activeRegion.prefIds.length : 0) +
-                (activeRegion.allId ? 1 : 0);
+      var cnt = getDatasetIdsForActiveRegion().length;
       badge.textContent = activeRegion.label + ' · ' + cnt + 'データセット';
     } else {
       badge.textContent = '—';
@@ -1284,20 +1283,41 @@
     return '市区町村';
   }
 
-  function findRegionV2ForActiveRegion() {
-    if (!catalogV2 || !catalogV2.regions || !activeRegion) return null;
+  function getCatalogRegionIdForActiveRegion() {
+    if (!activeRegion) return null;
     var regionMap = {
+      hokkaido: 'japan',
+      kanto: 'japan',
+      tohoku: 'japan',
+      chubu: 'japan',
+      kinki: 'japan',
+      chugoku: 'japan',
+      shikoku: 'japan',
+      kyushu: 'japan',
+      okinawa: 'japan',
       americas: 'north_america',
       south_america: 'south_america',
       africa: 'africa',
       east_asia: 'east_asia'
     };
-    var targetId = regionMap[activeRegion.id];
+    return regionMap[activeRegion.id] || null;
+  }
+
+  function findRegionV2ForActiveRegion() {
+    if (!catalogV2 || !catalogV2.regions || !activeRegion) return null;
+    var targetId = getCatalogRegionIdForActiveRegion();
     if (!targetId) return null;
     for (var i = 0; i < catalogV2.regions.length; i++) {
       if (catalogV2.regions[i].id === targetId) return catalogV2.regions[i];
     }
     return null;
+  }
+
+  function resolveDatasetSectionLabel() {
+    if (activeRegion && activeRegion.sectionLabel) return activeRegion.sectionLabel;
+    var regionV2 = findRegionV2ForActiveRegion();
+    if (regionV2 && regionV2.id === 'japan') return '地域セット一覧';
+    return 'データセット一覧';
   }
 
   function getCountryDefinitions(regionV2) {
@@ -1307,6 +1327,47 @@
         return catalogV2.countries.find(function (item) { return item.id === countryId; });
       })
       .filter(Boolean);
+  }
+
+  function findJapanRegionSet(regionId) {
+    if (!catalogV2 || !catalogV2.countries) return null;
+    var japan = catalogV2.countries.find(function (country) { return country.id === 'japan'; });
+    if (!japan || !japan.layers) return null;
+    return japan.layers.find(function (layer) { return layer.id === regionId; }) || null;
+  }
+
+  function getDatasetIdsForActiveRegion() {
+    if (!activeRegion) return [];
+    var regionSet = findJapanRegionSet(activeRegion.id);
+    if (regionSet && regionSet.datasets && regionSet.datasets.length) {
+      return regionSet.datasets.map(function (item) { return item.id; });
+    }
+    var ids = [];
+    if (activeRegion.allId) ids.push(activeRegion.allId);
+    if (activeRegion.prefIds && activeRegion.prefIds.length) ids = ids.concat(activeRegion.prefIds);
+    return ids;
+  }
+
+  function getAllDatasetForActiveRegion() {
+    if (!activeRegion) return null;
+    var regionSet = findJapanRegionSet(activeRegion.id);
+    if (regionSet) {
+      var ds = getPrimaryLayerDataset(regionSet);
+      if (ds) return ds;
+    }
+    return activeRegion.allId ? dsMap[activeRegion.allId] : null;
+  }
+
+  function getPrefDatasetIdsForActiveRegion() {
+    if (!activeRegion) return [];
+    var regionSet = findJapanRegionSet(activeRegion.id);
+    if (regionSet && regionSet.datasets && regionSet.datasets.length) {
+      var allDs = getAllDatasetForActiveRegion();
+      return regionSet.datasets
+        .map(function (item) { return item.id; })
+        .filter(function (id) { return !allDs || id !== allDs.id; });
+    }
+    return activeRegion.prefIds || [];
   }
 
   function getLayerDatasetIds(layer) {
@@ -1572,40 +1633,39 @@
     }
 
     /* 全域カード */
-    if (activeRegion.allId) {
-      var allDs = dsMap[activeRegion.allId];
-      if (allDs) {
-        var allStats = getDsStats(allDs);
-        var allCard = document.createElement('button');
-        allCard.type = 'button';
-        allCard.className = 'ds-card-all' + (currentDsId === allDs.id ? ' is-active' : '');
-        allCard.dataset.datasetId = allDs.id;
-        allCard.innerHTML =
-          '<div class="ds-card-body">' +
-            '<div class="ds-card-name">' + esc(allDs.shortName || allDs.name) + '</div>' +
-            (allStats.muniCount != null
-              ? '<div class="ds-card-meta">' + esc(statsText(allDs, allStats, true)) + '</div>'
-              : '') +
-          '</div>' +
-          '<span class="ds-card-badge">全域まとめて練習</span>';
-        allCard.addEventListener('click', function () {
-          location.href = '?dataset=' + allDs.id;
-        });
-        grid.appendChild(allCard);
-      }
+    var allDs = getAllDatasetForActiveRegion();
+    if (allDs) {
+      var allStats = getDsStats(allDs);
+      var allCard = document.createElement('button');
+      allCard.type = 'button';
+      allCard.className = 'ds-card-all' + (currentDsId === allDs.id ? ' is-active' : '');
+      allCard.dataset.datasetId = allDs.id;
+      allCard.innerHTML =
+        '<div class="ds-card-body">' +
+          '<div class="ds-card-name">' + esc(allDs.shortName || allDs.name) + '</div>' +
+          (allStats.muniCount != null
+            ? '<div class="ds-card-meta">' + esc(statsText(allDs, allStats, true)) + '</div>'
+            : '') +
+        '</div>' +
+        '<span class="ds-card-badge">全域まとめて練習</span>';
+      allCard.addEventListener('click', function () {
+        location.href = '?dataset=' + allDs.id;
+      });
+      grid.appendChild(allCard);
     }
 
     /* 都道府県グリッド */
-    if (activeRegion.prefIds && activeRegion.prefIds.length) {
+    var prefDatasetIds = getPrefDatasetIdsForActiveRegion();
+    if (prefDatasetIds.length) {
       var secLabel = document.createElement('p');
       secLabel.className = 'section-label';
-      secLabel.textContent = activeRegion.sectionLabel || 'データセット一覧';
+      secLabel.textContent = resolveDatasetSectionLabel();
       grid.appendChild(secLabel);
 
       var prefGrid = document.createElement('div');
       prefGrid.className = 'ds-pref-grid';
 
-      activeRegion.prefIds.forEach(function (pid) {
+      prefDatasetIds.forEach(function (pid) {
         var ds = dsMap[pid];
         if (!ds) return;
         var stats = getDsStats(ds);
