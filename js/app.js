@@ -24,6 +24,7 @@
   let puzzleState = null;
   let previousPuzzleFixed = 0;
   let audioContext = null;
+  const catalogV2 = window.GEOQUIZ_CATALOG_V2 || null;
   const QUIZ_START_MODES = ["municipality", "ma", "municipality_th", "municipality_th_abbr"];
   const DEFAULT_QUIZ_MODE = appConfig.enabledModes.includes("municipality")
     ? "municipality"
@@ -1663,8 +1664,44 @@
     return (config && config.i18n && config.i18n[key]) || fallback;
   }
 
+  function findCurrentCatalogLayer() {
+    if (!catalogV2 || !Array.isArray(catalogV2.countries)) return null;
+    for (const country of catalogV2.countries) {
+      if (!country || !Array.isArray(country.layers)) continue;
+      for (const layer of country.layers) {
+        if (!layer) continue;
+        if (layer.datasetId === appConfig.id) return layer;
+        if (layer.defaultDatasetId === appConfig.id) return layer;
+        if (Array.isArray(layer.datasets) && layer.datasets.some((item) => item && item.id === appConfig.id)) {
+          return layer;
+        }
+      }
+    }
+    return null;
+  }
+
+  function primaryModeLabel() {
+    const layer = findCurrentCatalogLayer();
+    if (layer && layer.label) return layer.label;
+    return getI18n(appConfig, "municipality", "市区町村");
+  }
+
+  function primaryModeKindLabel() {
+    const layer = findCurrentCatalogLayer();
+    if (layer && layer.kindLabel) return layer.kindLabel;
+    return appConfig.regionLabel || primaryModeLabel();
+  }
+
+  function layerEnabledModes() {
+    const layer = findCurrentCatalogLayer();
+    if (layer && Array.isArray(layer.enabledQuizModes) && layer.enabledQuizModes.length) {
+      return layer.enabledQuizModes;
+    }
+    return appConfig.enabledModes || [];
+  }
+
   function modeName(mode) {
-    if (mode === "municipality") return getI18n(appConfig, "municipality", "市区町村") + "モード";
+    if (mode === "municipality") return primaryModeLabel() + "モード";
     if (mode === "ma") return getI18n(appConfig, "areaCode", "市外局番") + "モード";
     return window.QuizModes.getMode(mode).label;
   }
@@ -1747,7 +1784,7 @@
     if (els.map) els.map.setAttribute("aria-label", `${appConfig.name}クイズ地図`);
     applyDatasetModeDescriptions();
     // Apply i18n display names
-    const muniLabel = getI18n(appConfig, "municipality", "市区町村");
+    const muniLabel = primaryModeLabel();
     const maLabel   = getI18n(appConfig, "areaCode", "市外局番");
     const modeCardMuniTitle = document.getElementById("modeCardMuniTitle");
     if (modeCardMuniTitle) modeCardMuniTitle.textContent = muniLabel;
@@ -1815,8 +1852,9 @@
   }
 
   function getPrimaryModeTagLabel() {
-    const muniLabel = getI18n(appConfig, "municipality", "市区町村");
-    const regionLabel = String(appConfig.regionLabel || "").trim();
+    const layer = findCurrentCatalogLayer();
+    const muniLabel = primaryModeLabel();
+    const regionLabel = String((layer && layer.label) || primaryModeKindLabel() || "").trim();
     if (muniLabel === "Area Code") return "AREA CODE";
     if (regionLabel) return formatModeTagLabel(regionLabel);
     return formatModeTagLabel(muniLabel);
@@ -1827,19 +1865,19 @@
     const areaCodeButton = document.querySelector('[data-start-mode="ma"] .mode-card-desc');
     const confirmButton = document.querySelector('[data-start-mode="confirm"] .mode-card-desc');
     const confirmAreaCodeButton = document.querySelector('[data-start-mode="confirm_ma"] .mode-card-desc');
-    const muniLabel = getI18n(appConfig, "municipality", "市区町村");
+    const muniLabel = primaryModeLabel();
     const areaCodeCount = new Set(dataset.municipalities.map((item) => item.area_code).filter(Boolean)).size;
     if (municipalityButton) {
-      municipalityButton.textContent = `${muniLabel}名から場所を当てる · ${dataset.municipalities.length}問`;
+      municipalityButton.textContent = `${muniLabel}から場所を当てる · ${dataset.municipalities.length}問`;
     }
     if (areaCodeButton) {
-      areaCodeButton.textContent = `番号からエリアを当てる · ${areaCodeCount}問`;
+      areaCodeButton.textContent = `Area Codeから場所を当てる · ${areaCodeCount}問`;
     }
     if (confirmButton) {
-      confirmButton.textContent = `全${dataset.municipalities.length}${muniLabel}を表示して確認`;
+      confirmButton.textContent = `${muniLabel}を一覧表示して確認 · ${dataset.municipalities.length}問`;
     }
     if (confirmAreaCodeButton) {
-      confirmAreaCodeButton.textContent = `全${areaCodeCount}市外局番エリアを表示して確認`;
+      confirmAreaCodeButton.textContent = `Area Codeを一覧表示して確認 · ${areaCodeCount}問`;
     }
     const muniThButton = document.querySelector('[data-start-mode="municipality_th"] .mode-card-desc');
     if (muniThButton) {
@@ -1856,7 +1894,7 @@
   function applyAvailableModes() {
     document.querySelectorAll(".mode-card[data-start-mode]").forEach((button) => {
       const mode = button.dataset.startMode;
-      const enabled = appConfig.enabledModes.includes(mode);
+      const enabled = appConfig.enabledModes.includes(mode) && layerEnabledModes().includes(mode);
       button.classList.toggle("is-hidden", !enabled);
       button.setAttribute("aria-hidden", String(!enabled));
       if (enabled) {
