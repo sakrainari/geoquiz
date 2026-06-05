@@ -96,6 +96,18 @@
       .filter(Boolean);
   }
 
+  function formatRemoteNativeName(baseName, typeValue, typeMap) {
+    var name = String(baseName || '').trim();
+    if (!name) return '';
+    if (!typeMap || !typeValue) return name;
+    var template = typeMap[typeValue];
+    if (!template) return name;
+    if (template.indexOf('%s') >= 0) {
+      return template.replace('%s', name);
+    }
+    return (name + ' ' + template).trim();
+  }
+
   function readGeometryPoints(geometry, visit) {
     if (!geometry || !geometry.type || !geometry.coordinates) return;
     if (geometry.type === 'Polygon') {
@@ -211,6 +223,9 @@
     var nameProp = remoteConfig.remoteNameProperty || 'NAME_1';
     var aliasProp = remoteConfig.remoteAliasProperty || '';
     var regionProp = remoteConfig.remoteRegionProperty || '';
+    var nativeNameProp = remoteConfig.remoteNativeNameProperty || '';
+    var nativeTypeProp = remoteConfig.remoteNativeTypeProperty || '';
+    var nativeTypeMap = remoteConfig.remoteNativeTypeMap || null;
     var idPrefix = remoteConfig.remoteItemIdPrefix || (remoteConfig.id + '_');
     var filterProp = remoteConfig.remoteFilterProperty || '';
     var filterValue = remoteConfig.remoteFilterValue;
@@ -242,12 +257,16 @@
       if (!name) return;
       var aliases = aliasProp ? parseRemoteAliases(props[aliasProp]) : [];
       var regionName = regionProp ? String(props[regionProp] || '').trim() || null : null;
+      var nativeNameRaw = nativeNameProp ? String(props[nativeNameProp] || '').trim() : '';
+      var nativeTypeRaw = nativeTypeProp ? String(props[nativeTypeProp] || '').trim() : '';
+      var nativeName = formatRemoteNativeName(nativeNameRaw, nativeTypeRaw, nativeTypeMap);
       nameCounts[name] = (nameCounts[name] || 0) + 1;
       prepared.push({
         feature: feature,
         name: name,
         aliases: aliases,
-        regionName: regionName
+        regionName: regionName,
+        nativeName: nativeName || null
       });
     });
 
@@ -270,6 +289,7 @@
         properties: {
           id: id,
           name: uniqueName,
+          name_native: entry.nativeName,
           area_code: null,
           tags: entry.aliases,
           labelPoint: labelPoint,
@@ -281,6 +301,7 @@
       municipalities.push({
         id: id,
         name: uniqueName,
+        name_native: entry.nativeName,
         region: entry.regionName
       });
     });

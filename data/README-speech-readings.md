@@ -9,6 +9,7 @@
 - dataset の `id` が `france_departments` なら: `data/france-departments/speech-readings.js`
 - dataset の `id` が `germany` なら: `data/germany/speech-readings.js`
 - dataset の `id` が `poland` なら: `data/poland/speech-readings.js`
+- dataset の `id` が `ukraine` なら: `data/ukraine/speech-readings.js`
 
 `catalog.js` の各 dataset エントリで `speechReadingsGlobal` を指定し、`js/data-loader.js` が
 `data/<hyphen-id>/speech-readings.js` を読み込みます。
@@ -21,6 +22,7 @@
 - `spain_provinces`
 - `france_departments`
 - `poland`
+- `ukraine`
 
 などは、GeoJSON 本体はリモート取得ですが、読み上げはローカルの `data/<dataset>/speech-readings.js`
 で上書きしています。
@@ -28,11 +30,7 @@
 ## 調整方針
 
 - 基本は Google マップの日本語表記に寄せる
-- 行政区分の語尾は必要に応じて付ける
-  - `州`
-  - `県`
-  - `自治市`
-  - `地域圏`
+- 地名系の読みはテンポ優先で、原則として行政区分の語尾を付けない
 - 数字系の読みは各 `Area Code` dataset 側で個別管理する
 
 ## よく触るファイル
@@ -45,4 +43,5 @@
 - `data/france-departments/speech-readings.js`
 - `data/germany/speech-readings.js`
 - `data/poland/speech-readings.js`
+- `data/ukraine/speech-readings.js`
 - `data/indonesia/speech-readings.js`

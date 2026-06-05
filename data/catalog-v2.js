@@ -7,6 +7,7 @@ window.GEOQUIZ_CATALOG_V2 = {
     { id: "confirm_ma", label: "Area Code確認", description: "市外局番エリアを一覧で確認するモード" },
     { id: "municipality_th", label: "タイ語名", description: "タイ語の正式名称で当てるモード" },
     { id: "municipality_th_abbr", label: "タイ語略称", description: "タイ語の略称で当てるモード" },
+    { id: "municipality_native", label: "現地語名", description: "現地語の表記で当てるモード" },
     { id: "puzzle", label: "パズル", description: "位置を戻して覚えるモード" }
   ],
   regions: [
@@ -329,10 +330,18 @@ window.GEOQUIZ_CATALOG_V2 = {
     {
       id: "ukraine",
       label: "Ukraine",
-      summary: "Area Code",
+      summary: "State / Area Code",
       region: "europe",
-      defaultDatasetId: "ukraine_area_codes",
+      defaultDatasetId: "ukraine",
       layers: [
+        {
+          id: "admin1",
+          label: "State",
+          kind: "admin",
+          kindLabel: "州",
+          datasetId: "ukraine",
+          enabledQuizModes: ["municipality", "municipality_native", "confirm"]
+        },
         {
           id: "area_code",
           label: "Area Code",

@@ -121,6 +121,30 @@
         return question.memberIds;
       }
     },
+    municipality_native: {
+      id: "municipality_native",
+      label: "現地語名モード",
+      buildQuestions(answers) {
+        return answers
+          .filter((item) => item.name_native)
+          .map((item) => ({
+            id: item.id,
+            answerId: item.id,
+            answerLabel: item.name_native,
+            nameEn: item.name,
+            memberIds: [item.id]
+          }));
+      },
+      questionText(question) {
+        return question.answerLabel;
+      },
+      isCorrect(question, featureProperties) {
+        return featureProperties.id === question.answerId;
+      },
+      correctMemberIds(question) {
+        return question.memberIds;
+      }
+    },
     confirm: {
       id: "confirm",
       label: "確認マップ",

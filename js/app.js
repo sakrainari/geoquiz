@@ -25,7 +25,7 @@
   let previousPuzzleFixed = 0;
   let audioContext = null;
   const catalogV2 = window.GEOQUIZ_CATALOG_V2 || null;
-  const QUIZ_START_MODES = ["municipality", "ma", "municipality_th", "municipality_th_abbr"];
+  const QUIZ_START_MODES = ["municipality", "ma", "municipality_th", "municipality_th_abbr", "municipality_native"];
   const DEFAULT_QUIZ_MODE = appConfig.enabledModes.includes("municipality")
     ? "municipality"
     : (QUIZ_START_MODES.find((mode) => appConfig.enabledModes.includes(mode)) || "municipality");
@@ -768,7 +768,7 @@
     ensureMap().reset();
     applyTileLayerSelection(currentSessionSettings.tileLayerVisible);
     renderer.setMode(mode);
-    renderer.setEasyMode(currentSessionSettings.rule === "easy" && ["municipality", "municipality_th", "municipality_th_abbr", "ma"].includes(mode));
+    renderer.setEasyMode(currentSessionSettings.rule === "easy" && ["municipality", "municipality_th", "municipality_th_abbr", "municipality_native", "ma"].includes(mode));
     lastReferenceKey = null;
     inputLocked = true;
     engine.reset(mode, currentSessionSettings.rule, startOptions);
@@ -1964,6 +1964,13 @@
     if (muniThAbbrButton) {
       const abbrCount = dataset.municipalities.filter((m) => m.name_abbr_th).length;
       if (abbrCount > 0) muniThAbbrButton.textContent = `タイ語略称で県を当てる · ${abbrCount}問`;
+    }
+    const muniNativeButton = document.querySelector('[data-start-mode="municipality_native"] .mode-card-desc');
+    if (muniNativeButton) {
+      const nativeCount = dataset.municipalities.filter((m) => m.name_native).length;
+      if (nativeCount > 0) {
+        muniNativeButton.textContent = `現地語名で${muniLabel}を当てる · ${nativeCount}問`;
+      }
     }
   }
 

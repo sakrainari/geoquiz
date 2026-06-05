@@ -533,6 +533,45 @@ window.GEOQUIZ_DATASETS = [
     version: "0.1.0"
   },
   {
+    id: "ukraine",
+    name: "ウクライナ",
+    shortName: "Ukraine",
+    title: "GeoQuiz",
+    subtitle: "Ukraine States Quiz",
+    description: "ウクライナの州と特別市の位置を覚えるトレーニングツール。現地語名モードあり。",
+    dataGlobal: "UKRAINE_MUNICIPALITIES",
+    labelOverridesGlobal: "UKRAINE_LABEL_OVERRIDES",
+    speechReadingsGlobal: "UKRAINE_SPEECH_READINGS",
+    remoteGeoJsonUrl: "https://super-duper.fr/geojson/prov/gadm41_UKR_1.json",
+    remoteDataFormat: "gadm-admin",
+    remoteNameProperty: "NAME_1",
+    remoteAliasProperty: "VARNAME_1",
+    remoteNativeNameProperty: "NL_NAME_1",
+    remoteNativeTypeProperty: "TYPE_1",
+    remoteNativeTypeMap: {
+      "AutonomousRepublic": "Автономна Республіка %s",
+      "IndependentCity": "%s",
+      "Oblast'": "%s область"
+    },
+    remoteItemIdPrefix: "ukraine_",
+    defaultMode: "municipality",
+    enabledModes: ["municipality", "municipality_native", "confirm"],
+    center: [49.0, 31.3],
+    initialView: { center: [49.0, 31.3], zoom: 6 },
+    mapMinZoom: 4,
+    mapMaxZoom: 10,
+    regionLabel: "州",
+    labelBehavior: {
+      easyMunicipalityNameSuffixes: [""]
+    },
+    i18n: {
+      municipality: "State",
+      municipality_native: "現地語名",
+      areaCode: "Area Code"
+    },
+    version: "0.1.0"
+  },
+  {
     id: "ukraine_area_codes",
     name: "ウクライナ市外局番",
     shortName: "Ukraine Area",

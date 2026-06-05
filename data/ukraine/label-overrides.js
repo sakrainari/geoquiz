@@ -1,0 +1,1 @@
+window.UKRAINE_LABEL_OVERRIDES = {};
