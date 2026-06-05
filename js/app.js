@@ -1672,6 +1672,7 @@
         if (!layer) continue;
         if (layer.datasetId === appConfig.id) return layer;
         if (layer.defaultDatasetId === appConfig.id) return layer;
+        if (layer.kind === "region_set") continue;
         if (Array.isArray(layer.datasets) && layer.datasets.some((item) => item && item.id === appConfig.id)) {
           return layer;
         }
