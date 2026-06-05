@@ -19,6 +19,7 @@ window.GEOQUIZ_CATALOG_V2 = {
     {
       id: "usa",
       label: "USA",
+      summary: "State / Area Code",
       region: "north_america",
       defaultDatasetId: "usa",
       layers: [
@@ -51,6 +52,7 @@ window.GEOQUIZ_CATALOG_V2 = {
     {
       id: "brazil",
       label: "Brazil",
+      summary: "State / Area Code",
       region: "south_america",
       defaultDatasetId: "brazil",
       layers: [
@@ -75,6 +77,7 @@ window.GEOQUIZ_CATALOG_V2 = {
     {
       id: "nigeria",
       label: "Nigeria",
+      summary: "State",
       region: "africa",
       defaultDatasetId: "nigeria",
       layers: [
@@ -91,6 +94,7 @@ window.GEOQUIZ_CATALOG_V2 = {
     {
       id: "thailand",
       label: "Thailand",
+      summary: "Province",
       region: "east_asia",
       defaultDatasetId: "thailand",
       layers: [
@@ -107,6 +111,7 @@ window.GEOQUIZ_CATALOG_V2 = {
     {
       id: "philippines",
       label: "Philippines",
+      summary: "Province",
       region: "east_asia",
       defaultDatasetId: "philippines",
       layers: [
@@ -123,6 +128,7 @@ window.GEOQUIZ_CATALOG_V2 = {
     {
       id: "malaysia",
       label: "Malaysia",
+      summary: "State",
       region: "east_asia",
       defaultDatasetId: "malaysia",
       layers: [

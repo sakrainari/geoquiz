@@ -1344,6 +1344,15 @@
     return base;
   }
 
+  function countryQuestionCount(country) {
+    if (!country || !country.layers) return 0;
+    return country.layers.reduce(function (sum, layer) {
+      var ds = getPrimaryLayerDataset(layer);
+      if (!ds || !Array.isArray(ds.municipalities)) return sum;
+      return sum + ds.municipalities.length;
+    }, 0);
+  }
+
   function renderCountryThemePrototype() {
     var regionV2 = findRegionV2ForActiveRegion();
     if (!regionV2) return false;
@@ -1356,7 +1365,7 @@
     grid.appendChild(secLabel);
 
     var stack = document.createElement('div');
-    stack.className = 'country-picker-stack';
+    stack.className = 'country-tree';
 
     countries.forEach(function (country) {
       var group = document.createElement('section');
@@ -1364,54 +1373,71 @@
 
       var head = document.createElement('div');
       head.className = 'country-group-head';
+      var totalQuestions = countryQuestionCount(country);
+      var headMeta = (country.layers || []).length + 'テーマ';
+      if (totalQuestions > 0) headMeta += ' ・ ' + totalQuestions + '問';
       head.innerHTML =
-        '<h3 class="country-group-title">' + esc(country.label) + '</h3>' +
-        '<span class="country-group-meta">' + esc((country.layers || []).length + 'テーマ') + '</span>';
+        '<div>' +
+          '<h3 class="country-group-title">' + esc(country.label) + '</h3>' +
+          (country.summary ? '<p class="country-group-summary">' + esc(country.summary) + '</p>' : '') +
+        '</div>' +
+        '<span class="country-group-meta">' + esc(headMeta) + '</span>';
       group.appendChild(head);
 
-      var themeGrid = document.createElement('div');
-      themeGrid.className = 'country-theme-grid';
+      var themeList = document.createElement('ul');
+      themeList.className = 'country-tree-list';
 
       (country.layers || []).forEach(function (layer) {
         var ds = getPrimaryLayerDataset(layer);
         if (!ds) return;
         var stats = getDsStats(ds);
-        var card = document.createElement('button');
-        card.type = 'button';
-        card.className = 'country-theme-card' + (currentDsId === ds.id ? ' is-active' : '');
-        card.dataset.datasetId = ds.id;
-        card.innerHTML =
-          '<div class="country-theme-topline">' +
-            '<span class="country-theme-label">' + esc(layer.label || ds.shortName || ds.name) + '</span>' +
-            '<span class="country-theme-kind">' + esc(layerKindLabel(layer)) + '</span>' +
+        var item = document.createElement('li');
+        item.className = 'country-tree-item';
+
+        var node = document.createElement('button');
+        node.type = 'button';
+        node.className = 'country-tree-node' + (currentDsId === ds.id ? ' is-active' : '');
+        node.dataset.datasetId = ds.id;
+        node.innerHTML =
+          '<div class="country-tree-node-top">' +
+            '<span class="country-tree-node-label">' + esc(layer.label || ds.shortName || ds.name) + '</span>' +
+            '<span class="country-tree-node-kind">' + esc(layerKindLabel(layer)) + '</span>' +
           '</div>' +
-          '<div class="country-theme-desc">' + esc(layerDescriptionText(layer, ds, stats)) + '</div>';
-        card.addEventListener('click', function () {
+          '<div class="country-tree-node-desc">' + esc(layerDescriptionText(layer, ds, stats)) + '</div>';
+        node.addEventListener('click', function () {
           location.href = '?dataset=' + ds.id;
         });
-        themeGrid.appendChild(card);
+        item.appendChild(node);
 
         if (layer.datasets && layer.datasets.length > 1) {
-          var subsets = document.createElement('div');
-          subsets.className = 'country-theme-subsets';
-          layer.datasets.forEach(function (item) {
-            var subsetDs = dsMap[item.id];
+          var sublist = document.createElement('ul');
+          sublist.className = 'country-tree-sublist';
+          layer.datasets.forEach(function (entry) {
+            var subsetDs = dsMap[entry.id];
             if (!subsetDs) return;
+            if (subsetDs.id === ds.id) return;
+            var subitem = document.createElement('li');
+            subitem.className = 'country-tree-subitem';
             var subset = document.createElement('button');
             subset.type = 'button';
-            subset.className = 'country-theme-subset' + (currentDsId === subsetDs.id ? ' is-active' : '');
-            subset.textContent = item.label || subsetDs.shortName || subsetDs.name;
+            subset.className = 'country-tree-subbutton' + (currentDsId === subsetDs.id ? ' is-active' : '');
+            subset.textContent = entry.label || subsetDs.shortName || subsetDs.name;
             subset.addEventListener('click', function (e) {
               e.stopPropagation();
               location.href = '?dataset=' + subsetDs.id;
             });
-            subsets.appendChild(subset);
+            subitem.appendChild(subset);
+            sublist.appendChild(subitem);
           });
-          themeGrid.appendChild(subsets);
+          if (sublist.childNodes.length) {
+            item.appendChild(sublist);
+          }
         }
+
+        themeList.appendChild(item);
       });
 
-      group.appendChild(themeGrid);
+      group.appendChild(themeList);
       stack.appendChild(group);
     });
 
